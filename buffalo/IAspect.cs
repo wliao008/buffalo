@@ -2,7 +2,9 @@
 {
     public interface IAspect
     {
-        void OnEntry();
-        void OnExit();
+        void Before();
+        void After();
+        void Around();
+        void Exception();
     }
 }

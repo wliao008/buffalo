@@ -13,9 +13,9 @@ namespace client
         }
     }
 
-    class MyAspect : Aspect
+    class Profile : Aspect
     {
-        public override void OnEntry()
+        public override void Before()
         {
             Console.WriteLine("Entering...");
         }
