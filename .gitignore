@@ -4,3 +4,13 @@ obj
 
 # mstest test results
 TestResults
+
+# latex artifacts
+proposal/*.aux
+proposal/*.log
+proposal/*.bbl
+proposal/*.blg
+proposal/*.pdf
+
+# ~
+*.*~
