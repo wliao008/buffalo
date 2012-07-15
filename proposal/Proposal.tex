@@ -44,6 +44,7 @@
 \
 {\em Committee Chair:} Prof. James E. Heliotis\\
 \vspace{0.1in}
+%Signature: \line(1,0) {100} Date: \line(250, 0) {100}\\
 {\em Reader: } Prof. Fereydoun Kazemian\\
  \vspace{0.1in}
 {\em Observer: } Prof. Matthew Fluet\\
@@ -114,15 +115,17 @@ Imagine again, wif you need to fine tune this try..catch block to catch a specif
 The problem is how to isolate those cross-cutting concerns from loitering your program. Aspect Oriented Programming technique [1] can be used to cleanly separate such concerns.
 
 \subsection{Aspect-Oriented Programming}
-The Aspect Oriented Programming paradigm is first discussed in the 1997 paper ~\cite{aop}. When talk about AOP, the following terms are often mentioned.
+The Aspect Oriented Programming paradigm is first discussed in the 1997 paper ~\cite{aop}. When talk about AOP, the following concepts are worth noting.
 
-pointcut - 
-join point - 
-aspect -
+{\em concern} - It is the repetitive code that cross-cut into different modules of the program. It is often code that does not conviently fit into the dominant paradigm of design.
 
-In it's most general form, AOP injects a piece of code into all relevant places in a program.
+{\em aspect} - It is the piece of isolated code that can be used to solve the issue of a particluar concern.
 
-\section{Related Work}Like other paradigms, AOP is most effective and beneficial to programmers when it is supported on the compiler level, and make it a first class citizen like other properties of a language. Failing that, the next best thing is to have a framework to provide the support.
+{\em join points} - Locations through out the program where the concern might be cut into, it is also where the aspect will be applied.
+
+From the above concept we should have a pretty clear idea that first, we have some cross-cutting code that's not easy to maintaint, so we can isolate them into a separate piece of code, then we can injects the aspect into all relevant places in a program.
+
+\section{Related Work}Like other programming paradigms, AOP is most effective and beneficial to programmers when it is supported on the compiler level, and make it a first class citizen like other properties of a language. As of now, very few languages provide native support, Delphi Prism 2010 is one of them, where the weaving of aspect code happens at compile time ~\cite{delphi_prism2010}. But most languages currently rely on compiler extension or framework to provide the support.
 
 \subsection{Compile Support}
 
