@@ -78,11 +78,14 @@ Aspect Oriented Programming (AOP) is a paradigm that let programmers isolate and
 \newpage{}
 
 \section{Introduction}
-This part of the proposal should be a couple of paragraphs that
-describe the reason for your proposal and your project/thesis area at
-high level.
+The current breed of high level programming languages such as JAVA and C\# have given programmers a lot of freedowm in expressing themselves in Object Oriented Design. However they are still lacking in some areas when it comes to some particular software design decision such as cross-cutting concern. 
+
+In this project we will design and implement a framework for the C\# platform that will help programmers solve this type of problems.
+
+In section 2 we will dive into some of the areas that the current programming paradigm are not efficient at solving, we will look at some examples. In section 3 we will look at existing works and what have been done. In section 5 we will explain what we propose to do and give and overview of the architecture of the framework that we will implement, and what we want the end result to be. A tentative roadmap is given in section 6.
 
 \section{Background}
+\subsection{The Problem}
 Procedural Language such as C achieves modularity by grouping codes into subroutines or functions, whereas Object Oriented Programming (OOP) such as JAVA or C\# go one step further, and they allow programmers to abstract real world object into properties and behaviors.
 
 While both paradigms give programmers of that languages the ability to make their code cleaner and more reusable, they are not sufficient to clearly capture some of the important software design decision [1].
@@ -108,6 +111,9 @@ Line 4 is going to throw an exception, now imagine if you have 10,000 functions 
 Imagine again, what if you need to fine tune this try..catch block to catch a specific exception so your program can act accordingly, or instead of logging to a file you want to log it to a database. In the worst case you would have to make the change to all 10,000 of your functions.
 
 The problem is how to isolate those cross-cutting concerns from loitering your program. Aspect Oriented Programming technique [1] can be used to cleanly separate such concerns.
+
+\subsection{Aspect-Oriented Programming}
+More to come...
 
 \section{Related Work}
 The Aspect Oriented Programming paradigm is first discussed in the 1997 paper ~\cite{aop}, like other paradigms, it is most effective and beneficial to programmers when it is supported on the compiler level, and make it a first class citizen like other properties of a language. Failing that, the next best thing is to have a framework to provide the support.
@@ -155,7 +161,7 @@ knows what you plan to do to establish your hypothesis.
 \subsection{Architecture Overview}
 There are many approaches on how to implement an AOP framework. The approach I plan to take is to perform post compilation weaving. Figure 1 shows an overview of how the AOP framework will fit in the overall C\# compilation process.
 
-\includegraphics[width=331px,keepaspectratio=true]{model_overview.png}
+\includegraphics[scale=0.70]{model_overview.png}
 
 From the Visual Studio IDE, developer can use the framework by simply first creating a custom C\# attribue, extending a framework interface IAspect (subject to change), for ex:
 
@@ -215,13 +221,6 @@ While I can opt to invest my time on learning and rolling my own IL rewriter, a 
 The following utility tools will also be heavily used during development: ILSpy, ILDASM and PEVerify. ILSpy is an open source application that dis-assemble assembly to show IL instructions. ILDASM does the same but comes from Microsoft’s .NET Framework. PEVerify is a Microsoft Window SDK tool, it will be used to ensure that the modified assembly produced is a correct assembly.
 
 \section{Roadmap}
-
-Here you need to describe your project plan, with dates and deliverables. 
-
-You must review the CS graduate handbook for details, and yes, make
-sure you also address all of the handbook's requirements for a
-proposal.
-
 The following table shows my tentative schedule for the major phases of the project.
 
 \begin{table}[h]
@@ -233,10 +232,9 @@ Date & Action & Status\\
 07/07/2012 & Pre-Proposal & Accepted\\
 07/09/2012 & Proposal & In-progress\\
 07/20/2012 & Begin development of the framework & In-progress\\
-08/20/2012 & Finish development & Started\\
-- & Testing and analysis & - \\
-- & Finish report & - \\
-- & Defense & - \\
+09/10/2012 & Finish development, start testing and analysis- \\
+09/27/2012 & Finish report & - \\
+10/10/2012 & Defense & - \\
 \hline
 \end{tabular}
 \caption{Timeline}
