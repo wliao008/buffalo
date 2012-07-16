@@ -157,14 +157,51 @@ There are many approaches on how to implement an AOP framework. The approach I p
 
 \includegraphics[width=331px,keepaspectratio=true]{model_overview.png}
 
-Describe how you plan to design and implement a solution. 
+From the Visual Studio IDE, developer can use the framework by simply first creating a custom C\# attribue, extending a framework interface IAspect (subject to change), for ex:
 
-You must also describe how you would use your solution to establish the validity of your hypothesis. Explain the measurements you plan to conduct and how these would establish the validity (or invalidity) of your hypothesis.
+\begin{verbatim}
+01. public class CatchException : System.Attribute, IAspect() {
+02.    public void OnException(Exception e) {
+03.        Utility.LogToFile(e);
+04.    } 
+05. }
+\end{verbatim}
+
+Now CatchException will be treated as an aspect by the framework, to use it, simply use it like a regular attribute and annonate it to any method, class or assembly.
+
+\begin{verbatim}
+01. [CatchException]
+02. public void SomeFunction() {
+03.    var result = 1 / zero;
+04.    //other operations...
+05. }
+\end{verbatim}
+
+As the above code snippets shows, the cross-cutting concerns is now cleanly separated into a cutom attribute called CatchException, any change made to the aspect will be propogated to all the annontated functions, class or assembly. As a result. By applying this attribute to the functions, the repetitive try..block is no longer necessary, the target code is much shorter and cleaner. 
+
+The real benefit will be even more evident when an aspect is apply to a large number of functions, or asemblies, for ex, if I want every function within every class to be able to catch exception:
+
+\begin{verbatim}
+01. [CatchException]
+02. namespace MyAssembly {
+03.    public class MyClass {
+04.       public void SomeFunction() {
+05.          var result = 1 / zero;
+06.          //other operations...
+07.       }
+08.       //other functions...
+09.    }
+10.    //other classes...
+11. }
+\end{verbatim}
+
+By applying the attribute on the assembly level, this will effectively will allow every function to have exception handling capability. This will be a huge developer productivity gain.
+
 
 \subsection{Compile Time Weaving}
 Within this method there are a few variants of compile time weaving, one is to preprocess the source files, to perform text transformation to weave all the aspects at the right locations of the source, then just let the compiler take over and compile as normal.
 
-The other type is MSIL rewriting, as indicated by figure 1 , the C\# compiler performs a compile on the source files to generate the assembly. This assembly is then fed into the AOP Framework, which will proceed to rewrite the MSIL instruction calls to weave in the aspects.
+The other type is MSIL rewriting ~\cite{rewrite_msil}, as indicated by figure 1 , the C\# compiler performs a compile on the source files to generate the assembly. This assembly is then fed into the AOP Framework, which will proceed to rewrite the MSIL instruction calls to weave in the aspects.
 
 There are obvious advantages and disadvantages to each method. [Give some examples of what those are?]
 
