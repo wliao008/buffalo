@@ -79,7 +79,7 @@ Aspect Oriented Programming (AOP) is a paradigm that let programmers isolate and
 \newpage{}
 %\setlength{\parindent}{1cm}
 \section{Introduction}
-The current breed of high level programming languages such as JAVA and C\# have given programmers a lot of freedowm in expressing themselves in Object Oriented Design. However they are still lacking in some areas when it comes to some particular software design decision such as cross-cutting concern. 
+The current breed of high level programming languages such as JAVA and C\# have given programmers a lot of freedom in expressing themselves in Object Oriented Design. However they are still lacking in some areas when it comes to some particular software design decision such as cross-cutting concern. 
 
 In this project we will design and implement a framework for the C\# platform that will help programmers solve this type of problems.
 
@@ -107,17 +107,22 @@ To handle exception in our code, in its most basic form we can have the follow t
 10. }
 \end{verbatim}
 
-Line 4 is going to throw an exception, now imagine if you have 10,000 functions in your program that can potentially throw errors, you would have to apply the try..catch block on all of them. And since your program most likely will consist of many modules, it will mean this repetitive pattern will cut through and appears in all your modules.
+Line 4 is going to throw an exception, now imagine if you have 10,000 functions in your program that can potentially throw errors, you would have to apply the try..catch block on all of them. Note that the fact that the functionality of actually logging the exception is nicely encapsulated in the Utility object, but still it will be invoked in 10,000 different places. Since your program most likely will be consist of many modules, it will mean this repetitive pattern will cut through and appears in all your modules.
 
-Imagine again, what if you need to fine tune this try..catch block to catch a specific exception so your program can act accordingly, or instead of logging to a file you want to log it to a database. In the worst case you would have to make the change to all 10,000 of your functions.
+Imagine again, wif you need to fine tune this try..catch block to catch a specific exception such as the DivideByZeroException so your program can act accordingly, or instead of using the Utility object you want to use a different object to handle the actual logging. In the worst case you would have to make the change to all 10,000 of your functions.
 
 The problem is how to isolate those cross-cutting concerns from loitering your program. Aspect Oriented Programming technique [1] can be used to cleanly separate such concerns.
 
 \subsection{Aspect-Oriented Programming}
-More to come...
+The Aspect Oriented Programming paradigm is first discussed in the 1997 paper ~\cite{aop}. When talk about AOP, the following terms are often mentioned.
 
-\section{Related Work}
-The Aspect Oriented Programming paradigm is first discussed in the 1997 paper ~\cite{aop}, like other paradigms, it is most effective and beneficial to programmers when it is supported on the compiler level, and make it a first class citizen like other properties of a language. Failing that, the next best thing is to have a framework to provide the support.
+pointcut - 
+join point - 
+aspect -
+
+In it's most general form, AOP injects a piece of code into all relevant places in a program.
+
+\section{Related Work}Like other paradigms, AOP is most effective and beneficial to programmers when it is supported on the compiler level, and make it a first class citizen like other properties of a language. Failing that, the next best thing is to have a framework to provide the support.
 
 \subsection{Compile Support}
 
