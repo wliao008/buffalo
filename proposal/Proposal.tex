@@ -129,15 +129,27 @@ From the above concept we should have a pretty clear idea that first, we have so
 
 \subsection{Compile Support}
 
-Along with the 1997 paper, the authors also presented an implementation of AOP for the JAVA platform called AspectJ. AspectJ is a language in and of itself, with its own specific syntax and usages and even compiler. It would have been nice if this is extended directly in the JAVA compiler, which some hopes it will happen soon. But still, AspectJ integrated nicely with JAVA, especially when used in an Integrated Development Environment (IDE) like Eclipse.
+Gregor Kiczales from the 1997 paper ~\cite{aop} started and led the Xerox PARC team developed an implementation of AOP for the JAVA platform called AspectJ. AspectJ is a language in and of itself, with its own specific syntax and usages and even compiler, it produces JAVA VM compatible binary. It would have been nice if this is extended directly in the JAVA compiler, which some hopes it will happen soon. But still, AspectJ integrated nicely with JAVA, especially when used with its own plugin in an Integrated Development Environment (IDE) like Eclipse.
 
-AspectJ can introduce new features to or modify an existing code base, it provides the aspect keyword to denote a piece of code as an advice, in contrast to the class keyword in JAVA.
+AspectJ can introduce new features to or modify an existing code base, it provides the {\em aspect} keyword to denote a piece of code as the advice code, this is to be used like the {\em class} keyword in JAVA.
 
-[give more detail on how aspectj is used, example?]
+\begin{verbatim}
+01. public aspect MyAspectJ {
+02.    public int Sorter.Count() {
+03.       //do something here
+04.    }
+05.    pointcut doSomething() : call (* * (..));
+06.    before() : doSomething() {
+07.       //do something before calling the actual function
+08.    }
+09. }
+\end{verbatim}
 
-AspectJ does bytecode weaving, after JAVA compiles the source, it takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
+The above is a snippet of how an AspectJ aspect is defined, suppose we have a class named Sorter, and we want to add a new method to it but we don't have access to the source code, in AspectJ we can introduce a brand new method to it, as line 2-4 shows. The pointcut doSomething() does a regular expression match to find all matching functions regardless of priviledge, names or parameters, then {\em before() : doSomething()} will execute the code starting in line 4 before each of those matching functions are executed.
 
-One of the disadvantage of AspectJ is, as the above example shows, the AspectJ syntax is somewhat different from what a JAVA developer would expect, making the learning curve much deeper, but it can prove a powerful tool when get used to.
+This is just scratching the surface of what AspectJ can do. Behind the scene AspectJ does bytecode weaving, after JAVA compiles the source, it takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
+
+Despite Eclipse's claim that AspectJ is very easy to learn, one of the disadvantage of AspectJ is, as the above example shows, the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper, but we agree that once get used to it AspectJ can be a really powerful tool for a programmer.
 
 \subsection{Framework Support}
 
@@ -147,24 +159,18 @@ There are a number of frameworks available for the C\# platform, they come in va
 
 One of the most common implementation involves the usage of a proxy, where the client does not interact with the objects directly, everything goes through the proxy.
 
-[an image showing the proxy]
+\includegraphics[scale=0.70]{proxy.png}
 
-The advantage of this approach is relatively easy to implement, but it is also limiting in that in order for the proxy to work, both the proxy and the target object must implement the same interface, therefore the aspect injection point can only occur in the defined virtual functions [need double check on reference]. Since this require reflection at runtime, the performance is usually not as good.
+The injection of code will happen only at the proxy. The advantage of this approach is relatively easy to implement, but it is also limiting in that in order for the proxy to work, both the proxy and the target object must implement the same interface, therefore the aspect injection point can only occur in the defined virtual functions [need double check on reference]. Since this require reflection at runtime, the performance is usually not as good.
 
 Another approach is similar to AspectJ, where bytecode weaving is involved, but without the extra complexity of a new syntax and language. The most commercially successful implementation of this is PostSharp ~\cite{postsharp}, where aspect weaving happens post compilation by rewriting MSIL instruction set, PostSharp use just the standard C\# language, attribute is used as advice code, the advantage is ease of use, developer already familiar with C\# will have no learning curve at all. And since aspect is woven in the assembly, the runtime has no overhead of reflection and therefore performance is good. Disadvantage being, since it has to work with MSIL instruction set, it is very low level and therefore difficult to implement.
 
 Other approach involve static weaving ~\cite{aspectcs}, where the source files are pre-processed to include all the relevant aspect code, then just let the C\# compile take over and does it work normally. This has the advantage of post compilation weaving but not the MSIL complexity. On the other hand, you do have to develop a parsar generator to efficiently parse the sourc files.
 
 \section{Hypothesis}
-Summarize what you think the problem is, and what your hypothesis
-is. Here is a small example based on a successful project by Priyanka
-Sinha: ''Using one technique for schema matching does not seem
-adequate. The hypothesis underlying this sproject is that a holistic
-approach to schema matching based on the three techniques described
-earlier would do an effective approach to schema matching.''
+The OOP paradigm cannot efficiently solve the cross-cutting problem, we believe those problems can be solved efficiently and logically at the compiler level, so that programmer doesn't even have to think about them.
 
-Additional description to circumscribe the work so that the reader
-knows what you plan to do to establish your hypothesis.
+Even-though the C\# compiler will not support the AOP paradigm, we can still archieve the same goal by doing the separation of concern for them via a framework, and further ease the developer's life by hooking the framework into the MSBuild system. So developers can focus on just creating the aspects to solve the problems.
 
 \section{Approach and Methodology}
 \subsection{Architecture Overview}
