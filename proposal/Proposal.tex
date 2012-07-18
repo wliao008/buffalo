@@ -37,7 +37,7 @@
 \begin{center}
 {\em MS Project Proposal}\\
 \vspace{.5in}
-{\large \bf An Aspect Oriented Programming Framework for C\#}\\
+{\large \bf Buffalo: An Aspect Oriented Programming Framework for C\#}\\
 \vspace{.5in}
 {\bf Wei Liao}\\
 \vfill
@@ -70,7 +70,7 @@ Rochester, New York \\ [0.3in]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Abstract
 \section*{Abstract}
-Aspect Oriented Programming (AOP) is a paradigm that let programmers isolate and separate cross-cutting concerns from the basis of their program. The concept is relatively new, so very few languages has native support for this capability, support in toolings such as IDE integration is also rare. In this project we will design and implement a framework that provides AOP functionality for C\# via IL code weaving and integrate it with the Visual Studio IDE.
+Aspect Oriented Programming (AOP) is a paradigm that let programmers isolate and separate cross-cutting concerns from the basis of their program. The concept has not been widely adapted by modern languages, support in toolings such as Integrated Development Environment is also rare. In this project we will design and implement a framework called Buffalo that provides AOP functionality for C\# via IL code weaving, and integrate it with the Visual Studio IDE build system.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vfill{}
 
@@ -80,19 +80,19 @@ Aspect Oriented Programming (AOP) is a paradigm that let programmers isolate and
 \newpage{}
 %\setlength{\parindent}{1cm}
 \section{Introduction}
-The current breed of high level programming languages such as JAVA and C\# have given programmers a lot of freedom in expressing themselves in Object Oriented Design. However they are still lacking in some areas when it comes to some particular software design decision such as cross-cutting concern. 
+High level object oriented programming languages have given programmers a lot of freedom in expressing themselves in Object Oriented Design. However they are still lacking in some areas when it comes to particular software design decision such as cross-cutting concern ~\cite{aop}. 
 
-In this project we will design and implement a framework for the C\# platform that will help programmers solve this type of problems.
+In this project we will try to solve this type of problem by designing and implementing a framework called Buffalo for the C\# platform, we will show how by using Buffalo programmers can separate those concerns from the core of the program, and ultimately be more productive.
 
-In section 2 we will dive into some of the areas that the current programming paradigm are not efficient at solving, we will look at some examples. In section 3 we will look at existing works and what have been done. In section 5 we will explain what we propose to do and give and overview of the architecture of the framework that we will implement, and what we want the end result to be. A tentative roadmap is given in section 6.
+In section 2 we will explain the background of the problem, we will look at some of the areas that the current programming paradigm are not efficient at solving, and illustrate it by look at some examples. In section 3 we will explore the existing works and what have been done. In section 5 we explain what we propose to do and give an overview of the architecture of Buffalo, what we want the end result to be, and how to evaulate it. A tentative roadmap is given in section 6.
 
 \section{Background}
+In this section we will explain the cross-cutting problem and how AOP can be used to helps.
+
 \subsection{The Problem}
-Procedural Language such as C achieves modularity by grouping codes into subroutines or functions, whereas Object Oriented Programming (OOP) such as JAVA or C\# go one step further, and they allow programmers to abstract real world object into properties and behaviors.
+Procedural Language such as C achieves modularity by grouping codes into subroutines or functions, whereas Object Oriented Programming (OOP) languages such as JAVA or C\# go one step further, and they allow programmers to abstract real world object into properties and behaviors. Both paradigms give programmers the ability to make their code cleaner and more reusable.
 
-While both paradigms give programmers of that languages the ability to make their code cleaner and more reusable, they are not sufficient to clearly capture some of the important software design decision [1].
-
-In OOP languages, while various objects corresponding to the real world or business requirement can be developed, the usage of the instances of all those objects could still be scattered throughout different modules of the program. Overtime, these tangled cross-cutting concerns [1] can be difficult and expensive maintenance. One of the often cited example of such concern is exception handling, the ability to for programs to handle errors or die gracefully.
+While OOP languages offer data abstraction and encapsulation in the form of objects and classes, the usage of declared instances of all those objects could still be scattered throughout different modules of the program. Overtime, these tangled cross-cutting concerns [1] can be difficult and expensive maintenance. One of the often cited example of such concern is exception handling: the ability to for programs to handle errors or die gracefully.
 
 To handle exception in our code, in its most basic form we can have the follow try..catch block:
 \begin{verbatim}
@@ -108,7 +108,7 @@ To handle exception in our code, in its most basic form we can have the follow t
 10. }
 \end{verbatim}
 
-Line 4 is going to throw an exception, now imagine if you have 10,000 functions in your program that can potentially throw errors, you would have to apply the try..catch block on all of them. Note that the fact that the functionality of actually logging the exception is nicely encapsulated in the Utility object, but still it will be invoked in 10,000 different places. Since your program most likely will be consist of many modules, it will mean this repetitive pattern will cut through and appears in all your modules.
+The above code snippet illustrated a few points. First line 4 is going to throw an exception, and when that happens, execution control is transferred to line 8, where the exception is logged to a file. Imagine if you have 10,000 functions in your program that can potentially throw errors, you would have to apply the try..catch block on all of them. Note that the functionality of actually logging the exception is nicely encapsulated in the Utility object, but it does not change the fact that it is still repetitive in this case, because it will still have to be called in 10,000 different places in the source code. Since your program most likely will be consist of many modules, it will mean this repetitive pattern will cut through and appears in all your modules.
 
 Imagine again, wif you need to fine tune this try..catch block to catch a specific exception such as the DivideByZeroException so your program can act accordingly, or instead of using the Utility object you want to use a different object to handle the actual logging. In the worst case you would have to make the change to all 10,000 of your functions.
 
@@ -125,7 +125,7 @@ The Aspect Oriented Programming paradigm is first discussed in the 1997 paper ~\
 
 From the above concept we should have a pretty clear idea that first, we have some cross-cutting code that's not easy to maintaint, so we can isolate them into a separate piece of code, then we can injects the aspect into all relevant places in a program.
 
-\section{Related Work}Like other programming paradigms, AOP is most effective and beneficial to programmers when it is supported on the compiler level, and make it a first class citizen like other properties of a language. As of now, very few languages provide native support, Delphi Prism 2010 is one of them, where the weaving of aspect code happens at compile time ~\cite{delphi_prism2010}. But most languages currently rely on compiler extension or framework to provide the support.
+\section{Related Work}AOP can be implemented in a variety of ways, but like other programming paradigms, it is most effective and beneficial to programmers when it is supported on the compiler level, making it a first class citizen like other properties of a language. But as of now, very few languages provide native support, Delphi Prism 2010 is one of them, where the weaving of aspect code happens at compile time ~\cite{delphi_prism2010}. But most languages relies on compiler extension or framework to provide the support.
 
 \subsection{Compile Support}
 
@@ -168,17 +168,19 @@ Another approach is similar to AspectJ, where bytecode weaving is involved, but 
 Other approach involve static weaving ~\cite{aspectcs}, where the source files are pre-processed to include all the relevant aspect code, then just let the C\# compile take over and does it work normally. This has the advantage of post compilation weaving but not the MSIL complexity. On the other hand, you do have to develop a parsar generator to efficiently parse the sourc files.
 
 \section{Hypothesis}
-The OOP paradigm cannot efficiently solve the cross-cutting problem, we believe those problems can be solved efficiently and logically at the compiler level, so that programmer doesn't even have to think about them.
+The OOP paradigm cannot efficiently solve the cross-cutting problem, we believe those problems can be solved efficiently at the compiler level, and that is where AOP logically belongs, so that programmer doesn't even have to think about them.
 
 Even-though the C\# compiler will not support the AOP paradigm, we can still archieve the same goal by doing the separation of concern for them via a framework, and further ease the developer's life by hooking the framework into the MSBuild system. So developers can focus on just creating the aspects to solve the problems.
 
 \section{Approach and Methodology}
+In this section we will give an overview of the architecture of Buffalo, the tools and approach we will be using to implement it.
+
 \subsection{Architecture Overview}
-There are many approaches on how to implement an AOP framework. The approach I plan to take is to perform post compilation weaving. Figure 1 shows an overview of how the AOP framework will fit in the overall C\# compilation process.
+There are many approaches on how to implement an AOP framework. The approach I plan to take is to perform post compilation weaving. Figure 1 shows an overview of how Buffalo will fit in the overall C\# compilation process.
 
 \includegraphics[scale=0.70]{model_overview.png}
 
-From the Visual Studio IDE, developer can use the framework by simply first creating a custom C\# attribue, extending a framework interface IAspect (subject to change), for ex:
+From the Visual Studio IDE, developer can use Buffalo by simply first creating a custom C\# attribue, extending a Buffalo interface IAspect (subject to change), for ex:
 
 \begin{verbatim}
 01. public class CatchException : System.Attribute, IAspect() {
@@ -188,7 +190,7 @@ From the Visual Studio IDE, developer can use the framework by simply first crea
 05. }
 \end{verbatim}
 
-Now CatchException will be treated as an aspect by the framework, to use it, simply use it like a regular attribute and annonate it to any method, class or assembly.
+Now CatchException will be treated as an aspect by Buffalo, to use it, simply use it like a regular attribute and annonate it to any method, class or assembly.
 
 \begin{verbatim}
 01. [CatchException]
@@ -222,7 +224,7 @@ By applying the attribute on the assembly level, this will effectively will allo
 \subsection{Compile Time Weaving}
 Within this method there are a few variants of compile time weaving, one is to preprocess the source files, to perform text transformation to weave all the aspects at the right locations of the source, then just let the compiler take over and compile as normal.
 
-The other type is MSIL rewriting ~\cite{rewrite_msil}, as indicated by figure 1 , the C\# compiler performs a compile on the source files to generate the assembly. This assembly is then fed into the AOP Framework, which will proceed to rewrite the MSIL instruction calls to weave in the aspects.
+The other type is MSIL rewriting ~\cite{rewrite_msil}, as indicated by figure 1 , the C\# compiler performs a compile on the source files to generate the assembly. This assembly is then fed into the Buffalo, which will proceed to rewrite the MSIL instruction calls to weave in the aspects.
 
 There are obvious advantages and disadvantages to each method. [Give some examples of what those are?]
 
@@ -235,6 +237,11 @@ While I can opt to invest my time on learning and rolling my own IL rewriter, a 
 
 The following utility tools will also be heavily used during development: ILSpy, ILDASM and PEVerify. ILSpy is an open source application that dis-assemble assembly to show IL instructions. ILDASM does the same but comes from Microsoft’s .NET Framework. PEVerify is a Microsoft Window SDK tool, it will be used to ensure that the modified assembly produced is a correct assembly.
 
+\subsection{Measurement}
+To evalulate Buffalo, we will show that after using Buffalo, code duplication will be reduced, the cross-cutting concern will be separated into single unit of code where it will be easy to maintain. We will use the {\em Call Hierarchy} feature of Visual Studio to show the before and after. 
+
+The code a developer has to write is considerable less in terms of number of lines, as a result the code will be cleaner and easier to look at. We will show the before and after using the {\em Code Analysis} available in Visual Studio.
+
 \section{Roadmap}
 The following table shows my tentative schedule for the major phases of the project.
 
@@ -246,7 +253,7 @@ Date & Action & Status\\
 \hline
 07/07/2012 & Pre-Proposal & Accepted\\
 07/09/2012 & Proposal & In-progress\\
-07/20/2012 & Begin development of the framework & In-progress\\
+07/20/2012 & Begin development of Buffalo & In-progress\\
 09/10/2012 & Finish development, start testing and analysis & - \\
 09/27/2012 & Finish report & - \\
 10/10/2012 & Defense & - \\
