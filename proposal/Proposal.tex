@@ -29,8 +29,13 @@
 \usepackage{enumerate}
 \usepackage{afterpage}
 \usepackage{setspace}
+\usepackage{listings}
+\usepackage{color}
 %\usepackage{parskip}
 
+\lstset{numbers=left,
+ frame=single,
+ captionpos=b,}
 
 \begin{document}
 \thispagestyle{empty} 
@@ -95,18 +100,19 @@ Procedural Language such as C achieves modularity by grouping codes into subrout
 While OOP languages offer data abstraction and encapsulation in the form of objects and classes, the usage of declared instances of all those objects could still be scattered throughout different modules of the program. Overtime, these tangled cross-cutting concerns [1] can be difficult and expensive maintenance. One of the often cited example of such concern is exception handling: the ability to for programs to handle errors or die gracefully.
 
 To handle exception in our code, in its most basic form we can have the follow try..catch block:
-\begin{verbatim}
-01. public double Divide(double num1, double num2) {
-02.    try {
-03.        return num1 / num2;
-04.    } catch (Exception e) {
-05.        //log exception to file, etc
-06.        Utility.LogToFile(e);
-07.    }
-08. }
-\end{verbatim}
 
-The above code snippet illustrated a few key points. First, if {\em num2} is 0, this will cause an exception, and when that happens, execution control is transferred to line 6, where the exception is logged to a file. 
+\begin{lstlisting}[caption={try..catch pattern}, label=trycatch]
+public double Divide(double num1, double num2) {
+   try {
+       return num1 / num2;
+   } catch (Exception e) {
+       //log exception to file, etc
+       Utility.LogToFile(e);
+   }
+}
+\end{lstlisting}
+
+The code snippet in Listing~\ref{trycatch} illustrated a few key points. First, if {\em num2} is 0, this will cause an exception, and when that happens, execution control is transferred to line 6, where the exception is logged to a file. 
 
 Imagine if you have 1,000 functions in your program that can potentially throw errors, you would have to apply the try..catch block on all of them. And note that the functionality of actually logging the exception is nicely encapsulated in the Utility object, but it does not change the fact that the code is still repetitive, because {\em Utility.LogToFile(e)} still have to be called in 1,000 different places in the source code. Since your program most likely will be consist of different modules, this repetitive pattern will cut through and appears in all the modules.
 
@@ -135,23 +141,23 @@ Gregor Kiczales from the 1997 paper~\cite{aop} started and led the Xerox PARC te
 
 AspectJ can introduce new features to a program, as well as modify it. It provides the {\em aspect} keyword to denote a piece of code as the advice code, the usage is similar to how the {\em class} keyword is used in JAVA.
 
-\begin{verbatim}
-01. public aspect MyAspectJ {
-02.    public int Sorter.Count() {
-03.       //do something here
-04.    }
-05.    pointcut doSomething() : call (* * (..));
-06.    before() : doSomething() {
-07.       //do something before calling the actual function
-08.    }
-09. }
-\end{verbatim}
+\begin{lstlisting}[caption={sample aspectj code}, label=aspecjcode]
+public aspect MyAspectJ {
+   public int Sorter.Count() {
+      //do something here
+   }
+   pointcut doSomething() : call (* * (..));
+   before() : doSomething() {
+      //do something before calling the actual function
+   }
+}
+\end{lstlisting}
 
-The above example showed how an AspectJ aspect can be defined, suppose we have a class named {\em Sorter}, and we want to add a new method to it but we don't have access to the source code, in AspectJ we can introduce a brand new method to it, as line 2-4 shows. The pointcut {\em doSomething()} does a regular expression match to find all matching functions regardless of access priviledge, names or parameters, which means pretty much every functions in the program. Then line 6-8 means before executing those functions matched, execute the block of code in line 7 first. This effectively created a hook into every single function in a program.
+The example in Listing~\ref{aspectjcode} showed how an AspectJ aspect can be defined, suppose we have a class named {\em Sorter}, and we want to add a new method to it but we don't have access to the source code, in AspectJ we can introduce a brand new method to it, as line 2-4 shows. The pointcut {\em doSomething()} does a regular expression match to find all matching functions regardless of access priviledge, names or parameters, which means pretty much every functions in the program. Then line 6-8 means before executing those functions matched, execute the block of code in line 7 first. This effectively created a hook into every single function in a program.
 
 Behind the scene AspectJ piece everything together by bytecode weaving, after JAVA compiles the source, it takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
 
-Despite Eclipse's claim that AspectJ is very easy to learn, one of the disadvantage of AspectJ is, as the above example shows, the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper, but we agree that once get used to it AspectJ can be a really powerful tool for a programmer.
+Despite Eclipse's claim that AspectJ is very easy to learn, one of the disadvantage of AspectJ is, as the above example shows, the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper, but we agree that once get used to it AspectJ can be a really powerful tool for a programmer~\cite{aspectj_text}.
 
 \subsection{Framework Support}
 
@@ -196,39 +202,39 @@ Once C\# finishes the compilation, the control is transfer to Buffalo, this step
 \subsection{Intended Usage}
 From the Visual Studio IDE, developer can use Buffalo by first creating a custom C\# attribue, extending a Buffalo interface IAspect (subject to change), for ex:
 
-\begin{verbatim}
-01. public class CatchException : System.Attribute, IAspect {
-02.    public void OnException(Exception e) {
-03.        Utility.LogToFile(e);
-04.    } 
-05. }
-\end{verbatim}
+\begin{lstlisting}[caption={Buffalo aspect}, label=buffalocode]
+public class CatchException : System.Attribute, IAspect {
+   public void OnException(Exception e) {
+       Utility.LogToFile(e);
+   } 
+}
+\end{lstlisting}
 
-Now CatchException will be treated as an aspect by Buffalo, to use it, simply use it like a regular attribute and apply it to any method, class or assembly.
+Now {\em CatchException} will be treated as an aspect by Buffalo, to use it, simply use it like a regular attribute and apply it to any method, class or assembly.
 
-\begin{verbatim}
-01. [CatchException]
-02. public double Divide(double num1, double num2) {
-03.    return num1 / num2;
-04. }
-\end{verbatim}
+\begin{lstlisting}[caption={applying Buffalo aspect}, label=applybuffalo]
+[CatchException]
+public double Divide(double num1, double num2) {
+   return num1 / num2;
+}
+\end{lstlisting}
 
-As the above code snippets shows, the cross-cutting concerns is now cleanly separated into a cutom attribute {\em CatchException}, any change made to the aspect will be propogated to all the annontated functions. As a result. By applying this attribute to the functions, the repetitive try..block is no longer necessary, the target code is much shorter and cleaner. 
+As the code snippets in Listing~\ref{applybuffalo} shows, the cross-cutting concerns is now cleanly separated into a cutom attribute {\em CatchException}, any change made to the aspect will be propogated to all the annontated functions. As a result. By applying this attribute to the functions, the repetitive try..block is no longer necessary, the target code is much shorter and cleaner. 
 
 The real benefit will be more evident when an aspect is apply to a large number of functions, or asemblies, for ex, if I want every function within every class to be able to catch exception:
 
-\begin{verbatim}
-01. [CatchException]
-02. namespace MyAssembly {
-03.    public class MyClass {
-04.       public double Divide(double num1, double num2) {
-05.          return num1 / num2;
-06.       }
-07.       //other functions...
-08.    }
-09.    //other classes...
-10. }
-\end{verbatim}
+\begin{lstlisting}[caption={applying Buffalo aspect on an assembly}, label=applybuffaloassembly]
+[CatchException]
+namespace MyAssembly {
+   public class MyClass {
+      public double Divide(double num1, double num2) {
+         return num1 / num2;
+      }
+      //other functions...
+   }
+   //other classes...
+}
+\end{lstlisting}
 
 By applying the attribute on the assembly level, a single line of code, this will effectively allow every function to have exception handling capability. This will be a huge developer productivity gain.
 
@@ -237,7 +243,7 @@ This project will be developed using C\#, on the Windows 7 using Visual Studio 2
 
 Another option is to use the Profiler API by Microsoft, but this API is intended as a debugging feature, and therefore is unsuitable to be used in production environment.
 
-While we can opt to invest the time on learning and rolling a custom MSIL rewriter, we are afraid that in itself is a bigger project than Buffalo. So a more practical option is to use a third party library. Mono is an open source implementation of the C\# compiler, Cecil is a project within the Mono that provides MSIL rewriting. Preliminary evaluation of the tool seems to be pretty feature complete and flexible enough to allow me to do what I need to do. However documentation for Cecil is next to non-existent, as it works with low level MSIL, the learning curve is expected to be deep.
+While we can opt to invest the time on learning and rolling a custom MSIL rewriter, we are afraid that in itself is a bigger project than Buffalo~\cite{msil_text}. So a more practical option is to use a third party library. Mono is an open source implementation of the C\# compiler, Cecil is a project within the Mono that provides MSIL rewriting. Preliminary evaluation of the tool seems to be pretty feature complete and flexible enough to allow me to do what we need to do. However documentation for Cecil is next to non-existent, as it works with low level MSIL, the learning curve is expected to be deep.
 
 The following utility tools will also be heavily used during development: ILSpy, ILDASM and PEVerify. ILSpy is an open source application that dis-assemble assembly to show IL instructions. ILDASM does the same but comes from Microsoft’s .NET Framework. PEVerify is a Microsoft Window SDK tool, it will be used to ensure that the modified assembly produced is a correct assembly, this is something that Cecil does not verify.
 
