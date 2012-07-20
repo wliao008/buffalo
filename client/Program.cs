@@ -12,12 +12,4 @@ namespace client
         {
         }
     }
-
-    class Profile : Aspect
-    {
-        public override void Before()
-        {
-            Console.WriteLine("Entering...");
-        }
-    }
 }
