@@ -230,7 +230,7 @@ As the code snippets in Listing~\ref{applybuffalo} shows, by applying this attri
 The real benefit will be evident when an aspect is apply to a large number of functions, or asemblies, for ex, if we want every function within every class to be able to catch exception:
 
 \begin{lstlisting}[caption={applying Buffalo aspect on an assembly}, label=applybuffaloassembly]
-[CatchException]
+[assembly:CatchException]
 namespace MyAssembly {
    public class MyClass {
       public double Divide(double num1, double num2) {
