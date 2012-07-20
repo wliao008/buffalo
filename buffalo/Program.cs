@@ -50,6 +50,15 @@ namespace Buffalo
             foreach (var m in methods)
             {
                 Console.WriteLine(m.Name);
+                var attrs = m.GetCustomAttributesData();
+                foreach (var a in attrs)
+                {
+                    Console.WriteLine("\t" + a.ToString());
+                    foreach (var arg in a.NamedArguments)
+                    {
+                        Console.WriteLine("\t" + arg.MemberInfo.Name + ", " + arg.TypedValue);
+                    }
+                }
             }
         }
     }

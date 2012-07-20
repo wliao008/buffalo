@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Buffalo;
 
 namespace client
 {
     public class Funtion
     {
-        [MyAspect]
+        [MyAspect(AttributeExclude=true)]
         public void Function1()
         {
             Console.WriteLine("Funtion.Function1");
@@ -18,6 +19,7 @@ namespace client
             Console.WriteLine("Funtion.Function2");
         }
 
+        [MyAspect]
         public void Function3()
         {
             Console.WriteLine("Funtion.Function3");
