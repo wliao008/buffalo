@@ -161,7 +161,7 @@ The example in Listing~\ref{aspecjcode} showed how an aspect is defined in Aspec
 
 Behind the scene AspectJ pieces everything together by bytecode weaving, after JAVA compiles the source, it takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
 
-Despite Eclipse's claim that AspectJ is very easy to learn, one of the disadvantage of AspectJ is, as the above example shows, the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper, but we agree that once get used to it AspectJ can be a really powerful tool for a programmer~\cite{aspectj_text}.
+Despite Eclipse's claim that AspectJ is very easy to learn, one of the disadvantage of AspectJ is, as Listing~\ref{aspecjcode} shows, the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper, but we agree that once get used to it AspectJ can be a really powerful tool for a programmer~\cite{aspectj_text}.
 
 \subsection{Framework Support}
 
@@ -192,7 +192,7 @@ We can further make the developer's life easier by hooking Buffalo into the MSBu
 In this section we will give an overview of the architecture of Buffalo, the tools and approach we will be using to implement it.
 
 \subsection{Architecture Overview}
-The approach we plan to take is to perform post compilation weaving. Figure~\ref{buffalo_model} shows an overview of how Buffalo will fit in the overall C\# compilation process.
+The approach we plan to take is to perform compile time weaving. Figure~\ref{buffalo_model} shows an overview of how Buffalo will fit in the overall C\# compilation process.
 
 \begin{figure}[here]
   \includegraphics[scale=0.70]{model_overview.png}
@@ -200,7 +200,7 @@ The approach we plan to take is to perform post compilation weaving. Figure~\ref
   \caption{Buffalo model overview\label{buffalo_model}}
 \end{figure}
 
-\subsection{Post Compilation Weaving}
+\subsection{Compile Time Weaving}
 As Figure~\ref{buffalo_model} shows, the C\# compiler compiles the source files into an assembly, this assembly is then fed into Buffalo. Buffalo takes apart the assembly using reflection to find all the defined {\em aspects} and possible {\em pointcuts}, then weave them together into the right places by rewriting the MSIL instruction set, finally producing a new assembly.
 
 Once C\# finishes the compilation, the control is transfer to Buffalo, this step is archieved by creating a hook into the MSBuild system. If Buffalo detects any {\em aspects} defined in the input assembly, and that the {\em aspects} are being applied, the weaving will take place, otherwise the whole process will be simply ignored.
