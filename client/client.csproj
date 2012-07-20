@@ -43,8 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Class.cs" />
+    <Compile Include="MyAspect.cs" />
+    <Compile Include="Namespace.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Funtion.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\buffalo\buffalo.csproj">
