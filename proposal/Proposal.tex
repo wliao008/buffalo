@@ -99,7 +99,7 @@ In this section we will explain more about the cross-cutting problem and how AOP
 \subsection{The Problem}
 Procedural Language such as C achieves modularity by grouping codes into subroutines, thus those subroutines can be reused. Whereas OOP languages such as JAVA or C\# go one step further, and they allow programmers to abstract real world object into properties and behaviors. Both paradigms give programmers the ability to make their code cleaner and more reusable.
 
-While OOP languages offer data abstraction and encapsulation in the form of objects and classes, the usage of declared instances of all those objects could still be scattered throughout different modules of the program. Overtime, these tangled cross-cutting concerns [1] can be difficult and expensive to maintain. One of the often cited example of such concern is exception handling: the ability to for programs to handle errors or die gracefully.
+While OOP languages offer data abstraction and encapsulation in the form of objects and classes, the usage of declared instances of all those objects could still be scattered throughout different modules of the program. Overtime, these tangled cross-cutting concerns [1] can be difficult and expensive to maintain. One of the often cited example of such concern is exception handling: the ability for programs to handle errors or die gracefully.
 
 To handle exception in our code, we usually have the follow try..catch block:
 
@@ -139,7 +139,7 @@ Beside exception handling, AOP is commonly used in tracing, profiling and securi
 
 \section{Related Work}Most modern programming languages already display some AOP-like properties, but full native support is rare. Delphi Prism is one of them, where the weaving of aspect code happens at compile time~\cite{delphi_prism2010}. AOP can be implemented in a variety of ways, but like other programming paradigms, it is most effective and beneficial to programmers when it is embraced by the compiler, making it a first class citizen like other properties of a language.
 
-\subsection{Compile Support}
+\subsection{Compiler Support}
 
 Gregor Kiczales from the 1997 paper~\cite{aop} started and led the Xerox PARC team developed an implementation of AOP for the JAVA platform called AspectJ. AspectJ is an extension to the JAVA compiler, but it is a language in and of itself, with its own specific syntax and usages and even compiler. It produces JAVA VM compatible binary. Some hopes that AspectJ will eventually be merged with the JAVA compiler instead of being an extendsion~\cite{aspectj_faq}. But still, AspectJ integrated nicely with JAVA, especially when used with its own plugin AJDT in the Eclipse IDE.
 
