@@ -203,7 +203,7 @@ The approach we plan to take is to perform compile time weaving. Figure~\ref{buf
 \subsection{Compile Time Weaving}
 As shown in Figure~\ref{buffalo_model}, the C\# compiler compiles the source files into an assembly, this assembly is then fed into Buffalo. Buffalo takes apart the assembly using reflection to find all the defined {\em aspects} and possible {\em pointcuts}, then weave them together at the right places by rewriting the MSIL instruction set, and finally produces a new assembly.
 
-Once C\# finishes the compilation, the control is transfered to Buffalo. This is archieved by creating a hook into the MSBuild system. If Buffalo detects any {\em aspects} defined in the input assembly, and that the {\em aspects} are being applied, then weaving will take place, otherwise the whole process will simply be ignored.
+Once C\# finishes the compilation, the control is transferred to Buffalo. This is archieved by creating a hook into the MSBuild system. If Buffalo detects any {\em aspects} defined in the input assembly, and that the {\em aspects} are being applied, then weaving will take place, otherwise the whole process will simply be ignored.
 
 \subsection{Intended Usage}
 From the Visual Studio IDE, developer can use Buffalo by creating a custom C\# attribue, extending a Buffalo interface IAspect (subject to change), for example:
