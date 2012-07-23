@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{collab}
+W.~Burgard, M.~Moors, D.~Fox, R.~Simmons, and S.~Thrun.
+\newblock Collaborative multi-robot exploration.
+\newblock volume~1, pages 476--481 vol.1, 2000.
+
+\bibitem{auctions}
+Xin Ma, Fang Meng, Yibin Li, Weidong Chen, and Yugeng Xi.
+\newblock Multi-agent-based auctions for multi-robot exploration.
+\newblock volume~2, pages 9262--9266, 0-0 2006.
+
+\bibitem{segmentation}
+K.M. Wurm, C.~Stachniss, and W.~Burgard.
+\newblock Coordinated multi-robot exploration using a segmentation of the
+  environment.
+\newblock In {\em Coordinated multi-robot exploration using a segmentation of
+  the environment}, pages 1160--1165, Sept. 2008.
+
+\end{thebibliography}

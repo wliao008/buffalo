@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99c (Web2C 7.5.6)
+The top-level auxiliary file: preproposal.aux
+The style file: plain.bst
+Database file #1: preproposal.bib
+Warning--empty booktitle in collab
+Warning--empty booktitle in auctions
+You've used 3 entries,
+            2118 wiz_defined-function locations,
+            516 strings with 4665 characters,
+and the built_in function-call counts, 1700 in all, are:
+= -- 162
+> -- 74
+< -- 5
++ -- 29
+- -- 26
+* -- 120
+:= -- 243
+add.period$ -- 9
+call.type$ -- 3
+change.case$ -- 22
+chr.to.int$ -- 0
+cite$ -- 5
+duplicate$ -- 71
+empty$ -- 132
+format.name$ -- 26
+if$ -- 384
+int.to.chr$ -- 0
+int.to.str$ -- 3
+missing$ -- 3
+newline$ -- 18
+num.names$ -- 6
+pop$ -- 31
+preamble$ -- 1
+purify$ -- 19
+quote$ -- 0
+skip$ -- 68
+stack$ -- 0
+substring$ -- 133
+swap$ -- 37
+text.length$ -- 5
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 12
+warning$ -- 2
+while$ -- 12
+width$ -- 4
+write$ -- 35
+(There were 2 warnings)
