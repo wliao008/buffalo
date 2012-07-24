@@ -19,7 +19,7 @@ namespace client
             Console.WriteLine("Funtion.Function2");
         }
 
-        [MyAspect]
+        [MyAspect(AttributeExclude = true)]
         public void Function3()
         {
             Console.WriteLine("Funtion.Function3");

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace Buffalo
 {
@@ -14,49 +15,84 @@ namespace Buffalo
             this.assemblyPath = assemblyPath;
         }
 
-        public MethodInfo[] GetAllMethods()
+        public List<MethodInfo> GetAllMethods()
         {
+            List<MethodInfo> ret = new List<MethodInfo>();
             Assembly assembly = Assembly.LoadFrom(this.assemblyPath);
+
+            Aspect MyAttribute =
+            (Aspect)Attribute.GetCustomAttribute(assembly, typeof(Aspect));
+            if (MyAttribute == null)
+            {
+                Console.WriteLine("Aspect not applied to namespace");
+            }
+            else
+            {
+                Console.WriteLine("Aspect applied to namespace");
+            }
+
             var namespaces = assembly.GetCustomAttributes(typeof(Aspect), false);
-            Console.WriteLine("NAMESPACES--------------------: " + namespaces.Count());
-            foreach (var n in namespaces)
+            if (namespaces.Count() > 0)
             {
-                Console.WriteLine(n.ToString());
-            }
-
-            var types = assembly.GetTypes().ToList();
-            Console.WriteLine("\n\nTYPES-------------------: " + types.Count);
-            foreach (var t in types)
-            {
-                Console.WriteLine(t.Name);
-                var cs = t.GetCustomAttributes(typeof(Aspect), false);
-                foreach (var c in cs)
+                //aspect applied on assembly, should get all methods
+                var tmptypes = assembly.GetTypes().ToList();
+                List<Type> types = new List<Type>();
+                tmptypes.ForEach(x =>
                 {
-                    Console.WriteLine("\t" + c.ToString());
-                }
-            }
-
-            var methods = types
-                          .SelectMany(t => t.GetMethods())
-                          .Where(m => m.GetCustomAttributes(typeof(Aspect), false).Length > 0)
-                          .ToArray();
-
-            Console.WriteLine("\n\nMETHODS-------------------: " + methods.Count());
-            foreach (var m in methods)
-            {
-                Console.WriteLine(m.Name);
-                var attrs = m.GetCustomAttributesData();
-                foreach (var a in attrs)
-                {
-                    Console.WriteLine("\t" + a.ToString());
-                    foreach (var arg in a.NamedArguments)
+                    if (!this.Exclude(x))
                     {
-                        Console.WriteLine("\t" + arg.MemberInfo.Name + ", " + arg.TypedValue);
+                        types.Add(x);
+                    }
+                });
+
+                var methods = types
+                              .SelectMany(t => t.GetMethods())
+                              //.Where(m => m.GetCustomAttributes(typeof(Aspect), false).Length > 0)
+                              .ToArray();
+
+                foreach (var m in methods)
+                {
+                    if (!this.Exclude(m))
+                    {
+                        ret.Add(m);
                     }
                 }
             }
 
-            return null;
+            return ret;
+        }
+
+        private List<MethodInfo> GetMethodsFromType(Type type)
+        {
+            return type.GetMethods().ToList();
+        }
+
+        private bool Exclude(MethodInfo method)
+        {
+            var attrs = method.GetCustomAttributesData();
+            return this.Exclude(attrs);
+        }
+
+        private bool Exclude(Type type)
+        {
+            var attrs = type.GetCustomAttributesData();
+            return this.Exclude(attrs);
+        }
+
+        private bool Exclude(IList<CustomAttributeData> attrs)
+        {
+            foreach (var a in attrs)
+            {
+                foreach (var arg in a.NamedArguments)
+                {
+                    if (arg.MemberInfo.Name.Equals("AttributeExclude"))
+                    {
+                        return (bool)arg.TypedValue.Value;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

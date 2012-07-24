@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using client;
 
-[assembly:MyAspect]
 namespace DummyNamespace
 {
     public class Namespace
