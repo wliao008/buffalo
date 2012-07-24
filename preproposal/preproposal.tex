@@ -3,75 +3,25 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{times}
 
-\title{RIT Department of Computer Science\\MSc Project/Thesis Pre-Proposal:\\\emph{Proposed Project/Thesis Title}}
-\author{FirstName LastName}
-\date{\today}
+\title{RIT Department of Computer Science\\MSc Project Pre-Proposal:\\\emph{An Aspect Oriented Programming Framework for C\#}}
+\author{Wei Liao}
+\date{June 30, 2012}
 
 \begin{document}
 \maketitle
+Chair: Prof. James Heliotis
 
-The sections shown below are adapted from the topic analysis forms provided in ``Writing the Doctoral Dissertation" (2nd edition) by Davis and Parker (pages 82-88). Your final document should be 1-2 pages including references. {\bf The final pre-proposal may present the items below in any format, but using prose (not bulleted lists).} 
+Procedural or Object Oriented Programming are not sufficient to clearly capture some important software design decisions~\cite{aop}. While OOP has allowed programmers to nicely abstract properties and behaviors of real world objects, usage of those objects could still be scattered throughout different modules of the program. Overtime, these tangled cross-cutting concerns~\cite{aop} can be difficult and expensive to maintain. Aspect Oriented Programming (AOP) technique~\cite{aop} can be used to cleanly separate such concerns from the program.
 
-\section{Problem Description}
-Identify what problem you are addressing, both in terms of the research area, and the \emph{specific} problem that you will be working on:
-\begin{itemize}
-	\item For a thesis, a hypothesis (`thesis statement') that you will test in your research.
-	\item For a project, identify the work required (e.g. implementation and/or experiment) that needs to be completed. If you are completing a project, make sure to speak with your advisor about the expected deliverables; one deliverable will be a written project report.
-\end{itemize}
+Few languages have built-in AOP support, so frameworks implemented with different techniques and flavors are available to add its capabilities to various languages, including C\#~\cite{postsharp, aspectcs, aopcs}. Among them, a commercial product called PostSharp has generated lots of interest in the .NET community. For its ease of use, flexibility and powerful features~\cite{postsharp}.
 
-\section{Importance of Research}
-Motivate your problem. 
-\begin{itemize}
-	\item What is the significance of your problem? 
-	\item What applications or new opportunities will solving your problem provide?
-\end{itemize}
+The idea of this project is to attempt to provide a free open source alternative to PostSharp. I have looked at and compared several different approaches on how to implement the framework. The technique I plan on using is called Compile Time Weaving. It roughly works as follows: it uses C\# attribute as the aspect, so functions defined in the attribute contain the advice code. By applying the attribute to a function, class or assembly, it marks them as possible join points. At the post compilation phase, AOP Framework will be invoked if specified by the developer. The framework takes apart the assembly using reflection. An aspect weaver~\cite{aop, postsharp} is employed to identify and stitch together the join points and aspects, finally it modifies the bytecode with MSIL rewriting~\cite{rewrite_msil}, producing a modified assembly.
 
-\section{Related Work}
+To evaluate the project, I will show that programs implemented with the framework will have cleaner code; and that developers will also have lesser codes to write; cross-cutting concerns will be clearly separated from the program when compared to the program implemented without using the framework.
 
-Demonstrate the connection between your chosen problem and how it is related to existing work. 
-\begin{itemize}
-	\item What are the key theoretical models (e.g. process-based, formal language/complexity models, probability-based) and algorithms have been applied toward this problem previously? 
-	\item What limitation and/or opportunity do you plan to address in your project/thesis?
-	\item
-In the related research literature, how is success measured (e.g. metrics and/or coverage of problem aspects)?
-\end{itemize}
+My project deliverable will be in the form of a setup executable. Upon installation it will integrate itself with the Microsoft Build system used in the Visual Studio IDE. As opposed to most other frameworks, a secondary project goal is to have zero configuration on the part of the developer, to provide a seamless integrated experience with the IDE.
 
-\section{Methodology}
-
-What theory, model, or algorithm do you plan to modify or develop to address your research problem?
-\begin{itemize}
-\item What methods/techniques will you use to address your problem? 
-\begin{itemize}
-\item For theory-based projects and theses, what are the key theorems to be developed and/or proven? What proof techniques will be used?
-\item For projects and theses involving experiments, what metrics
-will you use to measure success? Commonly these include some subset of time, space, and accuracy (recognition rate, precision, recall, etc.).
-\end{itemize}
-
-\item How you will you measure success? Almost always, this should include reference to the evaluation methods described in the related work.
-
-\item {\bf How will you know when you are done?}
-\end{itemize}
-
-\section{Potential Outcomes}
-
-\begin{itemize}
-\item Given your chosen methods, what are the possible outcomes of the work? 
-\item What is the contribution/significance of the result for each outcome? 
-\end{itemize}
-
-\section*{Note about references}
-
-References can be imported from a .bib file (in this case preproposal.bib) using the ``cite'' command. 
-
-Here are a few examples: 
-
-Single reference looks like this~\cite{collab}
-
-Multiple references look like this~\cite{auctions, segmentation}.
-
-The references will be automatically generated and numbered.
-
-\bibliographystyle{plain}
+\bibliographystyle{unsrt}
 \bibliography{preproposal}
 
 

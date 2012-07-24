@@ -1,4 +1,4 @@
-This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2012.7.12)  23 JUL 2012 11:18
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2012.7.11)  23 JUL 2012 22:06
 entering extended mode
  %&-line parsing enabled.
 **preproposal.tex
@@ -148,35 +148,28 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 11.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 11.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 13.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 18.
+ (./preproposal.bbl [1
 
-(/usr/share/texmf/tex/latex/psnfss/omsptm.fd
-File: omsptm.fd 
-)
-LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 18.
- [1
-
-{/usr/share/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./preproposal.bbl) [2] 
-(./preproposal.aux) ) 
+{/usr/share/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+Missing character: There is no Ô in font ptmr7t!
+Missing character: There is no ¨ in font ptmr7t!
+Missing character: There is no Å in font ptmr7t!
+) [2] (./preproposal.aux) ) 
 Here is how much of TeX's memory you used:
- 1086 strings out of 256216
- 14170 string characters out of 1917072
- 66613 words of memory out of 1500000
- 4392 multiletter control sequences out of 10000+200000
- 17737 words of font info for 39 fonts, out of 1200000 for 2000
+ 1066 strings out of 256216
+ 13851 string characters out of 1917072
+ 67613 words of memory out of 1500000
+ 4376 multiletter control sequences out of 10000+200000
+ 15854 words of font info for 36 fonts, out of 1200000 for 2000
  645 hyphenation exceptions out of 8191
- 25i,6n,32p,373b,219s stack positions out of 5000i,500n,6000p,200000b,15000s
-{/usr/share/texmf/fonts/enc/dvips/base/8r.enc}</usr/share/
-texmf/fonts/type1/bluesky/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/urw/times
-/utmb8a.pfb></usr/share/texmf/fonts/type1/urw/times/utmb8a.pfb></usr/share/texm
-f/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf/fonts/type1/urw/times/utmr
-8a.pfb>
-Output written on preproposal.pdf (2 pages, 61140 bytes).
+ 25i,6n,32p,877b,189s stack positions out of 5000i,500n,6000p,200000b,15000s
+{/usr/share/texmf/fonts/enc/dvips/base/8r.enc}</usr/
+share/texmf/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf/fonts/type1/urw/
+times/utmb8a.pfb></usr/share/texmf/fonts/type1/urw/times/utmr8a.pfb></usr/share
+/texmf/fonts/type1/urw/times/utmr8a.pfb>
+Output written on preproposal.pdf (2 pages, 60210 bytes).
 PDF statistics:
- 30 PDF objects out of 1000 (max. 8388607)
+ 26 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
