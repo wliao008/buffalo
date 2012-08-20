@@ -4,7 +4,7 @@ using System;
 namespace client
 {
     [MyAspect(AttributeExclude=true)]
-    public class MyAspect : Aspect
+    public class MyAspect : MethodBoundaryAspect
     {
         public override void Before()
         {

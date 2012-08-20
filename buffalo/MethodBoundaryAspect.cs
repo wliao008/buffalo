@@ -1,8 +1,8 @@
 ﻿namespace Buffalo
 {
-    public abstract class Aspect : System.Attribute, IAspect
+    public abstract class MethodBoundaryAspect : System.Attribute, IMethodBoundaryAspect
     {
-        public Aspect(bool attributeExclude = false)
+        public MethodBoundaryAspect(bool attributeExclude = false)
         {
             this.AttributeExclude = attributeExclude;
         }

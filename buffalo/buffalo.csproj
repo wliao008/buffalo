@@ -47,7 +47,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Aspect.cs" />
+    <Compile Include="IMethodBoundaryAspect.cs" />
+    <Compile Include="MethodBoundaryAspect.cs" />
     <Compile Include="IAspect.cs" />
     <Compile Include="IRewriter.cs" />
     <Compile Include="Program.cs" />

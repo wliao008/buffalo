@@ -2,26 +2,30 @@
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Buffalo
 {
     public class Weaver
     {
-        private string assemblyPath;
-
         public Weaver(string assemblyPath)
         {
-            ///TODO: check for file existant
-            this.assemblyPath = assemblyPath;
+            ///TODO: Maybe just don't do anything if file not found
+            if (!File.Exists(assemblyPath))
+                throw new FileNotFoundException();
+
+            this.AssemblyPath = assemblyPath;
         }
+
+        public string AssemblyPath { get; set; }
 
         public List<MethodInfo> GetAllMethods()
         {
             List<MethodInfo> ret = new List<MethodInfo>();
-            Assembly assembly = Assembly.LoadFrom(this.assemblyPath);
+            Assembly assembly = Assembly.LoadFrom(this.AssemblyPath);
 
-            Aspect MyAttribute =
-            (Aspect)Attribute.GetCustomAttribute(assembly, typeof(Aspect));
+            MethodBoundaryAspect MyAttribute =
+            (MethodBoundaryAspect)Attribute.GetCustomAttribute(assembly, typeof(MethodBoundaryAspect));
             if (MyAttribute == null)
             {
                 Console.WriteLine("Aspect not applied to namespace");
@@ -31,7 +35,7 @@ namespace Buffalo
                 Console.WriteLine("Aspect applied to namespace");
             }
 
-            var namespaces = assembly.GetCustomAttributes(typeof(Aspect), false);
+            var namespaces = assembly.GetCustomAttributes(typeof(MethodBoundaryAspect), false);
             if (namespaces.Count() > 0)
             {
                 //aspect applied on assembly, should get all methods

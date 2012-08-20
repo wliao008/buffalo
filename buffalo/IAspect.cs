@@ -1,10 +1,9 @@
 ﻿namespace Buffalo
 {
+    /// <summary>
+    /// This is the base aspect interface
+    /// </summary>
     public interface IAspect
     {
-        void Before();
-        void After();
-        void Around();
-        void Exception();
     }
 }
