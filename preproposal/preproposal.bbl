@@ -1,0 +1,33 @@
+\begin{thebibliography}{1}
+
+\bibitem{aop}
+et~al. Gregor~Kiczales, John~Lamping.
+\newblock {A}spect-{O}riented {P}rogramming.
+\newblock In {\em Proc. of European Conference on Object-Oriented Programming
+  (ECOOP), Finland}, 1997.
+
+\bibitem{postsharp}
+Gael Fraiteur.
+\newblock {U}ser-friendly aspects with compile-time imperative semantics in
+  .{NET}: an overview of {P}ost{S}harp.
+\newblock In {\em International Conference on Aspect-Oriented Software
+  Development}, 2008.
+
+\bibitem{aspectcs}
+Howard Kim.
+\newblock {A}spect{C}\#: {A}n {AOSD} implementation for {C}\#.
+\newblock Master's thesis, Trinity College Dublin, 2002.
+
+\bibitem{aopcs}
+M.~Devi Prasad and B.~D. Chaudhary.
+\newblock {AOP} {S}upport for {C}\#.
+\newblock In {\em Proc. of Second International Conference on Aspect-Oriented
+  Software Development}, pages 49--53, 2003.
+
+\bibitem{rewrite_msil}
+Aleksandr Mikunov.
+\newblock {R}ewrite {MSIL} {C}ode on the {F}ly with the .{NET} {F}ramework
+  {P}roﬁling {API}.
+\newblock {\em MSDN Magazine}, 2003.
+
+\end{thebibliography}

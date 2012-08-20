@@ -1,0 +1,53 @@
+\chapter{Introduction}
+
+%% Obviously you need to delete these lines when you have written up your text
+
+
+\begin{itemize}
+\item{} Background: should be sufficient for the reader understand the rest of the report, but 
+perhaps not too long to put the reader to sleep.
+\item{} Basic problem definition and motivation
+\item{} Approaches used to solve the problem (related work)
+\item{} Hypothesis: what you think the problem is and how your solution 
+approach will address the problem
+\item{} Roadmap: how the rest of your report is laid out 
+\end{itemize}
+
+And yes, this is how you cite a book by Silberschatz~\cite{Silberschatz05-text} or a paper by Dumont~\cite{Dumont2007-robots}.
+
+And here are examples of how to include figures and tables in the text. Please note that the captions go below for figures and above for tables.
+
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=3.0in]{cs-logo.jpg}
+\end{center}
+\caption{The CS Logo is Above}
+\label{fig:lab}
+\end{figure}
+
+
+\begin{table}[h]
+\caption{The Dog Table is Below}
+  \begin{tabular}{ | l | c | r | }
+    \hline
+    tag & breed & age \\
+    \hline \hline
+    13 & Fido & 2 \\
+    \hline
+    14 & Fifi & 4 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+For both tables and figures, the optional argument controls
+placement as shown:
+\begin{itemize}
+  \item{} h is Here, i.e., the position in the text where the table environment appears.
+  \item{} t is Top, i.e., the top of a text page.
+  \item{} b is Bottom, i.e., at the bottom of a text page.
+  \item{} p is Page of floats, i.e., on a separate float page,
+    which is a page containing no text, only floats.
+\end{itemize}
+
+Anyway, you can find some easy tutorials on \LaTeX{}.

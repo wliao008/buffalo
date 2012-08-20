@@ -1,0 +1,305 @@
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2012.7.12)  23 JUL 2012 11:07
+entering extended mode
+ %&-line parsing enabled.
+**Project
+(./Project.tex
+LaTeX2e <2005/12/01>
+Babel <v3.8h> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, arabic, basque, bulgarian, coptic, welsh, czech, slovak, german, ng
+erman, danish, esperanto, spanish, catalan, galician, estonian, farsi, finnish,
+ french, greek, monogreek, ancientgreek, croatian, hungarian, interlingua, ibyc
+us, indonesian, icelandic, italian, latin, mongolian, dutch, norsk, polish, por
+tuguese, pinyin, romanian, russian, slovenian, uppersorbian, serbian, swedish, 
+turkish, ukenglish, ukrainian, loaded.
+(/usr/share/texmf/tex/latex/base/report.cls
+Document Class: report 2005/09/16 v1.4f Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size12.clo
+File: size12.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@chapter=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+) (./rit-cs-capstone.sty
+Document Style Option `rit-cs-capstone, rkr version 1.04 <June 04, 2011>.
+) (/usr/share/texmf/tex/latex/subfigure/subfigure.sty
+Package: subfigure 2002/03/15 v2.1.5 subfigure package
+\subfigtopskip=\skip43
+\subfigcapskip=\skip44
+\subfigcaptopadj=\dimen103
+\subfigbottomskip=\skip45
+\subfigcapmargin=\dimen104
+\subfiglabelskip=\skip46
+\c@subfigure=\count88
+\c@lofdepth=\count89
+\c@subtable=\count90
+\c@lotdepth=\count91
+
+****************************************
+* Local config file subfigure.cfg used *
+****************************************
+(/usr/share/texmf/tex/latex/subfigure/subfigure.cfg)
+\subfig@top=\skip47
+\subfig@bottom=\skip48
+) (./gloss.sty
+Package: gloss 2002/07/26 1.5.2 Gloss package
+\glosshang=\skip49
+)
+(/usr/share/texmf/tex/generic/babel/babel.sty
+Package: babel 2005/11/23 v3.8h The Babel package
+
+(/usr/share/texmf/tex/generic/babel/english.ldf
+Language: english 2005/03/30 v3.3o English support from the babel system
+
+(/usr/share/texmf/tex/generic/babel/babel.def
+File: babel.def 2005/11/23 v3.8h Babel common definitions
+\babel@savecnt=\count92
+\U@D=\dimen105
+)
+\l@british = a dialect from \language\l@english 
+\l@UKenglish = a dialect from \language\l@english 
+\l@canadian = a dialect from \language\l@american 
+\l@australian = a dialect from \language\l@british 
+\l@newzealand = a dialect from \language\l@british 
+))
+(/usr/share/texmf/tex/latex/psnfss/times.sty
+Package: times 2005/04/12 PSNFSS-v9.2a (SPQR) 
+)
+(/usr/share/texmf/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texmf/tex/latex/graphics/graphics.sty
+Package: graphics 2006/02/20 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/share/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2007/01/18 v1.5 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 90.
+
+(/usr/share/texmf/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2007/01/08 v0.04d Graphics/color for pdfTeX
+\Gread@gobject=\count93
+))
+\Gin@req@height=\dimen106
+\Gin@req@width=\dimen107
+)
+(/usr/share/texmf/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2002/01/22 v2.2d
+
+(/usr/share/texmf/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2001/10/25 v2.2f
+\@emptytoks=\toks15
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 132.
+))
+(/usr/share/texmf/tex/latex/graphics/lscape.sty
+Package: lscape 2000/10/22 v3.01 Landscape Pages (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/verbatim.sty
+Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks16
+\verbatim@line=\toks17
+\verbatim@in@stream=\read1
+)
+(/usr/share/texmf/tex/latex/tools/enumerate.sty
+Package: enumerate 1999/03/05 v3.00 enumerate extensions (DPC)
+\@enLab=\toks18
+)
+(/usr/share/texmf/tex/latex/tools/afterpage.sty
+Package: afterpage 1995/10/27 v1.08 After-Page Package (DPC)
+\AP@output=\toks19
+\AP@partial=\box26
+\AP@footins=\box27
+)
+\glsf@default=\write3
+\openout3 = `Project.gls.aux'.
+
+Package gloss Info: Writing gloss file Project.gls.aux on input line 36.
+ (./Project.aux (./intro.aux)
+(./design.aux) (./implementation.aux) (./analysis.aux) (./conclusions.aux)
+(./appendixA.aux) (./appendixB.aux) (./appendixC.aux))
+\openout1 = `Project.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 38.
+
+(/usr/share/texmf/tex/latex/psnfss/ot1ptm.fd
+File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
+)
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <24.88> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 83.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 83.
+ [1
+
+{/usr/share/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    Try loading font information for U+msa on input line 83.
+ (/usr/share/texmf/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2002/01/19 v2.2g AMS font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 83.
+
+(/usr/share/texmf/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2002/01/19 v2.2g AMS font definitions
+) [2] [3
+
+] (./abstract.tex [4
+
+])
+[5
+
+] (./Project.toc
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 2.
+)
+\tf@toc=\write4
+\openout4 = `Project.toc'.
+
+ [6
+
+] (./Project.lot)
+\tf@lot=\write5
+\openout5 = `Project.lot'.
+
+ [7
+
+] (./Project.lof)
+\tf@lof=\write6
+\openout6 = `Project.lof'.
+
+ [8
+
+]
+\openout2 = `intro.aux'.
+
+ (./intro.tex
+Chapter 1.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 7.
+(/usr/share/texmf/tex/latex/psnfss/omsptm.fd
+File: omsptm.fd 
+)
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 7.
+
+<cs-logo.jpg, id=30, 206.7725pt x 130.4875pt>
+File: cs-logo.jpg Graphic file (type jpg)
+ <use cs-logo.jpg> [1
+
+
+]) [2 <./cs-logo.jpg>]
+\openout2 = `design.aux'.
+
+ (./design.tex
+Chapter 2.
+) [3
+
+
+
+]
+\openout2 = `implementation.aux'.
+
+ (./implementation.tex
+Chapter 3.
+) [4
+
+
+
+]
+\openout2 = `analysis.aux'.
+
+ (./analysis.tex
+Chapter 4.
+) [5
+
+
+
+]
+\openout2 = `conclusions.aux'.
+
+ (./conclusions.tex
+Chapter 5.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <17.28> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 9.
+) [6
+
+
+
+] (./Project.bbl) [7
+
+
+]
+\openout2 = `appendixA.aux'.
+
+ (./appendixA.tex
+Appendix A.
+) [8
+
+
+]
+\openout2 = `appendixB.aux'.
+
+ (./appendixB.tex
+Appendix B.
+) [9
+
+
+
+]
+\openout2 = `appendixC.aux'.
+
+ (./appendixC.tex
+Appendix C.
+) [10
+
+
+
+] (./Project.aux (./intro.aux) (./design.aux) (./implementation.aux)
+(./analysis.aux) (./conclusions.aux) (./appendixA.aux) (./appendixB.aux)
+(./appendixC.aux)) ) 
+Here is how much of TeX's memory you used:
+ 1761 strings out of 256216
+ 21074 string characters out of 1917072
+ 72035 words of memory out of 1500000
+ 4953 multiletter control sequences out of 10000+200000
+ 22780 words of font info for 51 fonts, out of 1200000 for 2000
+ 645 hyphenation exceptions out of 8191
+ 25i,7n,24p,200b,230s stack positions out of 5000i,500n,6000p,200000b,15000s
+{/usr/share/texmf/fonts/enc/dvips/base/8r.enc}</usr/share/t
+exmf/fonts/type1/bluesky/cm/cmmi12.pfb></usr/share/texmf/fonts/type1/bluesky/cm
+/cmsy10.pfb></usr/share/texmf/fonts/type1/urw/times/utmb8a.pfb></usr/share/texm
+f/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf/fonts/type1/urw/times/utmr
+i8a.pfb>
+Output written on Project.pdf (18 pages, 75825 bytes).
+PDF statistics:
+ 82 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 131072)
+ 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+

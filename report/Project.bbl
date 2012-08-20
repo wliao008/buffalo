@@ -1,0 +1,30 @@
+\begin{thebibliography}{1}
+
+\bibitem{Bayliss2008-sigcse}
+Jessica Bayliss, Rajendra~K. Raj, and Jamie Cromack.
+\newblock Using and assessing games and robotics to teach introductory
+  computing concepts.
+\newblock In {\em SIGCSE '08 Workshop}, New York, NY, USA, 2008. ACM.
+
+\bibitem{Dumont2007-robots}
+M.~Dumont, I.~Tewksbury, J.~Bayliss, and R.~Raj.
+\newblock Games or robots? restoring excitement to introductory computing.
+\newblock In {\em Robotics: Science and Systems Workshop on Research in Robots
+  for Education}, Atlanta, GA, 2007.
+
+\bibitem{ELmasri06-text}
+Ramez Elmasri and Shamkant~B. Navathe.
+\newblock {\em Fundamentals of Database Systems (5th Edition)}.
+\newblock Addison-Wesley Longman Publishing Co., Inc., Boston, MA, USA, 2006.
+
+\bibitem{Ericson07-sigcse}
+Barbara Ericson, Mark Guzdial, and Maureen Biggers.
+\newblock Improving secondary cs education: progress and problems.
+\newblock {\em SIGCSE Bull.}, 39(1):298--301, 2007.
+
+\bibitem{Silberschatz05-text}
+Abraham Silberschatz, Henry Korth, and S.~Sudarshan.
+\newblock {\em Database Systems Concepts, 5th Ed.,}.
+\newblock McGraw Hill College Division, 2005.
+
+\end{thebibliography}
