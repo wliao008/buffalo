@@ -10,6 +10,10 @@ namespace Buffalo
 {
     public class Weaver
     {
+        private List<Aspect> aspects;
+
+        private bool assemblyLevel;
+
         public Weaver(string assemblyPath)
         {
             ///TODO: Maybe just don't do anything if file not found
@@ -20,46 +24,70 @@ namespace Buffalo
             this.Init();
         }
 
-        public string AssemblyPath { get; set; }
+        internal string AssemblyPath { get; set; }
 
-        public List<TypeDefinition> TypeDefinitions { get; set; }
+        internal List<TypeDefinition> TypeDefinitions { get; set; }
 
-        public List<MethodDefinition> MethodDefinitions { get; set; }
-
-        public AssemblyDefinition AssemblyDefinition { get; set; }
+        internal AssemblyDefinition AssemblyDefinition { get; set; }
 
         public void Init()
         {
-            this.MethodDefinitions = new List<MethodDefinition>();
+            this.aspects = new List<Aspect>();
             this.TypeDefinitions = new List<TypeDefinition>();
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(this.AssemblyPath);
+
             foreach (var m in this.AssemblyDefinition.Modules)
             {
                 m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
             }
 
+            var typeDefs = this.TypeDefinitions.Where(x => x.BaseType != null && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName).ToList();
+            typeDefs.ForEach(x => this.aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
+            
+            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
+            {
+                var t = ca.AttributeType.Resolve();
+                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
+                {
+                    var aspect = this.aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
+                    aspect.IsAssemblyLevel = true;
+                }
+            }
+
             this.CheckTypes();
-            this.MethodDefinitions.ForEach(x => Console.WriteLine(x.FullName));
+            //this.MethodDefinitions.ForEach(x => Console.WriteLine(x.FullName));
         }
 
         public void Inject(string outPath)
         {
             var methodBoundaryAspectDef = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect)).Resolve();
-            var methodBoundaryType = this.FindMethodBoundaryAspect();
-            var beforeMethod = methodBoundaryType.Methods.First(x => x.Name == "Before");
+            var aspects = this.FindMethodBoundaryAspect();
+            //var beforeMethod = methodBoundaryType.Methods.First(x => x.Name == "Before");
+            var befores = aspects.Select(x => x.Methods.First(y => y.Name == "Before")).ToList();
+
+            ///TODO: this is wrong! each aspect might apply to different eligible methods!
+            /*
             this.MethodDefinitions.ForEach(x =>
             {
                 var insts = x.Body.Instructions;
                 insts.Insert(0, Instruction.Create(OpCodes.Nop));
-                insts.Insert(1, Instruction.Create(OpCodes.Ldarg_0));
-                insts.Insert(2, Instruction.Create(OpCodes.Call, beforeMethod));
+                for (int i = 0, j = 0; i <= befores.Count(); i += 2, ++j)
+                {
+                    insts.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
+                    insts.Insert(i + 2, Instruction.Create(OpCodes.Call, befores[j]));
+                }
             });
+            */
+
+            //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
         }
 
-        public TypeDefinition FindMethodBoundaryAspect()
+        private List<TypeDefinition> FindMethodBoundaryAspect()
         {
-            return this.TypeDefinitions.FirstOrDefault(x => x.BaseType != null && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName);
+            var aspects = this.TypeDefinitions.Where(x => x.BaseType != null && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName).ToList();
+            //aspects.ForEach(x => this.maps.Add(x, new List<MethodDefinition>()));
+            return aspects;
         }
 
         private void CheckTypes()
@@ -68,26 +96,24 @@ namespace Buffalo
             {
                 if (!this.Exclude(t))
                 {
-                    var tmp = this.GetMethodDefinitions(t, false);
-                    this.MethodDefinitions.AddRange(tmp);
+                    var tmp = this.GetMethodDefinitions(t);
+                    //methodDefs.AddRange(tmp);
                 }
             }
         }
 
-        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, bool scan = true)
+        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef)
         {
             var list = new List<MethodDefinition>();
-            if (scan == false)
+            foreach (var method in typeDef.Methods)
             {
-                foreach (var method in typeDef.Methods)
+                //only add methods that are not excluded
+                if (!this.Exclude(method))
                 {
-                    //only add methods that are not excluded
-                    if (!this.Exclude(method))
-                    {
-                        list.Add(method);
-                    }
+                    list.Add(method);
                 }
             }
+
             return list;
         }
 

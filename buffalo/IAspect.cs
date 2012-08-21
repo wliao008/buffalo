@@ -3,7 +3,7 @@
     /// <summary>
     /// This is the base aspect interface
     /// </summary>
-    public interface IAspect
+    internal interface IAspect
     {
     }
 }

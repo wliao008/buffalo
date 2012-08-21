@@ -1,6 +1,6 @@
 ﻿namespace Buffalo
 {
-    public interface IMethodBoundaryAspect : IAspect
+    internal interface IMethodBoundaryAspect : IAspect
     {
         void Before();
         void After();

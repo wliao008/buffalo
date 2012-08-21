@@ -11,4 +11,13 @@ namespace client
             Console.WriteLine("Entering...");
         }
     }
+
+    [TraceAspect(AttributeExclude = true)]
+    public class TraceAspect : MethodBoundaryAspect
+    {
+        public override void Before()
+        {
+            Console.WriteLine("Dude, this is before");
+        }
+    }
 }
