@@ -4,6 +4,7 @@ using Mono.Cecil;
 using System;
 using System.Collections.Specialized;
 using System.Collections.Generic;
+using Mono.Cecil.Cil;
 
 namespace Buffalo
 {
@@ -16,46 +17,64 @@ namespace Buffalo
                 throw new FileNotFoundException();
 
             this.AssemblyPath = assemblyPath;
+            this.Init();
         }
 
         public string AssemblyPath { get; set; }
 
+        public List<TypeDefinition> TypeDefinitions { get; set; }
+
+        public List<MethodDefinition> MethodDefinitions { get; set; }
+
         public AssemblyDefinition AssemblyDefinition { get; set; }
 
-        public void GetAllMethods()
+        public void Init()
         {
+            this.MethodDefinitions = new List<MethodDefinition>();
+            this.TypeDefinitions = new List<TypeDefinition>();
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(this.AssemblyPath);
-            //check if MethodBoundaryAspect is applied on assembly level
-            bool mbaAssemblyLevel = false;
-            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
+            foreach (var m in this.AssemblyDefinition.Modules)
             {
-                var t = ca.AttributeType.Resolve();
-                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
-                {
-                    mbaAssemblyLevel = true; 
-                }
+                m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
             }
 
-            if (mbaAssemblyLevel)
-            {
-                List<TypeDefinition> types = new List<TypeDefinition>();
-                foreach (var m in this.AssemblyDefinition.Modules)
-                {
-                    m.Types.ToList().ForEach(x => types.Add(x));
-                }
+            this.CheckTypes();
+            this.MethodDefinitions.ForEach(x => Console.WriteLine(x.FullName));
+        }
 
-                //types.ForEach(x => Console.WriteLine(x.Name));
-                var list = new List<MethodDefinition>();
-                foreach (var t in types)
+        public void Inject(string outPath)
+        {
+            var methodBoundaryAspectDef = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect)).Resolve();
+            var methodBoundaryType = this.FindMethodBoundaryAspect();
+            var beforeMethod = methodBoundaryType.Methods.First(x => x.Name == "Before");
+            this.MethodDefinitions.ForEach(x =>
+            {
+                var insts = x.Body.Instructions;
+                insts.Insert(0, Instruction.Create(OpCodes.Nop));
+                insts.Insert(1, Instruction.Create(OpCodes.Ldarg_0));
+                insts.Insert(2, Instruction.Create(OpCodes.Call, beforeMethod));
+            });
+            this.AssemblyDefinition.Write(outPath);
+        }
+
+        public TypeDefinition FindMethodBoundaryAspect()
+        {
+            return this.TypeDefinitions.FirstOrDefault(x => x.BaseType != null && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName);
+        }
+
+        private void CheckTypes()
+        {
+            foreach (var t in this.TypeDefinitions)
+            {
+                if (!this.Exclude(t))
                 {
-                    var tmp = this.GetMethodDefinitionFromType(t, false);
-                    list.AddRange(tmp);
+                    var tmp = this.GetMethodDefinitions(t, false);
+                    this.MethodDefinitions.AddRange(tmp);
                 }
-                list.ForEach(x => Console.WriteLine(x.FullName));
             }
         }
 
-        public List<MethodDefinition> GetMethodDefinitionFromType(TypeDefinition typeDef, bool scan = true)
+        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, bool scan = true)
         {
             var list = new List<MethodDefinition>();
             if (scan == false)
@@ -72,13 +91,23 @@ namespace Buffalo
             return list;
         }
 
-        private bool Exclude(MethodDefinition methodDef)
+        /// <summary>
+        /// A TypeDefinition and MethodDefinition both implement the
+        /// ICustomAttributeProvider interface, so it can be used here
+        /// to determined if a method is marked as exclude or not.
+        /// </summary>
+        private bool Exclude(ICustomAttributeProvider def)
         {
-            foreach (var ca in methodDef.CustomAttributes)
+            foreach (var ca in def.CustomAttributes)
             {
                 var t = ca.AttributeType.Resolve();
                 if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
                 {
+                    if (ca.Properties.Count == 0)
+                    {
+                        return false;
+                    }
+
                     var exclude = ca.Properties.First(x => x.Name == "AttributeExclude");
                     if ((bool)exclude.Argument.Value == true)
                     {
