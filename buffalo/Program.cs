@@ -11,12 +11,16 @@ namespace Buffalo
         static void Main(string[] args)
         {
             string path = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
+            /*
             var methods = new Weaver(path).GetAllMethods();
             Console.WriteLine("\n\n======================== methods ========================");
             foreach (var m in methods)
             {
                 Console.WriteLine(m.Name);
             }
+            */
+
+            new Weaver(path).GetAllMethods();
             Console.Read();
         }
     }

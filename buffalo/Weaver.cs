@@ -1,8 +1,9 @@
-﻿using System;
+﻿using System.IO;
 using System.Linq;
-using System.Reflection;
+using Mono.Cecil;
+using System;
+using System.Collections.Specialized;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Buffalo
 {
@@ -19,6 +20,55 @@ namespace Buffalo
 
         public string AssemblyPath { get; set; }
 
+        public AssemblyDefinition AssemblyDefinition { get; set; }
+
+        public void GetAllMethods()
+        {
+            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(this.AssemblyPath);
+            //check if MethodBoundaryAspect is applied on assembly level
+            bool mbaAssemblyLevel = false;
+            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
+            {
+                var t = ca.AttributeType.Resolve();
+                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
+                {
+                    mbaAssemblyLevel = true; 
+                }
+            }
+
+            if (mbaAssemblyLevel)
+            {
+                List<TypeDefinition> types = new List<TypeDefinition>();
+                foreach (var m in this.AssemblyDefinition.Modules)
+                {
+                    m.Types.ToList().ForEach(x => types.Add(x));
+                }
+
+                //types.ForEach(x => Console.WriteLine(x.Name));
+                var list = new List<MethodDefinition>();
+                foreach (var t in types)
+                {
+                    var tmp = this.GetMethodDefinitionFromType(t, false);
+                    list.AddRange(tmp);
+                }
+                list.ForEach(x => Console.WriteLine(x.FullName));
+            }
+        }
+
+        public List<MethodDefinition> GetMethodDefinitionFromType(TypeDefinition typeDef, bool scan = true)
+        {
+            var list = new List<MethodDefinition>();
+            if (scan == false)
+            {
+                foreach (var method in typeDef.Methods)
+                {
+                    list.Add(method);
+                }
+            }
+            return list;
+        }
+
+        /*
         public List<MethodInfo> GetAllMethods()
         {
             List<MethodInfo> ret = new List<MethodInfo>();
@@ -98,6 +148,7 @@ namespace Buffalo
 
             return false;
         }
+        */
     }
 }
 
