@@ -8,8 +8,8 @@ namespace client
 {
     public class Funtion
     {
-        [MyAspect(AttributeExclude=true)]
-        public void Function1()
+        [MyAspect(AttributeExclude = true)]
+        public void FFunction1()
         {
             Console.WriteLine("Funtion.Function1");
         }

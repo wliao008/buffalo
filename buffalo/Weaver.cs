@@ -62,10 +62,32 @@ namespace Buffalo
             {
                 foreach (var method in typeDef.Methods)
                 {
-                    list.Add(method);
+                    //only add methods that are not excluded
+                    if (!this.Exclude(method))
+                    {
+                        list.Add(method);
+                    }
                 }
             }
             return list;
+        }
+
+        private bool Exclude(MethodDefinition methodDef)
+        {
+            foreach (var ca in methodDef.CustomAttributes)
+            {
+                var t = ca.AttributeType.Resolve();
+                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
+                {
+                    var exclude = ca.Properties.First(x => x.Name == "AttributeExclude");
+                    if ((bool)exclude.Argument.Value == true)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         /*
