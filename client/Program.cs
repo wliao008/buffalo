@@ -10,8 +10,28 @@ namespace client
     {
         static void Main(string[] args)
         {
-            new Funtion().Function2a();
+            Console.WriteLine("Program.Main");
+            new Test().Function1();
             Console.Read();
+        }
+    }
+
+    public class Test
+    {
+        public Test()
+        {
+            Console.WriteLine("Test.ctor");
+        }
+
+        [MyAspect(AttributeExclude = true)]
+        public void Function1()
+        {
+            Console.WriteLine("Function 1");
+        }
+
+        public void Function2()
+        {
+            Console.WriteLine("Function 2");
         }
     }
 }

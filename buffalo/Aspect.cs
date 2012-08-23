@@ -11,6 +11,8 @@ namespace Buffalo
 
         public TypeDefinition TypeDefinition { get; set; }
 
+        public System.Type Type { get; set; }
+
         public override string ToString()
         {
             return this.Name;

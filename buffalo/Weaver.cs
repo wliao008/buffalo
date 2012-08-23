@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using Mono.Cecil;
 using System;
+using Mono.Cecil.Cil;
+using System.Diagnostics;
 
 namespace Buffalo
 {
@@ -14,13 +16,15 @@ namespace Buffalo
             if (!File.Exists(assemblyPath))
                 throw new FileNotFoundException();
 
-            this.AssemblyPath = assemblyPath;
+            AssemblyPath = assemblyPath;
             this.Init();
         }
 
-        internal string AssemblyPath { get; set; }
+        static internal string AssemblyPath { get; set; }
 
-        internal List<Aspect> Aspects { get; set; }
+        static internal List<Aspect> Aspects { get; set; }
+
+        static internal Dictionary<string, Type> UnderlyingAspectTypes { get; set; }
 
         internal Dictionary<MethodDefinition, List<Aspect>> EligibleMethods { get; set; }
 
@@ -39,27 +43,38 @@ namespace Buffalo
             /*
             this.MethodDefinitions.ForEach(x =>
             {
-                var insts = x.Body.Instructions;
-                insts.Insert(0, Instruction.Create(OpCodes.Nop));
-                for (int i = 0, j = 0; i <= befores.Count(); i += 2, ++j)
-                {
-                    insts.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
-                    insts.Insert(i + 2, Instruction.Create(OpCodes.Call, befores[j]));
-                }
             });
             */
 
+            foreach (var method in this.EligibleMethods)
+            {
+                if (method.Key.FullName.Contains("Function2a"))
+                {
+                    System.Diagnostics.Debug.WriteLine("Function2a");
+                }
+                var aspects = method.Value;
+                var insts = method.Key.Body.Instructions;
+                insts.Insert(0, Instruction.Create(OpCodes.Nop));
+                for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+                {
+                    var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
+                    insts.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
+                    insts.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
+                }
+            }
+
             //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
+            Console.WriteLine("DONE");
         }
 
         private void Init()
         {
             //initialize the variables
-            this.Aspects = new List<Aspect>();
+            Aspects = new List<Aspect>();
             this.TypeDefinitions = new List<TypeDefinition>();
             this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
-            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(this.AssemblyPath);
+            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
             //populate the type definition first
             foreach (var m in this.AssemblyDefinition.Modules)
                 m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
@@ -68,14 +83,16 @@ namespace Buffalo
                 .Where(x => x.BaseType != null 
                     && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName)
                 .ToList()
-                .ForEach(x => this.Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
+                .ForEach(x => Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
+            //set the original types
+            SetUnderlyingAspectTypes();
             //check each aspect if it's applied on the assembly level
             foreach (var ca in this.AssemblyDefinition.CustomAttributes)
             {
                 var t = ca.AttributeType.Resolve();
                 if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
                 {
-                    var aspect = this.Aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
+                    var aspect = Aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
                     aspect.IsAssemblyLevel = true;
                 }
             }
@@ -83,18 +100,55 @@ namespace Buffalo
             this.CheckEligibleMethods();
         }
 
-        private void CheckEligibleMethods()
+        private static void SetUnderlyingAspectTypes()
         {
-            foreach (var aspect in this.Aspects)
-            {
-                //if (aspect.IsAssemblyLevel)
-               // {
-                    //simply loop thru each non-excluded type 
-                    //and add each non-excluded method
-                    this.CheckEligibleMethods(aspect);
-                //}
-            }
+            AppDomain domain = AppDomain.CreateDomain("domain");
+            BoundaryObject boundary = (BoundaryObject)
+                domain.CreateInstanceAndUnwrap(
+                typeof(BoundaryObject).Assembly.FullName,
+                typeof(BoundaryObject).FullName);
+            AppDomainArgs ada = new AppDomainArgs();
+            ada.AssemblyPath = AssemblyPath;
+            ada.Aspects = Aspects;
+            ada.UnderlyingAspectTypes = UnderlyingAspectTypes;
+            //domain.DoCallBack(new CrossAppDomainDelegate(LoadAssembly));
+            BoundaryObject.DoSomething(ada);
+            domain.DomainUnload += new EventHandler(domain_DomainUnload);
+            AppDomain.Unload(domain);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
 
+        private static void domain_DomainUnload(object sender, EventArgs e)
+        {
+            Console.WriteLine("Unloading domain...");
+        }
+
+        private static void LoadAssembly()
+        {
+            ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
+            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
+            var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
+            var types = assembly.GetTypes().ToList();
+            
+            //foreach (var aspect in ada.Aspects)
+            //{
+            //    var type = types.FirstOrDefault(x => x.FullName.Equals(aspect.TypeDefinition.FullName));
+            //    if (type != null)
+            //    {
+            //        aspect.Type = type;
+            //    }
+            //}
+
+            //foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    Console.WriteLine(a.FullName);
+            //    Console.WriteLine("");
+            //}
+        }
+
+        private void PrintEligibleMethods()
+        {
             foreach (var de in this.EligibleMethods)
             {
                 Console.WriteLine(de.Key.FullName);
@@ -105,18 +159,24 @@ namespace Buffalo
             }
         }
 
+        private void CheckEligibleMethods()
+        {
+            Aspects.ForEach(x => this.CheckEligibleMethods(x));
+        }
+
         private void CheckEligibleMethods(Aspect aspect)
         {
             foreach (var t in this.TypeDefinitions)
             {
-                if (t.FullName.Contains("Funtion"))
+                if (t.Name == "<Module>") continue;
+                if (t.FullName.Contains("MyAspect")
+                    || t.FullName.Contains("TraceAspect"))
                 {
-                    System.Diagnostics.Debug.WriteLine("Funtion");
+                    System.Diagnostics.Debug.WriteLine("Test");
                 }
 
-                //if (this.CheckAspectStatus(t, aspect) != Status.Applied
-                //    && !aspect.IsAssemblyLevel)
-                //    continue;
+                if (this.CheckAspectStatus(t, aspect) != Status.Applied)
+                    continue;
 
                 var mths = this.GetMethodDefinitions(t, aspect);
                 mths.ForEach(x =>
@@ -150,9 +210,9 @@ namespace Buffalo
             var list = new List<MethodDefinition>();
             foreach (var method in typeDef.Methods)
             {
-                if (method.FullName.Contains("FFunction1"))
+                if (method.FullName.Contains("Function1"))
                 {
-                    System.Diagnostics.Debug.WriteLine("Function2a");
+                    System.Diagnostics.Debug.WriteLine("Function1");
                 }
                 //only add methods that are not excluded
                 if (this.CheckAspectStatus(method, aspect) != Status.Applied)
@@ -172,28 +232,78 @@ namespace Buffalo
         private Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
         {
             Status status = aspect.IsAssemblyLevel ? Status.Applied : Status.NotApplied;
-            foreach (var ca in def.CustomAttributes)
+
+            bool attrFound = false;
+            for (int i = 0; i < def.CustomAttributes.Count; ++i)
             {
-                var t = ca.AttributeType.Resolve();
-                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName)
-                    && ca.AttributeType.FullName.Equals(aspect.Name))
+                Console.WriteLine("\tBaseType: " + aspect.Type.BaseType.Name);
+                //var t = def.CustomAttributes[i].AttributeType.Resolve();
+                if (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
+                    && def.CustomAttributes[i].AttributeType.FullName.Equals(aspect.Name))
                 {
-                    if (ca.Properties.Count == 0)
+                    attrFound = true;
+                    if (def.CustomAttributes[i].Properties.Count == 0)
                     {
                         status = Status.Applied;
                     }
                     else
                     {
-                        var exclude = ca.Properties.First(x => x.Name == "AttributeExclude");
+                        var exclude = def.CustomAttributes[i].Properties.First(x => x.Name == "AttributeExclude");
                         if ((bool)exclude.Argument.Value == true)
                         {
                             status = Status.Excluded;
+                            Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
+                            def.CustomAttributes.RemoveAt(i);
                         }
                     }
                 }
             }
 
+            if (!attrFound && aspect.IsAssemblyLevel)
+            {
+                //this aspect is applied on the assembly level and
+                //as a result the type and method might not have the
+                //attributed annotated, this is to programmatically add
+                //in the annotation so IL can be generated correctly.
+                MethodReference attrCtor = this.AssemblyDefinition.MainModule.Import(
+                    aspect.Type.GetConstructor(Type.EmptyTypes));
+                //var methodRef = this.AssemblyDefinition.MainModule.Import(aspect.Type);
+                
+                def.CustomAttributes.Add(new CustomAttribute(attrCtor));
+                Console.WriteLine("Injecting custome attr for: " + def.ToString());
+            }
+
             return status;
+        }
+
+        private void AddAttribute(ICustomAttributeProvider def, Aspect aspect)
+        {
+        }
+
+        private void SetTypes()
+        {
+            //byte[] asmBytes = File.ReadAllBytes(this.AssemblyPath);
+            //var domain = AppDomain.CreateDomain("aspects");
+            //var assembly = domain.Load(asmBytes);
+            //var assembly = domain.Load(System.Reflection.AssemblyName.GetAssemblyName(this.AssemblyPath));
+
+            //AppDomain domain = AppDomain.CreateDomain("aspects");
+            //domain.AssemblyResolve += (s, e) =>
+            //{
+            //    Console.WriteLine("Resolving...");
+            //    return domain.Load(System.Reflection.AssemblyName.GetAssemblyName(this.AssemblyPath));
+            //};
+
+            //System.Reflection.Assembly assembly = System.Reflection.Assembly.LoadFrom(this.AssemblyPath);
+            //var domain = AppDomain.CreateDomain("aspects");
+            //domain.DoCallBack(new CrossAppDomainDelegate(this.LoadAssembly));
+            //domain.DomainUnload += (s, e) =>
+            //{
+            //    Console.WriteLine("Unloading temp app domain");
+            //};
+            //AppDomain.Unload(domain);
+            //GC.Collect();
+            //GC.WaitForPendingFinalizers();
         }
 
         /*
@@ -277,6 +387,35 @@ namespace Buffalo
             return false;
         }
         */
+    }
+
+    class BoundaryObject : MarshalByRefObject
+    {
+        public static void DoSomething(AppDomainArgs ada)
+        {
+            ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
+            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
+            var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
+            var types = assembly.GetTypes().ToList();
+
+            foreach (var aspect in ada.Aspects)
+            {
+                var type = types.FirstOrDefault(x => x.FullName.Equals(aspect.TypeDefinition.FullName));
+                if (type != null)
+                {
+                    aspect.Type = type;
+                }
+            }
+        }
+    }
+
+    class AppDomainArgs : MarshalByRefObject
+    {
+        internal string AssemblyPath { get; set; }
+
+        internal List<Aspect> Aspects { get; set; }
+
+        internal Dictionary<string, Type> UnderlyingAspectTypes { get; set; }
     }
 }
 

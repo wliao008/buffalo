@@ -3,21 +3,23 @@ using System;
 
 namespace client
 {
-    [MyAspect(AttributeExclude=true)]
+    [MyAspect(AttributeExclude = true)]
+    [TraceAspect(AttributeExclude = true)]
     public class MyAspect : MethodBoundaryAspect
     {
         public override void Before()
         {
-            Console.WriteLine("Entering...");
+            Console.WriteLine("MyAspect.Before");
         }
     }
 
+    [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
         public override void Before()
         {
-            Console.WriteLine("Dude, this is before");
+            Console.WriteLine("Trace.Before");
         }
     }
 }
