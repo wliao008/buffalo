@@ -87,11 +87,20 @@ namespace Buffalo
         {
             foreach (var aspect in this.Aspects)
             {
-                if (aspect.IsAssemblyLevel)
-                {
+                //if (aspect.IsAssemblyLevel)
+               // {
                     //simply loop thru each non-excluded type 
                     //and add each non-excluded method
                     this.CheckEligibleMethods(aspect);
+                //}
+            }
+
+            foreach (var de in this.EligibleMethods)
+            {
+                Console.WriteLine(de.Key.FullName);
+                foreach (var a in de.Value)
+                {
+                    Console.WriteLine("\t" + a.Name);
                 }
             }
         }
@@ -100,9 +109,14 @@ namespace Buffalo
         {
             foreach (var t in this.TypeDefinitions)
             {
-                if (this.CheckAspectStatus(t, aspect) != Status.Applied
-                    && !aspect.IsAssemblyLevel)
-                    continue;
+                if (t.FullName.Contains("Funtion"))
+                {
+                    System.Diagnostics.Debug.WriteLine("Funtion");
+                }
+
+                //if (this.CheckAspectStatus(t, aspect) != Status.Applied
+                //    && !aspect.IsAssemblyLevel)
+                //    continue;
 
                 var mths = this.GetMethodDefinitions(t, aspect);
                 mths.ForEach(x =>
@@ -136,9 +150,12 @@ namespace Buffalo
             var list = new List<MethodDefinition>();
             foreach (var method in typeDef.Methods)
             {
+                if (method.FullName.Contains("FFunction1"))
+                {
+                    System.Diagnostics.Debug.WriteLine("Function2a");
+                }
                 //only add methods that are not excluded
-                if (this.CheckAspectStatus(method, aspect) != Status.Applied
-                    && !aspect.IsAssemblyLevel)
+                if (this.CheckAspectStatus(method, aspect) != Status.Applied)
                     continue;
 
                 list.Add(method);
@@ -154,22 +171,24 @@ namespace Buffalo
         /// </summary>
         private Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
         {
-            Status status = Status.NotApplied;
+            Status status = aspect.IsAssemblyLevel ? Status.Applied : Status.NotApplied;
             foreach (var ca in def.CustomAttributes)
             {
                 var t = ca.AttributeType.Resolve();
                 if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName)
-                    && ca.AttributeType.Name.Equals(aspect.Name))
+                    && ca.AttributeType.FullName.Equals(aspect.Name))
                 {
                     if (ca.Properties.Count == 0)
                     {
                         status = Status.Applied;
                     }
-
-                    var exclude = ca.Properties.First(x => x.Name == "AttributeExclude");
-                    if ((bool)exclude.Argument.Value == true)
+                    else
                     {
-                        status = Status.Excluded;
+                        var exclude = ca.Properties.First(x => x.Name == "AttributeExclude");
+                        if ((bool)exclude.Argument.Value == true)
+                        {
+                            status = Status.Excluded;
+                        }
                     }
                 }
             }

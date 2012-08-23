@@ -8,6 +8,8 @@ namespace client
 {
     public class Funtion
     {
+        public int Id { get; set; }
+
         [MyAspect(AttributeExclude = true)]
         public void FFunction1()
         {
@@ -15,9 +17,10 @@ namespace client
         }
 
         [TraceAspect]
+        [MyAspect(AttributeExclude = true)]
         public void Function2a()
         {
-            Console.WriteLine("Funtion.Function2");
+            Console.WriteLine("Funtion.Function2a");
         }
 
         [MyAspect(AttributeExclude = true)]
