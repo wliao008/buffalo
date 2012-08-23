@@ -15,7 +15,7 @@ namespace client
         }
 
         [TraceAspect]
-        public void Function2()
+        public void Function2a()
         {
             Console.WriteLine("Funtion.Function2");
         }

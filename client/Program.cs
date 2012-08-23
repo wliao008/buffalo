@@ -10,7 +10,7 @@ namespace client
     {
         static void Main(string[] args)
         {
-            new Funtion().Function2();
+            new Funtion().Function2a();
             Console.Read();
         }
     }

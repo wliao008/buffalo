@@ -1,19 +1,13 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Mono.Cecil;
 using System;
-using System.Collections.Specialized;
-using System.Collections.Generic;
-using Mono.Cecil.Cil;
 
 namespace Buffalo
 {
     public class Weaver
     {
-        private List<Aspect> aspects;
-
-        private bool assemblyLevel;
-
         public Weaver(string assemblyPath)
         {
             ///TODO: Maybe just don't do anything if file not found
@@ -26,44 +20,20 @@ namespace Buffalo
 
         internal string AssemblyPath { get; set; }
 
+        internal List<Aspect> Aspects { get; set; }
+
+        internal Dictionary<MethodDefinition, List<Aspect>> EligibleMethods { get; set; }
+
         internal List<TypeDefinition> TypeDefinitions { get; set; }
 
         internal AssemblyDefinition AssemblyDefinition { get; set; }
 
-        public void Init()
-        {
-            this.aspects = new List<Aspect>();
-            this.TypeDefinitions = new List<TypeDefinition>();
-            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(this.AssemblyPath);
-
-            foreach (var m in this.AssemblyDefinition.Modules)
-            {
-                m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
-            }
-
-            var typeDefs = this.TypeDefinitions.Where(x => x.BaseType != null && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName).ToList();
-            typeDefs.ForEach(x => this.aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
-            
-            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
-            {
-                var t = ca.AttributeType.Resolve();
-                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
-                {
-                    var aspect = this.aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
-                    aspect.IsAssemblyLevel = true;
-                }
-            }
-
-            this.CheckTypes();
-            //this.MethodDefinitions.ForEach(x => Console.WriteLine(x.FullName));
-        }
-
         public void Inject(string outPath)
         {
-            var methodBoundaryAspectDef = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect)).Resolve();
-            var aspects = this.FindMethodBoundaryAspect();
+            //var methodBoundaryAspectDef = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect)).Resolve();
+            //var aspects = this.FindMethodBoundaryAspect();
             //var beforeMethod = methodBoundaryType.Methods.First(x => x.Name == "Before");
-            var befores = aspects.Select(x => x.Methods.First(y => y.Name == "Before")).ToList();
+            //var befores = aspects.Select(x => x.Methods.First(y => y.Name == "Before")).ToList();
 
             ///TODO: this is wrong! each aspect might apply to different eligible methods!
             /*
@@ -83,35 +53,95 @@ namespace Buffalo
             this.AssemblyDefinition.Write(outPath);
         }
 
-        private List<TypeDefinition> FindMethodBoundaryAspect()
+        private void Init()
         {
-            var aspects = this.TypeDefinitions.Where(x => x.BaseType != null && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName).ToList();
-            //aspects.ForEach(x => this.maps.Add(x, new List<MethodDefinition>()));
-            return aspects;
+            //initialize the variables
+            this.Aspects = new List<Aspect>();
+            this.TypeDefinitions = new List<TypeDefinition>();
+            this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
+            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(this.AssemblyPath);
+            //populate the type definition first
+            foreach (var m in this.AssemblyDefinition.Modules)
+                m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
+            //extract aspects from the type definitions
+            this.TypeDefinitions
+                .Where(x => x.BaseType != null 
+                    && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName)
+                .ToList()
+                .ForEach(x => this.Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
+            //check each aspect if it's applied on the assembly level
+            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
+            {
+                var t = ca.AttributeType.Resolve();
+                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
+                {
+                    var aspect = this.Aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
+                    aspect.IsAssemblyLevel = true;
+                }
+            }
+
+            this.CheckEligibleMethods();
         }
 
-        private void CheckTypes()
+        private void CheckEligibleMethods()
         {
-            foreach (var t in this.TypeDefinitions)
+            foreach (var aspect in this.Aspects)
             {
-                if (!this.Exclude(t))
+                if (aspect.IsAssemblyLevel)
                 {
-                    var tmp = this.GetMethodDefinitions(t);
-                    //methodDefs.AddRange(tmp);
+                    //simply loop thru each non-excluded type 
+                    //and add each non-excluded method
+                    this.CheckEligibleMethods(aspect);
                 }
             }
         }
 
-        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef)
+        private void CheckEligibleMethods(Aspect aspect)
+        {
+            foreach (var t in this.TypeDefinitions)
+            {
+                if (this.CheckAspectStatus(t, aspect) != Status.Applied
+                    && !aspect.IsAssemblyLevel)
+                    continue;
+
+                var mths = this.GetMethodDefinitions(t, aspect);
+                mths.ForEach(x =>
+                {
+                    if (!this.EligibleMethods.ContainsKey(x))
+                    {
+                        this.EligibleMethods.Add(x, new List<Aspect>() { aspect });
+                    }
+                    else
+                    {
+                        var aspects = this.EligibleMethods[x];
+                        aspects.Add(aspect);
+                    }
+                });
+
+                //{
+                //    //aspect.MethodDefinitions.AddRange(tmp);
+                //    tmp.ForEach(x =>
+                //    {
+                //        //if (this.EligibleMethods.ContainsKey(t))
+                //        //{
+
+                //        //}
+                //    });
+                //}
+            }
+        }
+
+        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Aspect aspect)
         {
             var list = new List<MethodDefinition>();
             foreach (var method in typeDef.Methods)
             {
                 //only add methods that are not excluded
-                if (!this.Exclude(method))
-                {
-                    list.Add(method);
-                }
+                if (this.CheckAspectStatus(method, aspect) != Status.Applied
+                    && !aspect.IsAssemblyLevel)
+                    continue;
+
+                list.Add(method);
             }
 
             return list;
@@ -122,27 +152,29 @@ namespace Buffalo
         /// ICustomAttributeProvider interface, so it can be used here
         /// to determined if a method is marked as exclude or not.
         /// </summary>
-        private bool Exclude(ICustomAttributeProvider def)
+        private Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
         {
+            Status status = Status.NotApplied;
             foreach (var ca in def.CustomAttributes)
             {
                 var t = ca.AttributeType.Resolve();
-                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
+                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName)
+                    && ca.AttributeType.Name.Equals(aspect.Name))
                 {
                     if (ca.Properties.Count == 0)
                     {
-                        return false;
+                        status = Status.Applied;
                     }
 
                     var exclude = ca.Properties.First(x => x.Name == "AttributeExclude");
                     if ((bool)exclude.Argument.Value == true)
                     {
-                        return true;
+                        status = Status.Excluded;
                     }
                 }
             }
 
-            return false;
+            return status;
         }
 
         /*
