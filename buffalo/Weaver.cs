@@ -38,31 +38,25 @@ namespace Buffalo
             //var aspects = this.FindMethodBoundaryAspect();
             //var beforeMethod = methodBoundaryType.Methods.First(x => x.Name == "Before");
             //var befores = aspects.Select(x => x.Methods.First(y => y.Name == "Before")).ToList();
+            
+            //foreach (var method in this.EligibleMethods)
+            //{
+            //    if (method.Key.FullName.Contains("Function2a"))
+            //    {
+            //        System.Diagnostics.Debug.WriteLine("Function2a");
+            //    }
+            //    var aspects = method.Value;
+            //    var insts = method.Key.Body.Instructions;
+            //    insts.Insert(0, Instruction.Create(OpCodes.Nop));
+            //    for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+            //    {
+            //        var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
+            //        insts.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
+            //        insts.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
+            //    }
+            //}
 
-            ///TODO: this is wrong! each aspect might apply to different eligible methods!
-            /*
-            this.MethodDefinitions.ForEach(x =>
-            {
-            });
-            */
-
-            foreach (var method in this.EligibleMethods)
-            {
-                if (method.Key.FullName.Contains("Function2a"))
-                {
-                    System.Diagnostics.Debug.WriteLine("Function2a");
-                }
-                var aspects = method.Value;
-                var insts = method.Key.Body.Instructions;
-                insts.Insert(0, Instruction.Create(OpCodes.Nop));
-                for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
-                {
-                    var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
-                    insts.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
-                    insts.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
-                }
-            }
-
+            this.InjectPeps();
             //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
             Console.WriteLine("DONE");
@@ -113,6 +107,54 @@ namespace Buffalo
                     this.CheckEligibleMethods(x);
                     Console.WriteLine("");
                 });
+        }
+
+        private void InjectPeps()
+        {
+            //assuming the aspects are all PEPS
+            foreach (var d in this.EligibleMethods)
+            {
+                var method = d.Key;
+                var aspects = d.Value;
+                var count = method.Body.Instructions.Count;
+                var il = method.Body.GetILProcessor();
+                //var write = il.Create(OpCodes.Call, ModuleDefinition.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
+                Instruction write = null;
+                MethodReference exception = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Exception"));
+                if (exception == null)
+                {
+                    exception = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Exception"));
+                }
+
+                write = il.Create(OpCodes.Call, exception);
+                var ret = il.Create(OpCodes.Ret);
+                var pop = il.Create(OpCodes.Pop);
+                var leave = il.Create(OpCodes.Leave, ret);
+                var last = method.Body.Instructions.Last();
+                method.Body.Instructions[count - 1] =
+                    Instruction.Create(OpCodes.Leave_S, ret);
+
+                var in1 = il.Create(OpCodes.Stloc_2);
+                var in2 = il.Create(OpCodes.Nop);
+                var in3 = il.Create(OpCodes.Ldarg_0);
+                var in4 = il.Create(OpCodes.Ldloc_2);
+                var in5 = il.Create(OpCodes.Nop);
+                var in6 = il.Create(OpCodes.Nop);
+
+                il.InsertAfter(method.Body.Instructions.Last(), write);
+                il.InsertAfter(write, leave);
+                il.InsertAfter(leave, ret);
+
+                var handler = new ExceptionHandler(ExceptionHandlerType.Catch)
+                {
+                    TryStart = method.Body.Instructions.First(),
+                    TryEnd = write,
+                    HandlerStart = write,
+                    HandlerEnd = ret,
+                    CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+                };
+                method.Body.ExceptionHandlers.Add(handler);
+            }
         }
 
         private static void SetUnderlyingAspectTypes()
@@ -224,10 +266,17 @@ namespace Buffalo
                 //if (status != Status.Applied && typeStatus != Status.Applied)
                 //    continue;
 
-                if (typeStatus == Status.Applied && status != Status.Excluded)
+                if (status == Status.Applied)
                 {
-                    status = Status.Applied;
                     list.Add(method);
+                }
+                else
+                {
+                    if (typeStatus == Status.Applied && status != Status.Excluded)
+                    {
+                        status = Status.Applied;
+                        list.Add(method);
+                    }
                 }
 #if DEBUG
                 Console.WriteLine("\t\t{0}: {1}", method.Name, status.ToString());

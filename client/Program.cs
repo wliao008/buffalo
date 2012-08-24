@@ -16,7 +16,6 @@ namespace client
         }
     }
 
-    [TraceAspect]
     public class Test
     {
         public Test()
@@ -24,9 +23,12 @@ namespace client
             Console.WriteLine("Test.ctor");
         }
 
-        [MyAspect(AttributeExclude = true)]
+        [TraceAspect(AttributeExclude = true)]
+        [MyAspect]
         public void Function1()
         {
+            int zero = 0;
+            int result = 1 / zero;
             Console.WriteLine("Function 1");
         }
 
