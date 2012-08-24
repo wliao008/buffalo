@@ -120,6 +120,26 @@ namespace Buffalo
                 var il = method.Body.GetILProcessor();
                 //var write = il.Create(OpCodes.Call, ModuleDefinition.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
                 Instruction write = null;
+                
+                /*
+                MethodReference before = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Before"));
+                if (before == null)
+                {
+                    before = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Before"));
+                }
+
+                MethodReference after = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("After"));
+                if (after == null)
+                {
+                    after = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("After"));
+                }
+
+                MethodReference success = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Success"));
+                if (success == null)
+                {
+                    success = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Success"));
+                }*/
+
                 MethodReference exception = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Exception"));
                 if (exception == null)
                 {
@@ -134,6 +154,14 @@ namespace Buffalo
                 method.Body.Instructions[count - 1] =
                     Instruction.Create(OpCodes.Leave_S, ret);
 
+                method.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Nop));
+                for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+                {
+                    var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
+                    method.Body.Instructions.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
+                    method.Body.Instructions.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
+                }
+
                 var in1 = il.Create(OpCodes.Stloc_2);
                 var in2 = il.Create(OpCodes.Nop);
                 var in3 = il.Create(OpCodes.Ldarg_0);
@@ -141,19 +169,31 @@ namespace Buffalo
                 var in5 = il.Create(OpCodes.Nop);
                 var in6 = il.Create(OpCodes.Nop);
 
+                var endfinally = il.Create(OpCodes.Endfinally);
+
                 il.InsertAfter(method.Body.Instructions.Last(), write);
                 il.InsertAfter(write, leave);
-                il.InsertAfter(leave, ret);
+                il.InsertAfter(leave, endfinally);
+                il.InsertAfter(endfinally, ret);
 
-                var handler = new ExceptionHandler(ExceptionHandlerType.Catch)
+                var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
                 {
                     TryStart = method.Body.Instructions.First(),
                     TryEnd = write,
                     HandlerStart = write,
+                    HandlerEnd = endfinally,
+                    CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+                };
+                var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
+                {
+                    TryStart = method.Body.Instructions.First(),
+                    TryEnd = endfinally,
+                    HandlerStart = endfinally,
                     HandlerEnd = ret,
                     CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
                 };
-                method.Body.ExceptionHandlers.Add(handler);
+                method.Body.ExceptionHandlers.Add(catchHandler);
+                method.Body.ExceptionHandlers.Add(finallyHandler);
             }
         }
 

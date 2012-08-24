@@ -34,7 +34,20 @@ namespace client
 
         public void Function2()
         {
-            Console.WriteLine("Function 2");
+            try
+            {
+                int zero = 0;
+                int result = 1 / zero;
+                Console.WriteLine("Function 2");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                Console.WriteLine("finally");
+            }
         }
     }
 }
