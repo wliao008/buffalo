@@ -119,34 +119,16 @@ namespace Buffalo
                 var count = method.Body.Instructions.Count;
                 var il = method.Body.GetILProcessor();
                 //var write = il.Create(OpCodes.Call, ModuleDefinition.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
-                Instruction write = null;
+                Instruction writeException = null;
+                Instruction writeAfter = null;
                 
                 /*
-                MethodReference before = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Before"));
-                if (before == null)
-                {
-                    before = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Before"));
-                }
-
-                MethodReference after = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("After"));
-                if (after == null)
-                {
-                    after = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("After"));
-                }
-
                 MethodReference success = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Success"));
                 if (success == null)
                 {
                     success = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Success"));
                 }*/
 
-                MethodReference exception = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Exception"));
-                if (exception == null)
-                {
-                    exception = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Exception"));
-                }
-
-                write = il.Create(OpCodes.Call, exception);
                 var ret = il.Create(OpCodes.Ret);
                 var pop = il.Create(OpCodes.Pop);
                 var leave = il.Create(OpCodes.Leave, ret);
@@ -157,9 +139,14 @@ namespace Buffalo
                 method.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Nop));
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
-                    var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
-                    method.Body.Instructions.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
-                    method.Body.Instructions.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
+                    //any Before()?
+                    MethodReference before = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Before"));
+                    if (before != null)
+                    {
+                        //var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
+                        method.Body.Instructions.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
+                        method.Body.Instructions.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
+                    }
                 }
 
                 var in1 = il.Create(OpCodes.Stloc_2);
@@ -169,18 +156,61 @@ namespace Buffalo
                 var in5 = il.Create(OpCodes.Nop);
                 var in6 = il.Create(OpCodes.Nop);
 
+                var idx = method.Body.Instructions.Count - 1;
+                method.Body.Instructions.Insert(idx, Instruction.Create(OpCodes.Nop));
+                for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+                {
+                    //any Success()?
+                    MethodReference success = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Success"));
+                    if (success != null)
+                    {
+                        method.Body.Instructions.Insert(idx + i + 1, Instruction.Create(OpCodes.Ldarg_0));
+                        method.Body.Instructions.Insert(idx + i + 2, Instruction.Create(OpCodes.Call, success));
+                    }
+                }
+
+                idx = method.Body.Instructions.Count - 1;
+                method.Body.Instructions.Insert(idx, Instruction.Create(OpCodes.Nop));
+                for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+                {
+                    //any Exception()?
+                    MethodReference exception = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Exception"));
+                    if (exception == null)
+                    {
+                        exception = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Exception"));
+                    }
+
+                    writeException = il.Create(OpCodes.Call, exception);
+                    il.InsertAfter(method.Body.Instructions.Last(), writeException);
+                }
+
+                il.InsertAfter(writeException, leave);
+
                 var endfinally = il.Create(OpCodes.Endfinally);
 
-                il.InsertAfter(method.Body.Instructions.Last(), write);
-                il.InsertAfter(write, leave);
+                //idx = method.Body.Instructions.Count - 1;
+                //method.Body.Instructions.Insert(idx, Instruction.Create(OpCodes.Nop));
+                //for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+                //{
+                //    //any After()?
+                //    MethodReference after = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("After"));
+                //    if (after == null)
+                //    {
+                //        after = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("After"));
+                //    }
+
+                //    writeAfter = il.Create(OpCodes.Call, after);
+                //    il.InsertAfter(leave, writeAfter);
+                //}
+
                 il.InsertAfter(leave, endfinally);
                 il.InsertAfter(endfinally, ret);
 
                 var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
                 {
                     TryStart = method.Body.Instructions.First(),
-                    TryEnd = write,
-                    HandlerStart = write,
+                    TryEnd = writeException,
+                    HandlerStart = writeException,
                     HandlerEnd = endfinally,
                     CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
                 };
@@ -190,7 +220,7 @@ namespace Buffalo
                     TryEnd = endfinally,
                     HandlerStart = endfinally,
                     HandlerEnd = ret,
-                    CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+                    CatchType = null,
                 };
                 method.Body.ExceptionHandlers.Add(catchHandler);
                 method.Body.ExceptionHandlers.Add(finallyHandler);
