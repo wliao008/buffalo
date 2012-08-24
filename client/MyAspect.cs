@@ -11,6 +11,16 @@ namespace client
         {
             Console.WriteLine("MyAspect.Before");
         }
+
+        public override void After()
+        {
+            Console.WriteLine("MyAspect.After");
+        }
+
+        public override void Success()
+        {
+            Console.WriteLine("MyAspect.Success");
+        }
     }
 
     [MyAspect(AttributeExclude = true)]

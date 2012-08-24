@@ -13,7 +13,7 @@
 
         public virtual void After() { }
 
-        public virtual void Around() { }
+        public virtual void Success() { }
 
         public virtual void Exception() { }
     }

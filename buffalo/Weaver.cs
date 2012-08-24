@@ -87,21 +87,38 @@ namespace Buffalo
             //set the original types
             SetUnderlyingAspectTypes();
             //check each aspect if it's applied on the assembly level
-            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
+            //foreach (var ca in this.AssemblyDefinition.CustomAttributes)
+            //{
+            //    var t = ca.AttributeType.Resolve();
+            //    if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
+            //    {
+            //        var aspect = Aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
+            //        aspect.IsAssemblyLevel = true;
+            //    }
+            //}
+            Aspects.ForEach(x =>
             {
-                var t = ca.AttributeType.Resolve();
-                if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
+                x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
+            });
+            //finally, get the eligible methods
+            Aspects
+                .Where(x => x.AssemblyLevelStatus != Status.Excluded)
+                .ToList()
+                .ForEach(x =>
                 {
-                    var aspect = Aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
-                    aspect.IsAssemblyLevel = true;
-                }
-            }
-
-            this.CheckEligibleMethods();
+#if DEBUG
+                    Console.WriteLine("Aspect {0}: {1}", x.Name, x.AssemblyLevelStatus.ToString());
+                    Console.WriteLine("============================================");
+#endif
+                    this.CheckEligibleMethods(x);
+                    Console.WriteLine("");
+                });
         }
 
         private static void SetUnderlyingAspectTypes()
         {
+            ///TODO: This block would not be needed if I can get the underlying types
+            ///directly from cecil
             AppDomain domain = AppDomain.CreateDomain("domain");
             BoundaryObject boundary = (BoundaryObject)
                 domain.CreateInstanceAndUnwrap(
@@ -159,6 +176,7 @@ namespace Buffalo
             }
         }
 
+        [Obsolete]
         private void CheckEligibleMethods()
         {
             Aspects.ForEach(x => this.CheckEligibleMethods(x));
@@ -166,19 +184,16 @@ namespace Buffalo
 
         private void CheckEligibleMethods(Aspect aspect)
         {
-            foreach (var t in this.TypeDefinitions)
+            foreach (var t in this.TypeDefinitions.Where(x => !x.Name.Equals("<Module>")))
             {
-                if (t.Name == "<Module>") continue;
-                if (t.FullName.Contains("MyAspect")
-                    || t.FullName.Contains("TraceAspect"))
-                {
-                    System.Diagnostics.Debug.WriteLine("Test");
-                }
-
-                if (this.CheckAspectStatus(t, aspect) != Status.Applied)
+                var status = this.CheckAspectStatus(t, aspect);
+#if DEBUG
+                Console.WriteLine("\t{0}: {1}", t.Name, status.ToString());
+#endif
+                if (status == Status.Excluded)
                     continue;
 
-                var mths = this.GetMethodDefinitions(t, aspect);
+                var mths = this.GetMethodDefinitions(t, status, aspect);
                 mths.ForEach(x =>
                 {
                     if (!this.EligibleMethods.ContainsKey(x))
@@ -191,34 +206,32 @@ namespace Buffalo
                         aspects.Add(aspect);
                     }
                 });
-
-                //{
-                //    //aspect.MethodDefinitions.AddRange(tmp);
-                //    tmp.ForEach(x =>
-                //    {
-                //        //if (this.EligibleMethods.ContainsKey(t))
-                //        //{
-
-                //        //}
-                //    });
-                //}
             }
         }
 
-        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Aspect aspect)
+        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Status typeStatus, Aspect aspect)
         {
+            if (typeDef.Name.Contains("Test"))
+            {
+                System.Diagnostics.Debug.WriteLine("Test");
+            }
+
             var list = new List<MethodDefinition>();
             foreach (var method in typeDef.Methods)
             {
-                if (method.FullName.Contains("Function1"))
-                {
-                    System.Diagnostics.Debug.WriteLine("Function1");
-                }
+                var status = this.CheckAspectStatus(method, aspect);
                 //only add methods that are not excluded
-                if (this.CheckAspectStatus(method, aspect) != Status.Applied)
-                    continue;
+                //if (status != Status.Applied && typeStatus != Status.Applied)
+                //    continue;
 
-                list.Add(method);
+                if (typeStatus == Status.Applied && status != Status.Excluded)
+                {
+                    status = Status.Applied;
+                    list.Add(method);
+                }
+#if DEBUG
+                Console.WriteLine("\t\t{0}: {1}", method.Name, status.ToString());
+#endif
             }
 
             return list;
@@ -231,14 +244,14 @@ namespace Buffalo
         /// </summary>
         private Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
         {
-            Status status = aspect.IsAssemblyLevel ? Status.Applied : Status.NotApplied;
+            Status status = aspect.AssemblyLevelStatus;
 
             bool attrFound = false;
             for (int i = 0; i < def.CustomAttributes.Count; ++i)
             {
-                Console.WriteLine("\tBaseType: " + aspect.Type.BaseType.Name);
                 //var t = def.CustomAttributes[i].AttributeType.Resolve();
-                if (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
+                if (aspect.Type != null 
+                    && aspect.Type.BaseType == typeof(MethodBoundaryAspect)
                     && def.CustomAttributes[i].AttributeType.FullName.Equals(aspect.Name))
                 {
                     attrFound = true;
@@ -252,14 +265,14 @@ namespace Buffalo
                         if ((bool)exclude.Argument.Value == true)
                         {
                             status = Status.Excluded;
-                            Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
+                            //Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
                             def.CustomAttributes.RemoveAt(i);
                         }
                     }
                 }
             }
 
-            if (!attrFound && aspect.IsAssemblyLevel)
+            if (!attrFound && aspect.AssemblyLevelStatus == Status.Applied)
             {
                 //this aspect is applied on the assembly level and
                 //as a result the type and method might not have the
@@ -270,7 +283,7 @@ namespace Buffalo
                 //var methodRef = this.AssemblyDefinition.MainModule.Import(aspect.Type);
                 
                 def.CustomAttributes.Add(new CustomAttribute(attrCtor));
-                Console.WriteLine("Injecting custome attr for: " + def.ToString());
+                //Console.WriteLine("Injecting custome attr for: " + def.ToString());
             }
 
             return status;

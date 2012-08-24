@@ -12,6 +12,9 @@ namespace Buffalo
         {
             string outPath = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client_modified.exe";
             string path = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
+
+            string path2 = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\nbs\NBS\bin\Debug\NBS.exe";
+            string outPath2 = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\nbs_modified.exe";
             //string path = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\FMS\DEV\Trunk\Source\FMS\Client\WpfClient\WpfClient\bin\Debug\SDX.FMS.SharedServices.dll";
             /*
             var methods = new Weaver(path).GetAllMethods();

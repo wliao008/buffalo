@@ -4,7 +4,7 @@
     {
         void Before();
         void After();
-        void Around();
+        void Success();
         void Exception();
     }
 }

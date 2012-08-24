@@ -1,13 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Mono.Cecil;
 
 namespace Buffalo
 {
     internal class Aspect : IAspect
     {
+        public Aspect()
+        {
+            this.AssemblyLevelStatus = Status.NotApplied;
+        }
+
         public string Name { get; set; }
 
-        public bool IsAssemblyLevel { get; set; }
+        public Status AssemblyLevelStatus { get; set; }
 
         public TypeDefinition TypeDefinition { get; set; }
 
