@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
-using System;
 using Mono.Cecil.Cil;
-using System.Diagnostics;
 
 namespace Buffalo
 {
@@ -96,7 +95,7 @@ namespace Buffalo
             });
             //finally, get the eligible methods
             Aspects
-                .Where(x => x.AssemblyLevelStatus != Status.Excluded)
+                .Where(x => x.AssemblyLevelStatus != Buffalo.Enums.Status.Excluded)
                 .ToList()
                 .ForEach(x =>
                 {
@@ -119,6 +118,8 @@ namespace Buffalo
                 var count = method.Body.Instructions.Count;
                 var il = method.Body.GetILProcessor();
                 //var write = il.Create(OpCodes.Call, ModuleDefinition.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
+                TcfMarker marker = new TcfMarker();
+
                 Instruction writeException = null;
                 Instruction writeAfter = null;
                 
@@ -206,6 +207,7 @@ namespace Buffalo
                 il.InsertAfter(leave, endfinally);
                 il.InsertAfter(endfinally, ret);
 
+                marker.TryStart = method.Body.Instructions.First();
                 var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
                 {
                     TryStart = method.Body.Instructions.First(),
@@ -302,7 +304,7 @@ namespace Buffalo
 #if DEBUG
                 Console.WriteLine("\t{0}: {1}", t.Name, status.ToString());
 #endif
-                if (status == Status.Excluded)
+                if (status == Buffalo.Enums.Status.Excluded)
                     continue;
 
                 var mths = this.GetMethodDefinitions(t, status, aspect);
@@ -321,7 +323,7 @@ namespace Buffalo
             }
         }
 
-        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Status typeStatus, Aspect aspect)
+        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Buffalo.Enums.Status typeStatus, Aspect aspect)
         {
             if (typeDef.Name.Contains("Test"))
             {
@@ -336,15 +338,15 @@ namespace Buffalo
                 //if (status != Status.Applied && typeStatus != Status.Applied)
                 //    continue;
 
-                if (status == Status.Applied)
+                if (status == Buffalo.Enums.Status.Applied)
                 {
                     list.Add(method);
                 }
                 else
                 {
-                    if (typeStatus == Status.Applied && status != Status.Excluded)
+                    if (typeStatus == Buffalo.Enums.Status.Applied && status != Buffalo.Enums.Status.Excluded)
                     {
-                        status = Status.Applied;
+                        status = Buffalo.Enums.Status.Applied;
                         list.Add(method);
                     }
                 }
@@ -361,9 +363,9 @@ namespace Buffalo
         /// ICustomAttributeProvider interface, so it can be used here
         /// to determined if a method is marked as exclude or not.
         /// </summary>
-        private Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
+        private Buffalo.Enums.Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
         {
-            Status status = aspect.AssemblyLevelStatus;
+            Buffalo.Enums.Status status = aspect.AssemblyLevelStatus;
 
             bool attrFound = false;
             for (int i = 0; i < def.CustomAttributes.Count; ++i)
@@ -376,14 +378,14 @@ namespace Buffalo
                     attrFound = true;
                     if (def.CustomAttributes[i].Properties.Count == 0)
                     {
-                        status = Status.Applied;
+                        status = Buffalo.Enums.Status.Applied;
                     }
                     else
                     {
                         var exclude = def.CustomAttributes[i].Properties.First(x => x.Name == "AttributeExclude");
                         if ((bool)exclude.Argument.Value == true)
                         {
-                            status = Status.Excluded;
+                            status = Buffalo.Enums.Status.Excluded;
                             //Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
                             def.CustomAttributes.RemoveAt(i);
                         }
@@ -391,7 +393,7 @@ namespace Buffalo
                 }
             }
 
-            if (!attrFound && aspect.AssemblyLevelStatus == Status.Applied)
+            if (!attrFound && aspect.AssemblyLevelStatus == Buffalo.Enums.Status.Applied)
             {
                 //this aspect is applied on the assembly level and
                 //as a result the type and method might not have the

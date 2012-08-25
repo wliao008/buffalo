@@ -7,12 +7,12 @@ namespace Buffalo
     {
         public Aspect()
         {
-            this.AssemblyLevelStatus = Status.NotApplied;
+            this.AssemblyLevelStatus = Buffalo.Enums.Status.NotApplied;
         }
 
         public string Name { get; set; }
 
-        public Status AssemblyLevelStatus { get; set; }
+        public Buffalo.Enums.Status AssemblyLevelStatus { get; set; }
 
         public TypeDefinition TypeDefinition { get; set; }
 
@@ -22,12 +22,5 @@ namespace Buffalo
         {
             return this.Name;
         }
-    }
-
-    internal enum Status
-    {
-        Applied,
-        NotApplied,
-        Excluded
     }
 }

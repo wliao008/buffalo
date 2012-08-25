@@ -28,7 +28,7 @@ namespace client
         public void Function1()
         {
             int zero = 0;
-            //int result = 1 / zero;
+            int result = 1 / zero;
             Console.WriteLine("Function 1");
         }
 
