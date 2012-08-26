@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Buffalo;
+using System.Threading;
 
 namespace client
 {
@@ -24,12 +25,13 @@ namespace client
         }
 
         [TraceAspect]
-        [MyAspect]
         public void Function1()
         {
             int zero = 0;
             //int result = 1 / zero;
+            Thread.Sleep(500);
             Console.WriteLine("Function 1");
+            this.Function3();
         }
 
         public void Function2()
@@ -48,6 +50,11 @@ namespace client
             {
                 Console.WriteLine("finally");
             }
+        }
+
+        public void Function3()
+        {
+            Console.WriteLine("Function 3");
         }
     }
 }

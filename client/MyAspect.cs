@@ -1,5 +1,6 @@
-﻿using Buffalo;
-using System;
+﻿using System;
+using System.Diagnostics;
+using Buffalo;
 
 namespace client
 {
@@ -7,8 +8,16 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class MyAspect : MethodBoundaryAspect
     {
+        public static Stopwatch watch;
+        static MyAspect()
+        {
+            watch = new Stopwatch();
+        }
+
         public override void Before()
         {
+            watch.Reset();
+            watch.Start();
             Console.WriteLine("MyAspect.Before");
         }
 
@@ -19,7 +28,8 @@ namespace client
 
         public override void Success()
         {
-            Console.WriteLine("MyAspect.Success");
+            watch.Stop();
+            Console.WriteLine("MyAspect.Success, times passed: {0} ms", watch.Elapsed.Milliseconds);
         }
 
         public override void Exception()
