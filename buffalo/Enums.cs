@@ -13,5 +13,13 @@ namespace Buffalo
             NotApplied,
             Excluded
         }
+
+        internal enum PEPS
+        {
+            Before,
+            After,
+            Success,
+            Exception
+        }
     }
 }

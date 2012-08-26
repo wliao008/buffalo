@@ -111,40 +111,28 @@ namespace Buffalo
         private void InjectPeps()
         {
             //assuming the aspects are all PEPS
+            TcfMarker marker = new TcfMarker();
             foreach (var d in this.EligibleMethods)
             {
                 var method = d.Key;
                 var aspects = d.Value;
                 var count = method.Body.Instructions.Count;
                 var il = method.Body.GetILProcessor();
-                //var write = il.Create(OpCodes.Call, ModuleDefinition.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
-                TcfMarker marker = new TcfMarker();
-
+                Instruction writeSuccess = null;
                 Instruction writeException = null;
-                Instruction writeAfter = null;
                 
-                /*
-                MethodReference success = aspects[0].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Success"));
-                if (success == null)
-                {
-                    success = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Success"));
-                }*/
-
                 var ret = il.Create(OpCodes.Ret);
                 var pop = il.Create(OpCodes.Pop);
                 var leave = il.Create(OpCodes.Leave, ret);
-                var last = method.Body.Instructions.Last();
-                method.Body.Instructions[count - 1] =
-                    Instruction.Create(OpCodes.Leave_S, ret);
+                method.Body.Instructions[count - 1] = Instruction.Create(OpCodes.Leave_S, ret);
 
                 method.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Nop));
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
                     //any Before()?
-                    MethodReference before = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Before"));
+                    var before = this.FindMethodReference(method, aspects[j], Buffalo.Enums.PEPS.Before);
                     if (before != null)
                     {
-                        //var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
                         method.Body.Instructions.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
                         method.Body.Instructions.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
                     }
@@ -162,11 +150,12 @@ namespace Buffalo
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
                     //any Success()?
-                    MethodReference success = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Success"));
+                    var success = this.FindMethodReference(method, aspects[j], Buffalo.Enums.PEPS.Success);
                     if (success != null)
                     {
+                        writeSuccess = il.Create(OpCodes.Call, success);
                         method.Body.Instructions.Insert(idx + i + 1, Instruction.Create(OpCodes.Ldarg_0));
-                        method.Body.Instructions.Insert(idx + i + 2, Instruction.Create(OpCodes.Call, success));
+                        method.Body.Instructions.Insert(idx + i + 2, writeSuccess);
                     }
                 }
 
@@ -175,15 +164,16 @@ namespace Buffalo
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
                     //any Exception()?
-                    MethodReference exception = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("Exception"));
-                    if (exception == null)
+                    var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.PEPS.Exception);
+                    if (exception != null)
                     {
-                        exception = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("Exception"));
+                        writeException = il.Create(OpCodes.Call, exception);
+                        il.InsertAfter(method.Body.Instructions.Last(), writeException);
                     }
-
-                    writeException = il.Create(OpCodes.Call, exception);
-                    il.InsertAfter(method.Body.Instructions.Last(), writeException);
                 }
+                
+                //the beginning of the catch.. block actually marks the end of the try.. block
+                marker.TryEnd = writeException;
 
                 il.InsertAfter(writeException, leave);
 
@@ -210,8 +200,8 @@ namespace Buffalo
                 marker.TryStart = method.Body.Instructions.First();
                 var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
                 {
-                    TryStart = method.Body.Instructions.First(),
-                    TryEnd = writeException,
+                    TryStart = marker.TryStart,
+                    TryEnd = marker.TryEnd,
                     HandlerStart = writeException,
                     HandlerEnd = endfinally,
                     CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
@@ -227,6 +217,14 @@ namespace Buffalo
                 method.Body.ExceptionHandlers.Add(catchHandler);
                 method.Body.ExceptionHandlers.Add(finallyHandler);
             }
+        }
+
+        private MethodReference FindMethodReference(MethodDefinition method, Aspect aspect, Buffalo.Enums.PEPS name)
+        {
+            return aspect
+                .TypeDefinition
+                .Methods
+                .FirstOrDefault(x => x.Name.Equals(name.ToString()));
         }
 
         private static void SetUnderlyingAspectTypes()
