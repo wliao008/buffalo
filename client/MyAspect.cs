@@ -41,5 +41,10 @@ namespace client
         {
             Console.WriteLine("Trace.Exception");
         }
+
+        public override void Success()
+        {
+            Console.WriteLine("Trace.Success");
+        }
     }
 }
