@@ -119,7 +119,7 @@ namespace Buffalo
                 var count = method.Body.Instructions.Count;
                 var il = method.Body.GetILProcessor();
                 Instruction writeSuccess = null;
-                Instruction writeException = null;
+                List<Instruction> exceptionInstructions = null;
                 
                 var ret = il.Create(OpCodes.Ret);
                 var pop = il.Create(OpCodes.Pop);
@@ -158,7 +158,7 @@ namespace Buffalo
                         method.Body.Instructions.Insert(idx + i + 2, writeSuccess);
                     }
                 }
-
+                
                 idx = method.Body.Instructions.Count - 1;
                 method.Body.Instructions.Insert(idx, Instruction.Create(OpCodes.Nop));
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
@@ -167,15 +167,24 @@ namespace Buffalo
                     var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.PEPS.Exception);
                     if (exception != null)
                     {
-                        writeException = il.Create(OpCodes.Call, exception);
-                        il.InsertAfter(method.Body.Instructions.Last(), writeException);
+                        if (exceptionInstructions == null)
+                        {
+                            exceptionInstructions = new List<Instruction>();
+                        }
+                        var inst1 = il.Create(OpCodes.Ldarg_0);
+                        var inst2 = il.Create(OpCodes.Call, exception);
+                        il.InsertAfter(method.Body.Instructions.Last(), inst1);
+                        il.InsertAfter(method.Body.Instructions.Last(), inst2);
+                        exceptionInstructions.Add(inst1);
+                        exceptionInstructions.Add(inst2);
                     }
                 }
                 
                 //the beginning of the catch.. block actually marks the end of the try.. block
-                marker.TryEnd = writeException;
+                ///TODO: This is a bug, it should be the first writeException, not the last one
+                marker.TryEnd = exceptionInstructions[0];
 
-                il.InsertAfter(writeException, leave);
+                il.InsertAfter(exceptionInstructions[exceptionInstructions.Count - 1], leave);
 
                 var endfinally = il.Create(OpCodes.Endfinally);
 
@@ -202,7 +211,7 @@ namespace Buffalo
                 {
                     TryStart = marker.TryStart,
                     TryEnd = marker.TryEnd,
-                    HandlerStart = writeException,
+                    HandlerStart = exceptionInstructions[0],
                     HandlerEnd = endfinally,
                     CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
                 };

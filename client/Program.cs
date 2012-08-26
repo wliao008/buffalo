@@ -23,7 +23,7 @@ namespace client
             Console.WriteLine("Test.ctor");
         }
 
-        [TraceAspect(AttributeExclude = true)]
+        [TraceAspect]
         [MyAspect]
         public void Function1()
         {
