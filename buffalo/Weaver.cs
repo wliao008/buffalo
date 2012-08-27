@@ -119,6 +119,7 @@ namespace Buffalo
                 var count = method.Body.Instructions.Count;
                 var il = method.Body.GetILProcessor();
                 Instruction writeSuccess = null;
+                List<Instruction> beforeInstructions = new List<Instruction>();
                 List<Instruction> exceptionInstructions = null;
                 
                 var ret = il.Create(OpCodes.Ret);
@@ -126,6 +127,24 @@ namespace Buffalo
                 var leave = il.Create(OpCodes.Leave, ret);
                 method.Body.Instructions[count - 1] = Instruction.Create(OpCodes.Leave_S, ret);
 
+                //Before()
+                for (int i = 0; i < aspects.Count; ++i)
+                {
+                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.PEPS.Before);
+                    if (before != null)
+                    {
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
+                    }
+                }
+
+                int idx = 0;
+                beforeInstructions.ForEach(x =>
+                {
+                    method.Body.Instructions.Insert(idx++, x);
+                });
+
+                /*
                 method.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Nop));
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
@@ -136,7 +155,7 @@ namespace Buffalo
                         method.Body.Instructions.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
                         method.Body.Instructions.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
                     }
-                }
+                }*/
 
                 var in1 = il.Create(OpCodes.Stloc_2);
                 var in2 = il.Create(OpCodes.Nop);
@@ -145,7 +164,7 @@ namespace Buffalo
                 var in5 = il.Create(OpCodes.Nop);
                 var in6 = il.Create(OpCodes.Nop);
 
-                var idx = method.Body.Instructions.Count - 1;
+                idx = method.Body.Instructions.Count - 1;
                 method.Body.Instructions.Insert(idx, Instruction.Create(OpCodes.Nop));
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
