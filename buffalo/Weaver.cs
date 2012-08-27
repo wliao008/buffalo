@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 namespace Buffalo
 {
@@ -133,6 +134,13 @@ namespace Buffalo
                     var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.PEPS.Before);
                     if (before != null)
                     {
+                        //var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
+                        //var varDef = new VariableDefinition("md" + i, varType);
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
+                        //method.Body.Variables.Add(varDef);
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varDef));
+
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
                     }
@@ -143,6 +151,7 @@ namespace Buffalo
                 {
                     method.Body.Instructions.Insert(idx++, x);
                 });
+                //method.Body.OptimizeMacros();
 
                 /*
                 method.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Nop));
@@ -190,15 +199,28 @@ namespace Buffalo
                         {
                             exceptionInstructions = new List<Instruction>();
                         }
+                        //var varType = this.AssemblyDefinition.MainModule.Import(typeof(System.Exception));
+                        //var varDef = new VariableDefinition("ex" + i, varType);
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc_0));
+                        //method.Body.Variables.Add(varDef);
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Nop));
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Nop));
                         var inst1 = il.Create(OpCodes.Ldarg_0);
                         var inst2 = il.Create(OpCodes.Call, exception);
-                        il.InsertAfter(method.Body.Instructions.Last(), inst1);
-                        il.InsertAfter(method.Body.Instructions.Last(), inst2);
+                        //il.InsertAfter(method.Body.Instructions.Last(), inst1);
+                        //il.InsertAfter(method.Body.Instructions.Last(), inst2);
                         exceptionInstructions.Add(inst1);
                         exceptionInstructions.Add(inst2);
                     }
                 }
-                
+
+                exceptionInstructions.ForEach(x =>
+                {
+                    il.InsertAfter(method.Body.Instructions.Last(), x);
+                });
+                //method.Body.OptimizeMacros();
+
                 //the beginning of the catch.. block actually marks the end of the try.. block
                 ///TODO: This is a bug, it should be the first writeException, not the last one
                 marker.TryEnd = exceptionInstructions[0];

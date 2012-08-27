@@ -7,7 +7,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class MyAspect : MethodBoundaryAspect
     {
-        public override void Before()
+        public override void Before(MethodDetail detail)
         {
             Console.WriteLine("MyAspect.Before");
         }
@@ -32,7 +32,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
-        public override void Before()
+        public override void Before(MethodDetail detail)
         {
             Console.WriteLine("Trace.Before");
         }

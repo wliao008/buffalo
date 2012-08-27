@@ -18,17 +18,16 @@ namespace client
 
     public class Test
     {
+        MethodDetail md = new MethodDetail();
         public Test()
         {
             Console.WriteLine("Test.ctor");
         }
 
-        [TraceAspect]
+        [TraceAspect(AttributeExclude=true)]
         [MyAspect]
         public void Function1()
         {
-            int zero = 0;
-            //int result = 1 / zero;
             Console.WriteLine("Function 1");
         }
 
@@ -36,9 +35,8 @@ namespace client
         {
             try
             {
-                int zero = 0;
                 //int result = 1 / zero;
-                Console.WriteLine("Function 2");
+                Console.WriteLine(md);
             }
             catch (Exception ex)
             {

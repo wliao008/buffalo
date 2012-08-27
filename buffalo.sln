@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{0631D6AA-88BD-436B-85FF-89B2EC071E5A}"
 	ProjectSection(SolutionItems) = preProject
 		Lib\Mono.Cecil.dll = Lib\Mono.Cecil.dll
+		Lib\Mono.Cecil.Rocks.dll = Lib\Mono.Cecil.Rocks.dll
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unittest", "Unittest\Unittest.csproj", "{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}"
