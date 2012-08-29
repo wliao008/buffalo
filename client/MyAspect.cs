@@ -14,7 +14,7 @@ namespace client
             watch = new Stopwatch();
         }
 
-        public override void Before()
+        public override void Before(MethodDetail detail)
         {
             watch.Reset();
             watch.Start();
@@ -42,7 +42,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
-        public override void Before()
+        public override void Before(MethodDetail detail)
         {
             Console.WriteLine("Trace.Before");
         }
