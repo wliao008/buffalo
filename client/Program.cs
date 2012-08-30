@@ -12,7 +12,7 @@ namespace client
         static void Main(string[] args)
         {
             Console.WriteLine("Program.Main");
-            new Test().Function1();
+            new Test().Function1(2);
             Console.Read();
         }
     }
@@ -27,7 +27,7 @@ namespace client
 
         [TraceAspect(AttributeExclude=true)]
         [MyAspect]
-        public void Function1()
+        public void Function1(int a)
         {
             Console.WriteLine("Function 1");
             this.Function3();

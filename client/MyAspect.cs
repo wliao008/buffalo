@@ -28,6 +28,14 @@ namespace client
             watch.Reset();
             watch.Start();
             Console.WriteLine("MyAspect.Before: {0}: {1}", detail.ToString(), detail.Name);
+            if (detail.Parameters.Count > 0)
+            {
+                Console.WriteLine("\t******** PARAMETERS ************");
+                foreach (var d in detail.Parameters)
+                {
+                    Console.WriteLine("\t" + d.Key);
+                }
+            }
             //Console.WriteLine("MyAspect.Before, sleeping for: {0} ms", i);
             //Thread.Sleep(i);
         }
