@@ -56,7 +56,7 @@ namespace Buffalo
             //    }
             //}
 
-            this.InjectPeps();
+            this.InjectBASE();
             //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
             Console.WriteLine("DONE");
@@ -109,7 +109,7 @@ namespace Buffalo
                 });
         }
 
-        private void InjectPeps()
+        private void InjectBASE()
         {
             //assuming the aspects are all PEPS
             TcfMarker marker = new TcfMarker();
@@ -121,6 +121,8 @@ namespace Buffalo
                 var il = method.Body.GetILProcessor();
                 Instruction writeSuccess = null;
                 List<Instruction> beforeInstructions = new List<Instruction>();
+                List<Instruction> afterInstructions = new List<Instruction>();
+                List<Instruction> successInstructions = new List<Instruction>();
                 List<Instruction> exceptionInstructions = null;
                 
                 var ret = il.Create(OpCodes.Ret);
@@ -147,10 +149,8 @@ namespace Buffalo
                 }
 
                 int idx = 0;
-                beforeInstructions.ForEach(x =>
-                {
-                    method.Body.Instructions.Insert(idx++, x);
-                });
+                beforeInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
+
                 //method.Body.OptimizeMacros();
 
                 /*
@@ -229,22 +229,26 @@ namespace Buffalo
 
                 var endfinally = il.Create(OpCodes.Endfinally);
 
-                //idx = method.Body.Instructions.Count - 1;
+                idx = method.Body.Instructions.Count - 1;
+                int finallyStartIdx = idx;
                 //method.Body.Instructions.Insert(idx, Instruction.Create(OpCodes.Nop));
-                //for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
-                //{
-                //    //any After()?
-                //    MethodReference after = aspects[j].TypeDefinition.Methods.FirstOrDefault(x => x.Name.Equals("After"));
-                //    if (after == null)
-                //    {
-                //        after = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect).GetMethod("After"));
-                //    }
+                for (int i = 0; i < aspects.Count; ++i)
+                {
+                    //any After()?
+                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.PEPS.After);
+                    if (after != null)
+                    {
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
+                    }
 
-                //    writeAfter = il.Create(OpCodes.Call, after);
-                //    il.InsertAfter(leave, writeAfter);
-                //}
-
-                il.InsertAfter(leave, endfinally);
+                    //writeAfter = il.Create(OpCodes.Call, after);
+                    //il.InsertAfter(leave, writeAfter);
+                }
+                afterInstructions.Add(endfinally);
+                afterInstructions.ForEach(x => il.InsertAfter(method.Body.Instructions.Last(), x));
+                
+                //il.InsertAfter(leave, endfinally);
                 il.InsertAfter(endfinally, ret);
 
                 marker.TryStart = method.Body.Instructions.First();
@@ -253,14 +257,14 @@ namespace Buffalo
                     TryStart = marker.TryStart,
                     TryEnd = marker.TryEnd,
                     HandlerStart = exceptionInstructions[0],
-                    HandlerEnd = endfinally,
+                    HandlerEnd = afterInstructions.First(),// endfinally,
                     CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
                 };
                 var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
                 {
                     TryStart = method.Body.Instructions.First(),
-                    TryEnd = endfinally,
-                    HandlerStart = endfinally,
+                    TryEnd = afterInstructions.First(),
+                    HandlerStart = method.Body.Instructions[finallyStartIdx+1],// endfinally,
                     HandlerEnd = ret,
                     CatchType = null,
                 };
