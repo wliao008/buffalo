@@ -21,7 +21,7 @@ namespace Unittest
     [TestAspect(AttributeExclude = true)]
     public class TestAspect : MethodBoundaryAspect
     {
-        public override void Before()
+        public override void Before(MethodDetail detail)
         {
         }
     }

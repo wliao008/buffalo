@@ -22,12 +22,12 @@ namespace client
         //    watch.Start();
         //}
 
-        public override void Before()
+        public override void Before(MethodDetail detail)
         {
             watch = new Stopwatch();
             watch.Reset();
             watch.Start();
-            Console.WriteLine("MyAspect.Before");
+            Console.WriteLine("MyAspect.Before: {0}: {1}", detail.ToString(), detail.Name);
             //Console.WriteLine("MyAspect.Before, sleeping for: {0} ms", i);
             //Thread.Sleep(i);
         }
@@ -53,7 +53,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
-        public override void Before()
+        public override void Before(MethodDetail detail)
         {
             Console.WriteLine("Trace.Before");
         }

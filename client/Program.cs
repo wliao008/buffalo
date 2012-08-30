@@ -54,5 +54,10 @@ namespace client
         {
             Console.WriteLine("Function 3");
         }
+
+        private void TestF(string name)
+        {
+            Console.WriteLine(name);
+        }
     }
 }

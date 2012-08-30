@@ -136,21 +136,25 @@ namespace Buffalo
                     var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.PEPS.Before);
                     if (before != null)
                     {
-                        //var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
-                        //var varDef = new VariableDefinition("md" + i, varType);
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
-                        //method.Body.Variables.Add(varDef);
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varDef));
-
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
+                        var varDef = new VariableDefinition("md" + i, varType);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
+                        method.Body.Variables.Add(varDef);
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varDef));
+                        var constructorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
+                        MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
                     }
                 }
 
                 int idx = 0;
                 beforeInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
-
                 //method.Body.OptimizeMacros();
 
                 /*
