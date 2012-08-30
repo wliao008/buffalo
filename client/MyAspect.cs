@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using Buffalo;
 
 namespace client
@@ -8,28 +9,38 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class MyAspect : MethodBoundaryAspect
     {
-        public static Stopwatch watch;
+        public Stopwatch watch;
+        public static Random rand;
         static MyAspect()
         {
-            watch = new Stopwatch();
+            rand = new Random((int)DateTime.Now.Ticks);
         }
 
-        public override void Before(MethodDetail detail)
+        //public MyAspect()
+        //{
+        //    watch = new Stopwatch();
+        //    watch.Start();
+        //}
+
+        public override void Before()
         {
+            watch = new Stopwatch();
             watch.Reset();
             watch.Start();
             Console.WriteLine("MyAspect.Before");
+            //Console.WriteLine("MyAspect.Before, sleeping for: {0} ms", i);
+            //Thread.Sleep(i);
         }
 
         public override void After()
         {
-            Console.WriteLine("MyAspect.After");
+            watch.Stop();
+            Console.WriteLine("MyAspect.After, times passed: {0} s {1} ms", watch.Elapsed.Seconds, watch.Elapsed.Milliseconds);
         }
 
         public override void Success()
         {
-            watch.Stop();
-            Console.WriteLine("MyAspect.Success, times passed: {0} ms", watch.Elapsed.Milliseconds);
+            Console.WriteLine("MyAspect.Success");
         }
 
         public override void Exception()
@@ -42,7 +53,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
-        public override void Before(MethodDetail detail)
+        public override void Before()
         {
             Console.WriteLine("Trace.Before");
         }
