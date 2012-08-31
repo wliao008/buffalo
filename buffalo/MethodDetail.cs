@@ -7,14 +7,14 @@ namespace Buffalo
     public class MethodDetail
     {
         private string name;
-        private Dictionary<string, object> parameters;
+        private List<Parameter> parameters;
 
         public MethodDetail()
         {
             this.Init();
         }
 
-        public Dictionary<string, object> Parameters
+        public List<Parameter> Parameters
         {
             get
             {
@@ -39,12 +39,19 @@ namespace Buffalo
             this.name = method.Name;
             if (this.parameters == null)
             {
-                this.parameters = new Dictionary<string, object>();
+                this.parameters = new List<Parameter>();
             }
             foreach (var p in param)
             {
-                this.parameters.Add(p.Name, p.Name);
+                this.parameters.Add(new Parameter { Name = p.Name, Type = p.ParameterType });
             }
         }
+    }
+
+    public class Parameter
+    {
+        public string Name { get; set; }
+
+        public Type Type { get; set; }
     }
 }

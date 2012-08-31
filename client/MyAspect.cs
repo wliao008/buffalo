@@ -33,7 +33,7 @@ namespace client
                 Console.WriteLine("\t******** PARAMETERS ************");
                 foreach (var d in detail.Parameters)
                 {
-                    Console.WriteLine("\t" + d.Key);
+                    Console.WriteLine("\t{0} ({1})", d.Name, d.Type);
                 }
             }
             //Console.WriteLine("MyAspect.Before, sleeping for: {0} ms", i);
