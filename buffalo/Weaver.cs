@@ -34,28 +34,6 @@ namespace Buffalo
 
         public void Inject(string outPath)
         {
-            //var methodBoundaryAspectDef = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect)).Resolve();
-            //var aspects = this.FindMethodBoundaryAspect();
-            //var beforeMethod = methodBoundaryType.Methods.First(x => x.Name == "Before");
-            //var befores = aspects.Select(x => x.Methods.First(y => y.Name == "Before")).ToList();
-            
-            //foreach (var method in this.EligibleMethods)
-            //{
-            //    if (method.Key.FullName.Contains("Function2a"))
-            //    {
-            //        System.Diagnostics.Debug.WriteLine("Function2a");
-            //    }
-            //    var aspects = method.Value;
-            //    var insts = method.Key.Body.Instructions;
-            //    insts.Insert(0, Instruction.Create(OpCodes.Nop));
-            //    for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
-            //    {
-            //        var before = aspects[j].TypeDefinition.Methods.First(x => x.Name.Equals("Before"));
-            //        insts.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
-            //        insts.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
-            //    }
-            //}
-
             this.InjectBASE();
             //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
@@ -80,16 +58,6 @@ namespace Buffalo
                 .ForEach(x => Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
             //set the original types
             SetUnderlyingAspectTypes();
-            //check each aspect if it's applied on the assembly level
-            //foreach (var ca in this.AssemblyDefinition.CustomAttributes)
-            //{
-            //    var t = ca.AttributeType.Resolve();
-            //    if (t.BaseType.FullName.Equals(typeof(MethodBoundaryAspect).FullName))
-            //    {
-            //        var aspect = Aspects.First(x => x.Name.Equals(ca.AttributeType.FullName));
-            //        aspect.IsAssemblyLevel = true;
-            //    }
-            //}
             Aspects.ForEach(x =>
             {
                 x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
@@ -133,7 +101,7 @@ namespace Buffalo
                 //Before()
                 for (int i = 0; i < aspects.Count; ++i)
                 {
-                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.PEPS.Before);
+                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BASE.Before);
                     if (before != null)
                     {
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
@@ -146,29 +114,12 @@ namespace Buffalo
                         var constructorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
                         MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
                         beforeInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
-
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
                     }
                 }
 
                 int idx = 0;
                 beforeInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
-                //method.Body.OptimizeMacros();
-
-                /*
-                method.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Nop));
-                for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
-                {
-                    //any Before()?
-                    var before = this.FindMethodReference(method, aspects[j], Buffalo.Enums.PEPS.Before);
-                    if (before != null)
-                    {
-                        method.Body.Instructions.Insert(i + 1, Instruction.Create(OpCodes.Ldarg_0));
-                        method.Body.Instructions.Insert(i + 2, Instruction.Create(OpCodes.Call, before));
-                    }
-                }*/
 
                 var in1 = il.Create(OpCodes.Stloc_2);
                 var in2 = il.Create(OpCodes.Nop);
@@ -182,7 +133,7 @@ namespace Buffalo
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
                     //any Success()?
-                    var success = this.FindMethodReference(method, aspects[j], Buffalo.Enums.PEPS.Success);
+                    var success = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BASE.Success);
                     if (success != null)
                     {
                         writeSuccess = il.Create(OpCodes.Call, success);
@@ -196,20 +147,13 @@ namespace Buffalo
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
                     //any Exception()?
-                    var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.PEPS.Exception);
+                    var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BASE.Exception);
                     if (exception != null)
                     {
                         if (exceptionInstructions == null)
                         {
                             exceptionInstructions = new List<Instruction>();
                         }
-                        //var varType = this.AssemblyDefinition.MainModule.Import(typeof(System.Exception));
-                        //var varDef = new VariableDefinition("ex" + i, varType);
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc_0));
-                        //method.Body.Variables.Add(varDef);
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Nop));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Nop));
                         var inst1 = il.Create(OpCodes.Ldarg_0);
                         var inst2 = il.Create(OpCodes.Call, exception);
                         //il.InsertAfter(method.Body.Instructions.Last(), inst1);
@@ -235,24 +179,18 @@ namespace Buffalo
 
                 idx = method.Body.Instructions.Count - 1;
                 int finallyStartIdx = idx;
-                //method.Body.Instructions.Insert(idx, Instruction.Create(OpCodes.Nop));
                 for (int i = 0; i < aspects.Count; ++i)
                 {
                     //any After()?
-                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.PEPS.After);
+                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BASE.After);
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
                     }
-
-                    //writeAfter = il.Create(OpCodes.Call, after);
-                    //il.InsertAfter(leave, writeAfter);
                 }
                 afterInstructions.Add(endfinally);
                 afterInstructions.ForEach(x => il.InsertAfter(method.Body.Instructions.Last(), x));
-                
-                //il.InsertAfter(leave, endfinally);
                 il.InsertAfter(endfinally, ret);
 
                 marker.TryStart = method.Body.Instructions.First();
@@ -277,7 +215,7 @@ namespace Buffalo
             }
         }
 
-        private MethodReference FindMethodReference(MethodDefinition method, Aspect aspect, Buffalo.Enums.PEPS name)
+        private MethodReference FindMethodReference(MethodDefinition method, Aspect aspect, Buffalo.Enums.BASE name)
         {
             return aspect
                 .TypeDefinition
@@ -317,21 +255,6 @@ namespace Buffalo
             var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
             var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
             var types = assembly.GetTypes().ToList();
-            
-            //foreach (var aspect in ada.Aspects)
-            //{
-            //    var type = types.FirstOrDefault(x => x.FullName.Equals(aspect.TypeDefinition.FullName));
-            //    if (type != null)
-            //    {
-            //        aspect.Type = type;
-            //    }
-            //}
-
-            //foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    Console.WriteLine(a.FullName);
-            //    Console.WriteLine("");
-            //}
         }
 
         private void PrintEligibleMethods()
@@ -465,118 +388,6 @@ namespace Buffalo
 
             return status;
         }
-
-        private void AddAttribute(ICustomAttributeProvider def, Aspect aspect)
-        {
-        }
-
-        private void SetTypes()
-        {
-            //byte[] asmBytes = File.ReadAllBytes(this.AssemblyPath);
-            //var domain = AppDomain.CreateDomain("aspects");
-            //var assembly = domain.Load(asmBytes);
-            //var assembly = domain.Load(System.Reflection.AssemblyName.GetAssemblyName(this.AssemblyPath));
-
-            //AppDomain domain = AppDomain.CreateDomain("aspects");
-            //domain.AssemblyResolve += (s, e) =>
-            //{
-            //    Console.WriteLine("Resolving...");
-            //    return domain.Load(System.Reflection.AssemblyName.GetAssemblyName(this.AssemblyPath));
-            //};
-
-            //System.Reflection.Assembly assembly = System.Reflection.Assembly.LoadFrom(this.AssemblyPath);
-            //var domain = AppDomain.CreateDomain("aspects");
-            //domain.DoCallBack(new CrossAppDomainDelegate(this.LoadAssembly));
-            //domain.DomainUnload += (s, e) =>
-            //{
-            //    Console.WriteLine("Unloading temp app domain");
-            //};
-            //AppDomain.Unload(domain);
-            //GC.Collect();
-            //GC.WaitForPendingFinalizers();
-        }
-
-        /*
-        public List<MethodInfo> GetAllMethods()
-        {
-            List<MethodInfo> ret = new List<MethodInfo>();
-            Assembly assembly = Assembly.LoadFrom(this.AssemblyPath);
-
-            MethodBoundaryAspect MyAttribute =
-            (MethodBoundaryAspect)Attribute.GetCustomAttribute(assembly, typeof(MethodBoundaryAspect));
-            if (MyAttribute == null)
-            {
-                Console.WriteLine("Aspect not applied to namespace");
-            }
-            else
-            {
-                Console.WriteLine("Aspect applied to namespace");
-            }
-
-            var namespaces = assembly.GetCustomAttributes(typeof(MethodBoundaryAspect), false);
-            if (namespaces.Count() > 0)
-            {
-                //aspect applied on assembly, should get all methods
-                var tmptypes = assembly.GetTypes().ToList();
-                List<Type> types = new List<Type>();
-                tmptypes.ForEach(x =>
-                {
-                    if (!this.Exclude(x))
-                    {
-                        types.Add(x);
-                    }
-                });
-
-                var methods = types
-                              .SelectMany(t => t.GetMethods())
-                              //.Where(m => m.GetCustomAttributes(typeof(Aspect), false).Length > 0)
-                              .ToArray();
-
-                foreach (var m in methods)
-                {
-                    if (!this.Exclude(m))
-                    {
-                        ret.Add(m);
-                    }
-                }
-            }
-
-            return ret;
-        }
-
-        private List<MethodInfo> GetMethodsFromType(Type type)
-        {
-            return type.GetMethods().ToList();
-        }
-
-        private bool Exclude(MethodInfo method)
-        {
-            var attrs = method.GetCustomAttributesData();
-            return this.Exclude(attrs);
-        }
-
-        private bool Exclude(Type type)
-        {
-            var attrs = type.GetCustomAttributesData();
-            return this.Exclude(attrs);
-        }
-
-        private bool Exclude(IList<CustomAttributeData> attrs)
-        {
-            foreach (var a in attrs)
-            {
-                foreach (var arg in a.NamedArguments)
-                {
-                    if (arg.MemberInfo.Name.Equals("AttributeExclude"))
-                    {
-                        return (bool)arg.TypedValue.Value;
-                    }
-                }
-            }
-
-            return false;
-        }
-        */
     }
 
     class BoundaryObject : MarshalByRefObject
@@ -584,7 +395,7 @@ namespace Buffalo
         public static void DoSomething(AppDomainArgs ada)
         {
             ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
-            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
+            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\buffalo\client\bin\Debug\client.exe";
             var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
             var types = assembly.GetTypes().ToList();
 
@@ -608,145 +419,3 @@ namespace Buffalo
         internal Dictionary<string, Type> UnderlyingAspectTypes { get; set; }
     }
 }
-
-/*using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-
-namespace SimpleAop
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            new Weaver();
-        }
-    }
-
-    class Weaver
-    {
-        private TypeReference helloType;
-        private MethodReference preMethod;
-        private MethodReference catchExceptionMethod;
-        public ModuleDefinition ModuleDefinition { get; set; }
-        public Weaver()
-        {
-            this.Init();
-        }
-
-        private void Init()
-        {
-            this.ModuleDefinition = ModuleDefinition.ReadModule(@"C:\Users\wliao\Documents\Visual Studio 2010\Projects\Tests\SimpleHello\SimpleHello\bin\Debug\SimpleHello.exe");
-            helloType = ModuleDefinition.Import(typeof(SimpleHello.Hello));
-            var helloDefinition = helloType.Resolve();
-            preMethod = ModuleDefinition.Import(helloDefinition.Methods.First(x => x.Name == "Pre"));
-            catchExceptionMethod = ModuleDefinition.Import(helloDefinition.Methods.First(x => x.Name == "CatchException"));
-            var md = GetSay();
-            Inject(md);
-            var sd3 = GetSimpleDivWith4();
-            Inject2(sd3);
-            ModuleDefinition.Write(@"C:\Users\wliao\Documents\Visual Studio 2010\Projects\Tests\SimpleAop\SimpleAop\bin\Debug\Modified.exe");
-        }
-
-        private void Inject(MethodDefinition method)
-        {
-            var instructions = method.Body.Instructions;
-            instructions.Insert(0, Instruction.Create(OpCodes.Nop));
-            instructions.Insert(1, Instruction.Create(OpCodes.Ldarg_0));
-            instructions.Insert(2, Instruction.Create(OpCodes.Call, preMethod));
-        }
-
-        private void Inject2(MethodDefinition method)
-        {
-            var il = method.Body.GetILProcessor();
-            var write = il.Create(OpCodes.Call, ModuleDefinition.Import (typeof (Console).GetMethod ("WriteLine", new [] { typeof (object)})));
-            //var write = il.Create(OpCodes.Call, catchExceptionMethod);
-            var ret = il.Create(OpCodes.Ret);
-            var pop = il.Create(OpCodes.Pop);
-            var leave = il.Create(OpCodes.Leave, ret);
-            var last = method.Body.Instructions.Last();
-            method.Body.Instructions[method.Body.Instructions.Count - 1] = Instruction.Create(OpCodes.Leave_S, ret);
-            //il.InsertBefore(method.Body.Instructions.Last(), il.Create(OpCodes.Pop));
-
-            var in1 = il.Create(OpCodes.Stloc_2);
-            var in2 = il.Create(OpCodes.Nop);
-            var in3 = il.Create(OpCodes.Ldarg_0);
-            var in4 = il.Create(OpCodes.Ldloc_2);
-            var in5 = il.Create(OpCodes.Nop);
-            var in6 = il.Create(OpCodes.Nop);
-
-            //IL_000d: stloc.2
-            //IL_000e: nop
-            //IL_000f: ldarg.0
-            //IL_0010: ldloc.2
-
-            //il.InsertBefore(method.Body.Instructions.Last(), il.Create(OpCodes.Nop));
-            //il.InsertAfter(method.Body.Instructions.Last(), in1);
-            //il.InsertAfter(in1, in2);
-            //il.InsertAfter(in2, in3);
-            //il.InsertAfter(in3, in4);
-            //il.InsertAfter(in4, write);
-
-            //il.InsertBefore(write.Previous.Previous, il.Create(OpCodes.Ldarg_0));
-            //il.InsertBefore(write.Previous.Previous.Previous, il.Create(OpCodes.Nop));
-            //il.InsertBefore(write.Previous.Previous.Previous.Previous, il.Create(OpCodes.Stloc_2));
-
-            //IL_0016: nop
-            //IL_0017: nop
-            //
-            //il.InsertAfter(write, in5);
-            //il.InsertAfter(in5, in6);
-
-            il.InsertAfter(method.Body.Instructions.Last(), write);
-            il.InsertAfter(write, leave);
-            il.InsertAfter(leave, ret);
-            //il.InsertAfter(pop, ret);
-
-            var handler = new ExceptionHandler(ExceptionHandlerType.Catch)
-            {
-                TryStart = method.Body.Instructions.First(),
-                TryEnd = write,
-                HandlerStart = write,
-                HandlerEnd = ret,
-                CatchType = ModuleDefinition.Import(typeof(Exception)),
-            };
-            method.Body.ExceptionHandlers.Add(handler);
-        }
-
-        private MethodDefinition GetSay()
-        {
-            foreach (TypeDefinition ty in ModuleDefinition.Types)
-            {
-                foreach (MethodDefinition md in ty.Methods)
-                {
-                    if (md.Name == "Say")
-                    {
-                        return md;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private MethodDefinition GetSimpleDivWith4()
-        {
-            foreach (TypeDefinition ty in ModuleDefinition.Types)
-            {
-                foreach (MethodDefinition md in ty.Methods)
-                {
-                    if (md.Name == "SimpleDivWith4")
-                    {
-                        return md;
-                    }
-                }
-            }
-
-            return null;
-        }
-    }
-}
-*/

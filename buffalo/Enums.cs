@@ -14,7 +14,7 @@ namespace Buffalo
             Excluded
         }
 
-        internal enum PEPS
+        internal enum BASE
         {
             Before,
             After,
