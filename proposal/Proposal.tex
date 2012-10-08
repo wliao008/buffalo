@@ -91,13 +91,13 @@ Object Oriented Programming (OOP) languages have given programmers a lot of free
 
 In this project, we will try to solve this type of problem by designing and implementing a framework called "Buffalo" for the C\# platform. We will show that by using Buffalo programmers can separate those concerns from the core of the program, and ultimately be more productive.
 
-In section 2 we will explain the background of the problem, show some examples where the current programming paradigms are not efficient. In section 3, we will explore the existing works and show what have been done. In section 5, we will explain what we propose to do with an overview of the architecture of Buffalo, what we want the end result to be, and how to evaulate it. A tentative roadmap will be given in section 6.
+In section 2 we will explain the background of the problem, show some examples where the current programming paradigms are not efficient. In section 3, we will explore the existing works and show what had been done. In section 5, we will explain what we propose to do with an overview of the architecture of Buffalo, what we want the end result to be, and how to evaluate it. A tentative roadmap will be given in section 6.
 
 \section{Background}
 In this section we will explain more about the cross-cutting problem and how AOP can be used to help.
 
 \subsection{The Problem}
-Procedural Language such as C achieves modularity by grouping codes into subroutines, so that they can be reused. Whereas OOP languages, such as JAVA or C\# go one step further, by allowing programmers to abstract real world objects into properties and behaviors. Both paradigms give programmers the ability to make their codes cleaner and more reusable.
+Procedural Languages such as C achieve modularity by grouping codes into subroutines, so that they can be reused. Whereas OOP languages, such as JAVA or C\# go one step further, by allowing programmers to abstract real world objects into properties and behaviors. Both paradigms give programmers the ability to make their codes cleaner and more reusable.
 
 While OOP languages offer data abstraction and encapsulation in the form of classes and objects, the usage of declared instances of all these classes could still be scattered throughout different modules of the program. Over time, these tangled cross-cutting relations [1] can become difficult and expensive to maintain. One of the often cited example of such concerns is exception handling: the ability for programs to handle errors or terminate gracefully.
 
@@ -123,27 +123,27 @@ What if you need to fine tune this try..catch block to catch a specific exceptio
 The problem is how to prevent those cross-cutting concerns from loitering your program. Aspect Oriented Programming techniques~\cite{aop} can be used to cleanly separate such concerns.
 
 \subsection{Aspect-Oriented Programming}
-The Aspect Oriented Programming paradigm was first discussed in the 1997 paper~\cite{aop}. When talking about AOP, the following concepts are worth noting:
+The Aspect Oriented Programming paradigm was first discussed in 1997~\cite{aop}. When talking about AOP, the following concepts are worth noting:
 
 {\em concern} - the repetitive code that cross-cuts into different modules of the program. Usually the code does not conviently fit into the dominant paradigm of design.
 
 {\em aspect} - the piece of isolated code that can be used to solve the issue of a particluar concern.
 
-{\em join points} - These are the locations through out the program where the concern is leaked into, they are also where the aspect will be applied to solve the concern.
+{\em join point} - These are the locations throughout the program where the concern is leaked into; they are also where the aspect will be applied to solve the concern.
 
-The idea of AOP is fairly simple. We have some code that are duplicated all over the place, making it difficult to maintain, so we need to isolate that duplicate code into a separate single unit. Then we injects that unit of code into all relevant places in a program either at runtime or at compile time, so that the programmers does not have to do it manually in the source code.
+The idea of AOP is fairly simple. We have code that is duplicated all over the place, making it difficult to maintain. We need to isolate that duplication into a separate single unit. Then we inject that unit of code into all relevant places in a program either at runtime or at compile time, so that the programmers does not have to do it manually in the source code.
 
 In other words, AOP is about injecting code into a program. This is especially handy when programmers don't have access to the original source code.
 
-Beside exception handling, AOP is commonly used in tracing, profiling, security, etc.
+Besides exception handling, AOP is commonly used in tracing, profiling, security, etc.
 
 \section{Related Work}Most modern programming languages already display some AOP-like properties, but full native support is rare. Delphi Prism is one of them, where the weaving of aspect code happens at compile time~\cite{delphi_prism2010}. AOP can be implemented in a variety of ways. However, just like other programming paradigms, it is most effective and beneficial when it is implemented by the compiler. That makes it a first class citizen like other properties of a language.
 
 \subsection{Compiler Support}
 
-Gregor Kiczales started and led a Xerox PARC team that developed an implementation of AOP for the JAVA platform called AspectJ, as described in a 1997 paper~\cite{aop}. AspectJ is an extension to the JAVA compiler. It is a language in and of itself, with its own specific syntax and usages, and even its own compiler. It produces JAVA VM compatible binary. Some people hopes that AspectJ will eventually be merged with the JAVA compiler instead of being just an extendsion~\cite{aspectj_faq}. Still, AspectJ integrates nicely with JAVA, especially when used with its own plugin AJDT in the Eclipse IDE.
+Gregor Kiczales started and led a Xerox PARC team that developed an implementation of AOP for the JAVA platform called AspectJ\cite{aop}. AspectJ is an extension to the JAVA compiler. It is a language in and of itself, with its own specific syntax and usages, and even its own compiler. It produces JAVA VM compatible binaries. Some people hope that AspectJ will eventually be merged with the JAVA compiler instead of being just an extension~\cite{aspectj_faq}. Still, AspectJ integrates nicely with JAVA, especially when used with its own plugin AJDT in the Eclipse IDE.
 
-AspectJ can introduce new features to a program, as well as the modification of it. It provides the {\em aspect} keyword to denote a piece of code as the advice code, usage is similar to the {\em class} keyword in JAVA.
+AspectJ can introduce new features to a program, as well as the modification of it. It provides the {\em aspect} keyword to denote a piece of code as the advice code. Usage is similar to the {\em class} keyword in JAVA.
 
 \begin{lstlisting}[caption={sample AspectJ code}, label=aspecjcode]
 public aspect MyAspectJ {
@@ -157,19 +157,19 @@ public aspect MyAspectJ {
 }
 \end{lstlisting}
 
-The example in Listing~\ref{aspecjcode} showed how an aspect is defined in AspectJ. Suppose we have a class named {\em Sorter}, and we want to add a new method to it but we don't have access to the source code. In AspectJ, we can introduce a brand new method {\em Count} to it, as shown in line 2-4. The pointcut {\em doSomething} does a match to find all matching functions regardless of access priviledge, names or parameters, which means pretty much every function in the program. Line 6-8 means before the matched functions are executed, the block of code in line 7 is executed first. This effectively creates a hook into every single function in a program, allowing programmers to inject custom code into it.
+The example in Listing~\ref{aspecjcode} shows how an aspect is defined in AspectJ. Suppose we have a class named {\em Sorter}, and we want to add a new method to it but we don't have access to the source code. In AspectJ, we can introduce a brand new method {\em Count} to it, as shown in line 2-4. The pointcut {\em doSomething} does a match to find all matching functions regardless of access privilege, names or parameters, which means pretty much every function in the program. Line 6-8 means before the matched functions are executed, the block of code in line 7 is executed first. This effectively creates a hook into every single function in a program, allowing programmers to inject custom code into it.
 
 Behind the scene, AspectJ pieces everything together using bytecode weaving. After JAVA compiles the source, AspectJ takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
 
-Despite Eclipse's claim that AspectJ is very easy to learn, one of the disadvantages of AspectJ, as Listing~\ref{aspecjcode} shows, is that the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper. But we agree that once we get used to it, AspectJ can be a really powerful tool for a programmer~\cite{aspectj_text}.
+Despite Eclipse' claim that AspectJ is very easy to learn, one of the disadvantages of AspectJ, as Listing~\ref{aspecjcode} shows, is that the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper. But I agree that once get used to it, AspectJ can be a really powerful tool for programmers~\cite{aspectj_text}.
 
 \subsection{Framework Support}
 
-AspectJ is one of the few compilers that does AOP, that is good news for JAVA programmer. For the vast majority of other programming languages out there, AOP support is provided via frameworks. This is especially true on the C\# platform~\cite{aopcs}, where Microsoft has indicated that they will not be integrating AOP support into the C\# compiler anytime soon~\cite{mastermind_text}. There was a project called Eos developed at the University of Virginia, which was an aspect oriented extension for C\#, but it had been discontinued years ago~\cite{eos_site, eos}.
+AspectJ is one of the few compilers that does AOP, that is good news for JAVA programmers. For the vast majority of other programming languages out there, AOP support is provided via frameworks. This is especially true on the C\# platform~\cite{aopcs}, where Microsoft has indicated that they will not be integrating AOP support into the C\# compiler anytime soon~\cite{mastermind_text}. There was a project called Eos developed at the University of Virginia, which was an aspect oriented extension for C\#, but it had been discontinued years ago~\cite{eos_site, eos}.
 
-There are a number of frameworks available for the C\# platform, they come in various flavors and implemented with different techniques. The different approaches each has its own advantages and disadvantage.
+There are a number of frameworks available for the C\# platform. They come in various flavors and implementation with different techniques. Each has its advantages and disadvantage.
 
-One of the most common implementation involves the usage of a proxy, where the client does not interact with the objects directly, rather everything goes through the proxy.
+One of the most common implementations involves the usage of a proxy, where the client does not interact with the objects directly, rather everything goes through the proxy.
 
 \begin{figure}[here]
   \includegraphics[scale=0.70]{proxy.png}
@@ -179,14 +179,14 @@ One of the most common implementation involves the usage of a proxy, where the c
 
 Using the proxy provides an opportunity for code injection. The advantage of this approach is relative ease of implementation. It is also limiting since in order for the proxy to work, both the proxy and the target object must implement the same interface, therefore the aspect injection point can only occur in the exposed functions for the interface. As this requires reflection at runtime to generate the proxy, it also adds overhead, so performance might not be as good as other approaches.
 
-Another approach is similar to AspectJ, where bytecode weaving is used, but without the extra complexity of a new syntax and language. The commercial product PostSharp~\cite{postsharp} is such an example, where aspect weaving happens post compilation by rewriting the MSIL instruction set. PostSharp uses only the standard C\# language with attribute used for advice codes. The advantage is ease of use, as developers already familiar with C\# will have little to no learning curve at all. And since aspect is woven in the assembly, the runtime incurs no overhead for reflection, and therefore performance is not compromised. The disadvantage is that, since it has to work with MSIL instruction set, it is very low level and therefore the most difficult to implement.
+Another approach is similar to AspectJ, where bytecode weaving is used, but without the extra complexity of a new syntax and language. The commercial product PostSharp~\cite{postsharp} is such an example, where aspect weaving happens post compilation by rewriting the MSIL instruction set. PostSharp uses only the standard C\# language with attribute used for advice codes. The advantage is ease of use, as developers already familiar with C\# will have little to no learning curve at all. And since aspects are woven in the assembly, the runtime incurs no overhead for reflection, and therefore performance is not compromised. The disadvantage is that, since it has to work with MSIL instruction set, it is very low level and therefore the most difficult to implement.
 
-Some frameworks use static weaving~\cite{aspectcs}, where the source files are pre-processed to include all the relevant aspect code. Then the C\# compiler takes over and does the compilation normally. This has the advantage of post compilation weaving but not the complexity of working with MSIL instruction set. On the other hand, a parsar generator has to be developed to efficiently parse the source files.
+Some frameworks use static weaving~\cite{aspectcs}, where the source files are pre-processed to include all the relevant aspect code. Then the C\# compiler takes over and does the compilation normally. This has the advantage of post compilation weaving but not the complexity of working with MSIL instruction set. On the other hand, a parser generator has to be developed to efficiently parse the source files.
 
 \section{Hypothesis}
-The OOP paradigm cannot efficiently solve the cross-cutting problem. Even though the C\# compiler will not support the AOP paradigm, we can still archieve the same goal by performing the separation of concerns via Buffalo.
+The OOP paradigm cannot efficiently solve the cross-cutting problem. However even though the C\# compiler will not support the AOP paradigm, we can still archieve the same goal by performing the separation of concerns via Buffalo.
 
-We can further make the developer's life easier by hooking up Buffalo with the MSBuild system to perform automatic aspect weaving. With zero configuration requirement, developers can just focus on creating the aspects to deal with the problems.
+We can further make the developer's life easier by hooking up Buffalo with the Microsoft's build system in Visual Studio to perform automatic aspect weaving. With zero, developers can just focus on creating the aspects to deal with the problems.
 
 \section{Approach and Methodology}
 In this section we will give an overview of the architecture of Buffalo, the tools and approaches we will be using to implement it.
@@ -206,7 +206,7 @@ As shown in Figure~\ref{buffalo_model}, the C\# compiler compiles the source fil
 Once C\# finishes the compilation, the control is transferred to Buffalo. This is archieved by creating a hook into the MSBuild system. If Buffalo detects any {\em aspects} defined in the input assembly, and that the {\em aspects} are being applied, then weaving will take place, otherwise the whole process will simply be ignored.
 
 \subsection{Intended Usage}
-From the Visual Studio IDE, developer can use Buffalo by creating a custom C\# attribue, extending a Buffalo interface IAspect (subject to change), for example:
+From the Visual Studio IDE, developer can use Buffalo by creating a custom C\# attribue class; extending a Buffalo interface IAspect (subject to change), for example:
 
 \begin{lstlisting}[caption={Buffalo aspect}, label=buffalocode]
 public class CatchException : System.Attribute, IAspect {
@@ -216,7 +216,7 @@ public class CatchException : System.Attribute, IAspect {
 }
 \end{lstlisting}
 
-The cross-cutting concerns is now cleanly separated into a cutom attribute {\em CatchException}. It will be treated as an aspect by Buffalo, any change made to it will be propagated to all the annontated functions. To use this aspect, simply treat it like a regular attribute and apply it to any method, class or assembly.
+The cross-cutting concern is now cleanly separated into a custom attribute {\em CatchException}. It will be treated as an aspect by Buffalo, any change made to it will be propagated to all the annontated functions. To use this aspect, simply treat it like a regular attribute and apply it to any method, class or assembly.
 
 \begin{lstlisting}[caption={applying Buffalo aspect}, label=applybuffalo]
 [CatchException]
@@ -249,7 +249,7 @@ This project will be developed using C\# and Visual Studio 2010, on Windows 7. F
 
 Another option is to use the Profiler API by Microsoft, but this API is intended as a debugging feature, therefore is unsuitable for production environment.
 
-While we can opt to invest the time on learning and developing a custom MSIL rewriter, we are afraid that that in itself is a bigger project than Buffalo~\cite{msil_text}. Mono is an open source implementation of the C\# compiler, Cecil is a project within Mono that provides MSIL rewriting. Cecil provides very low level API for working with MSIL. Preliminary evaluation of the tool suggests it is pretty feature complete and flexible enough to satisfy our requirement. However, documentation for Cecil is next to non-existent, so the learning curve is expected to be deep.
+While we can opt to invest the time on learning and developing a custom MSIL rewriter, we are afraid that that in itself is a bigger project than Buffalo~\cite{msil_text}. Mono is an open source implementation of the C\# compiler, Cecil is a project within Mono that provides MSIL rewriting. Cecil provides low level API for working with MSIL. Preliminary evaluation of the tool suggests it is pretty feature complete and flexible enough to satisfy our requirement. However, documentation for Cecil is next to non-existent, so the learning curve is expected to be deep.
 
 The following utility tools will also be heavily used during development: ILSpy, ILDASM and PEVerify. ILSpy is an open source application that dis-assembles C\# assembly to show IL instructions. ILDASM does the same thing but comes from Microsoft .NET Framework. PEVerify is a Microsoft Windows SDK tool, it will be used to ensure that the modified assembly we will produce is valid, as this is not verified by Cecil.
 
