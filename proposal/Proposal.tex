@@ -120,7 +120,15 @@ Imagine that if you have 1,000 functions in your program that can potentially th
 
 What if you need to fine tune this try..catch block to catch a specific exception such as the {\em DivideByZeroException} so your program can act accordingly, or instead of using the {\em Utility} object you want to use a different object to handle the actual logging? In the worst case, you would have to make the change to all 1,000 of your functions.
 
-The problem is how to prevent those cross-cutting concerns from loitering your program. Aspect Oriented Programming techniques~\cite{aop} can be used to cleanly separate such concerns.
+The question is how to prevent those cross-cutting concerns from loitering your program. Even worst, sometimes a program might consist of something like in Listing~\ref{unhandledexception}, where exception is not handled at all.
+
+\begin{lstlisting}[caption={Unhandle exception}, label=unhandledexception]
+public double Divide(double num1, double num2) {
+   return num1 / num2;
+}
+\end{lstlisting}
+
+Aspect Oriented Programming techniques~\cite{aop} can be used to cleanly solve such problems.
 
 \subsection{Aspect-Oriented Programming}
 The Aspect Oriented Programming paradigm was first discussed in 1997~\cite{aop}. When talking about AOP, the following concepts are worth noting:
@@ -189,7 +197,7 @@ The OOP paradigm cannot efficiently solve the cross-cutting problem. However eve
 We can further make the developer's life easier by hooking up Buffalo with the Microsoft's build system in Visual Studio to perform automatic aspect weaving. With zero, developers can just focus on creating the aspects to deal with the problems.
 
 \section{Approach and Methodology}
-In this section we will give an overview of the architecture of Buffalo, the tools and approaches we will be using to implement it.
+In this section I will give an overview of the architecture of Buffalo, the tools and approaches I will be using to implement it.
 
 \subsection{Architecture Overview}
 The approach we plan to take is to perform compile time weaving. Figure~\ref{buffalo_model} shows an overview of how Buffalo will fit in the overall C\# compilation process.
@@ -199,6 +207,39 @@ The approach we plan to take is to perform compile time weaving. Figure~\ref{buf
   \centering
   \caption{Buffalo model overview\label{buffalo_model}}
 \end{figure}
+
+\subsection{Feature Implementation}
+For this project, I plan to work on weavering of several aspects. Specifically they are the various interception points of a function: 
+
+{\em Before} - Before the execution of a function.
+
+{\em After} - After the execution of a function, right before it returns.
+
+{\em Success} - The function has successfully executed without error.
+
+{\em Exception} - The function throws an exception during execution.
+
+{\em Around} - Swap out the target function with one provided by the developer, while preserving the option to call into the original function.
+
+The first four aspects can be nicely group together using a try..catch..finally. As shown in Listing~\ref{boundaryaspect}, this is how a function would be modified in MSIL when a developer wants to intercep any of those execution points. The try..catch..finally is wrapped around the target function with calls to various custom code supplied by the developer. 
+
+\begin{lstlisting}[caption={Buffalo aspects}, label=boundaryaspect]
+public class SomeFunction {
+   try {
+       Before();
+       //original method body...
+       Success();
+   }catch(Exception e){
+       Exception(e);
+   }finally{
+       After();
+   }
+}
+\end{lstlisting}
+
+The Around aspect is more involved as we cannot simply replace the target function with something else. The replacement must be able to call into the original function, along with the right number of parameters.
+
+Contrast from AspectJ, where it has separate getter and setter syntax specifically for Java's properties. In C\#, properties are automatically turned into methods when compiled into MSIL. Since Buffalo will be operating on MSIL, all the aspects will apply to both properties and methods.
 
 \subsection{Compile Time Weaving}
 As shown in Figure~\ref{buffalo_model}, the C\# compiler compiles the source files into an assembly, this assembly is then fed into Buffalo. Buffalo takes apart the assembly using reflection to find all the defined {\em aspects} and possible {\em pointcuts}, then weave them together at the right places by rewriting the MSIL instruction set, and finally produces a new assembly.
