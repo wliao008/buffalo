@@ -7,6 +7,7 @@ using BuffaloAOP;
 
 namespace Unittest
 {
+    /*
     [TestClass]
     public class WeaverTests
     {
@@ -24,5 +25,5 @@ namespace Unittest
         public override void Before(MethodDetail detail)
         {
         }
-    }
+    }*/
 }

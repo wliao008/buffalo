@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuffaloAOP", "buffalo\BuffaloAOP.csproj", "{E45E7862-8266-40F9-A5F1-D4FB45510E68}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuffaloAOP", "BuffaloAOP\BuffaloAOP.csproj", "{E45E7862-8266-40F9-A5F1-D4FB45510E68}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "client", "client\client.csproj", "{629C03E2-E565-42D1-9DAB-F9ACA30B0E41}"
 EndProject
@@ -11,14 +11,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{0631D6AA-88B
 		Lib\Mono.Cecil.Rocks.dll = Lib\Mono.Cecil.Rocks.dll
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unittest", "Unittest\Unittest.csproj", "{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{72A29A8A-500F-40E9-A58A-DA7369A488CC}"
 	ProjectSection(SolutionItems) = preProject
 		buffalo.vsmdi = buffalo.vsmdi
 		Local.testsettings = Local.testsettings
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buffalo", "Buffalo\Buffalo.csproj", "{3AC28ABB-BF81-432D-92FB-C580BA901985}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -53,16 +53,16 @@ Global
 		{629C03E2-E565-42D1-9DAB-F9ACA30B0E41}.Release|Mixed Platforms.Build.0 = Release|x86
 		{629C03E2-E565-42D1-9DAB-F9ACA30B0E41}.Release|x86.ActiveCfg = Release|x86
 		{629C03E2-E565-42D1-9DAB-F9ACA30B0E41}.Release|x86.Build.0 = Release|x86
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{9E1CE56D-4AA4-4596-96B4-53599D7FD0B3}.Release|x86.ActiveCfg = Release|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

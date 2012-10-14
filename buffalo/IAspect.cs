@@ -1,4 +1,4 @@
-﻿namespace BuffaloAOP
+﻿namespace Buffalo
 {
     /// <summary>
     /// This is the base aspect interface

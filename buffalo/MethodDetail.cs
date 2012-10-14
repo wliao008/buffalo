@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace BuffaloAOP
+namespace Buffalo
 {
     public class MethodDetail
     {

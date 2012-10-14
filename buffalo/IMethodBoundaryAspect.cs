@@ -1,4 +1,4 @@
-﻿namespace BuffaloAOP
+﻿namespace Buffalo
 {
     internal interface IMethodBoundaryAspect : IAspect
     {
