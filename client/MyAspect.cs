@@ -76,4 +76,15 @@ namespace client
             Console.WriteLine("Trace.Success");
         }
     }
+
+    [MyAspect(AttributeExclude = true)]
+    [TraceAspect(AttributeExclude = true)]
+    [MAroundAspect(AttributeExclude = true)]
+    public class MAroundAspect : MethodAroundAspect
+    {
+        public override void Invoke(MethodDetail detail)
+        {
+            base.Invoke(detail);
+        }
+    }
 }

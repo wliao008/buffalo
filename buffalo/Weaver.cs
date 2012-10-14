@@ -33,9 +33,15 @@ namespace Buffalo
 
         internal AssemblyDefinition AssemblyDefinition { get; set; }
 
-        public void Inject(string outPath)
+        internal void Inject(string outPath)
         {
-            this.InjectBASE();
+            //apply the boundary aspect if necessary
+            var boundaryAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            if (boundaryAspectExist)
+            {
+                this.InjectBASE();
+            }
+
             //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
             Console.WriteLine("DONE");
@@ -54,7 +60,8 @@ namespace Buffalo
             //extract aspects from the type definitions
             this.TypeDefinitions
                 .Where(x => x.BaseType != null 
-                    && x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName)
+                    && (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName 
+                    || x.BaseType.FullName == typeof(MethodAroundAspect).FullName))
                 .ToList()
                 .ForEach(x => Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
             //set the original types
@@ -352,7 +359,8 @@ namespace Buffalo
             {
                 //var t = def.CustomAttributes[i].AttributeType.Resolve();
                 if (aspect.Type != null 
-                    && aspect.Type.BaseType == typeof(MethodBoundaryAspect)
+                    && (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
+                    || aspect.Type.BaseType == typeof(MethodAroundAspect))
                     && def.CustomAttributes[i].AttributeType.FullName.Equals(aspect.Name))
                 {
                     attrFound = true;

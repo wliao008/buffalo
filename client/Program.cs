@@ -26,7 +26,8 @@ namespace client
         }
 
         [TraceAspect(AttributeExclude=true)]
-        [MyAspect]
+        [MyAspect(AttributeExclude=true)]
+        [MAroundAspect]
         public void Function1(int a)
         {
             Console.WriteLine("Function 1");

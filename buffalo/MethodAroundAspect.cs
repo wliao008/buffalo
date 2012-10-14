@@ -1,8 +1,15 @@
 ﻿
 namespace Buffalo
 {
-    internal class MethodAroundAspect : IMethodAroundAspect
+    public abstract class MethodAroundAspect : System.Attribute, IMethodAroundAspect
     {
+        public MethodAroundAspect(bool attributeExclude = false)
+        {
+            this.AttributeExclude = attributeExclude;
+        }
+
+        public bool AttributeExclude { get; set; }
+
         public virtual void Invoke(MethodDetail detail) { }
     }
 }
