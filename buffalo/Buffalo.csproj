@@ -49,8 +49,10 @@
     <Compile Include="Aspect.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IAspect.cs" />
+    <Compile Include="IMethodAroundAspect.cs" />
     <Compile Include="IMethodBoundaryAspect.cs" />
     <Compile Include="IRewriter.cs" />
+    <Compile Include="MethodAroundAspect.cs" />
     <Compile Include="MethodBoundaryAspect.cs" />
     <Compile Include="MethodDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
