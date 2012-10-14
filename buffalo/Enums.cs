@@ -14,7 +14,7 @@ namespace Buffalo
             Excluded
         }
 
-        internal enum BASE
+        internal enum BoundaryType
         {
             Before,
             After,

@@ -79,12 +79,12 @@ namespace client
 
     [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
-    [MAroundAspect(AttributeExclude = true)]
-    public class MAroundAspect : MethodAroundAspect
+    [MyAroundAspect(AttributeExclude = true)]
+    public class MyAroundAspect : MethodAroundAspect
     {
         public override void Invoke(MethodDetail detail)
         {
-            base.Invoke(detail);
+            detail.Proceed();
         }
     }
 }

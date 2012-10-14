@@ -35,11 +35,18 @@ namespace Buffalo
 
         internal void Inject(string outPath)
         {
+            //apply the around aspect if necessary
+            var aroundAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            if (aroundAspectExist)
+            {
+                this.InjectAroundAspect();
+            }
+
             //apply the boundary aspect if necessary
             var boundaryAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
             if (boundaryAspectExist)
             {
-                this.InjectBASE();
+                this.InjectBoundaryAspect();
             }
 
             //write out the modified assembly
@@ -85,11 +92,31 @@ namespace Buffalo
                 });
         }
 
-        private void InjectBASE()
+        private void InjectAroundAspect()
+        {
+            var ems = this.EligibleMethods.ToList();
+            var eligibleAroundMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            foreach (var d in eligibleAroundMethods)
+            {
+                var method = d.Key;
+                var aspects = d.Value;
+                var aroundAspect = aspects[0];
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var inst = aroundMethod.Body.Instructions.First(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
+                TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
+                MethodDefinition md = new MethodDefinition("DummyTest", MethodAttributes.Public, voidref);
+                aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(x));
+                aroundAspect.TypeDefinition.Methods.Add(md);
+            }
+        }
+
+        private void InjectBoundaryAspect()
         {
             //assuming the aspects are all PEPS
             TcfMarker marker = new TcfMarker();
-            foreach (var d in this.EligibleMethods)
+            var ems = this.EligibleMethods.ToList();
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            foreach (var d in eligibleBoundaryMethods)
             {
                 var method = d.Key;
                 var aspects = d.Value;
@@ -109,7 +136,7 @@ namespace Buffalo
                 //Before()
                 for (int i = 0; i < aspects.Count; ++i)
                 {
-                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BASE.Before);
+                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
                     if (before != null)
                     {
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
@@ -141,7 +168,7 @@ namespace Buffalo
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
                     //any Success()?
-                    var success = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BASE.Success);
+                    var success = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Success);
                     if (success != null)
                     {
                         writeSuccess = il.Create(OpCodes.Call, success);
@@ -155,7 +182,7 @@ namespace Buffalo
                 for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
                 {
                     //any Exception()?
-                    var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BASE.Exception);
+                    var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Exception);
                     if (exception != null)
                     {
                         if (exceptionInstructions == null)
@@ -190,7 +217,7 @@ namespace Buffalo
                 for (int i = 0; i < aspects.Count; ++i)
                 {
                     //any After()?
-                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BASE.After);
+                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.After);
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
@@ -223,7 +250,7 @@ namespace Buffalo
             }
         }
 
-        private MethodReference FindMethodReference(MethodDefinition method, Aspect aspect, Buffalo.Enums.BASE name)
+        private MethodReference FindMethodReference(MethodDefinition method, Aspect aspect, Buffalo.Enums.BoundaryType name)
         {
             return aspect
                 .TypeDefinition

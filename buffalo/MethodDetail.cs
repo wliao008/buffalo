@@ -14,6 +14,8 @@ namespace Buffalo
             this.Init();
         }
 
+        public void Proceed() { }
+
         public List<Parameter> Parameters
         {
             get
