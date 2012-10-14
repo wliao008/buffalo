@@ -1,18 +1,18 @@
 ﻿using System;
 using Mono.Cecil;
 
-namespace Buffalo
+namespace BuffaloAOP
 {
     internal class Aspect : IAspect
     {
         public Aspect()
         {
-            this.AssemblyLevelStatus = Buffalo.Enums.Status.NotApplied;
+            this.AssemblyLevelStatus = BuffaloAOP.Enums.Status.NotApplied;
         }
 
         public string Name { get; set; }
 
-        public Buffalo.Enums.Status AssemblyLevelStatus { get; set; }
+        public BuffaloAOP.Enums.Status AssemblyLevelStatus { get; set; }
 
         public TypeDefinition TypeDefinition { get; set; }
 

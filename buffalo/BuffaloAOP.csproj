@@ -8,8 +8,8 @@
     <ProjectGuid>{E45E7862-8266-40F9-A5F1-D4FB45510E68}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Buffalo</RootNamespace>
-    <AssemblyName>Buffalo</AssemblyName>
+    <RootNamespace>BuffaloAOP</RootNamespace>
+    <AssemblyName>BuffaloAOP</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

@@ -1,4 +1,4 @@
-﻿namespace Buffalo
+﻿namespace BuffaloAOP
 {
     public abstract class MethodBoundaryAspect : System.Attribute, IMethodBoundaryAspect
     {

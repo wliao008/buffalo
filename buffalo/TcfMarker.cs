@@ -1,6 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 
-namespace Buffalo
+namespace BuffaloAOP
 {
     public struct TcfMarker
     {

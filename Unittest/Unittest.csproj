@@ -49,9 +49,9 @@
     <Compile Include="WeaverTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\buffalo\buffalo.csproj">
+    <ProjectReference Include="..\buffalo\BuffaloAOP.csproj">
       <Project>{E45E7862-8266-40F9-A5F1-D4FB45510E68}</Project>
-      <Name>buffalo</Name>
+      <Name>BuffaloAOP</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

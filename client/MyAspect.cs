@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using Buffalo;
+using BuffaloAOP;
 
 namespace client
 {
