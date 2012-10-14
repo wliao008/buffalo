@@ -1,6 +1,6 @@
 ﻿namespace Buffalo
 {
-    public class Rewriter : IRewriter
+    internal class Rewriter : IRewriter
     {
         public bool WriteAssembly(string path)
         {

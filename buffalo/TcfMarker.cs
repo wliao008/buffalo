@@ -2,7 +2,7 @@
 
 namespace Buffalo
 {
-    public struct TcfMarker
+    internal struct TcfMarker
     {
         public Instruction TryStart { get; set; }
         public Instruction TryEnd { get; set; }

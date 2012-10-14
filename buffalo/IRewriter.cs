@@ -1,6 +1,6 @@
 ﻿namespace Buffalo
 {
-    public interface IRewriter
+    internal interface IRewriter
     {
         bool WriteAssembly(string path);
     }

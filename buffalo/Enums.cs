@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Buffalo
 {
-    public class Enums
+    internal class Enums
     {
         internal enum Status
         {

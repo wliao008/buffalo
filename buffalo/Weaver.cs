@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
 namespace Buffalo
 {
-    public class Weaver
+    internal class Weaver
     {
         public Weaver(string assemblyPath)
         {
