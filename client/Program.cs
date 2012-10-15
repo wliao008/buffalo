@@ -33,7 +33,6 @@ namespace client
             this.Function3();
         }
 
-        [MyAroundAspect]
         public void Function2()
         {
             try
@@ -57,6 +56,7 @@ namespace client
             Console.WriteLine("Function 3");
         }
 
+        [MyAroundAspect]
         private void TestF(string name)
         {
             Console.WriteLine(name);

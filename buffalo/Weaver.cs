@@ -101,12 +101,14 @@ namespace Buffalo
                 var method = d.Key;
                 var aspects = d.Value;
                 var aroundAspect = aspects[0];
+                var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
                 var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
                 var inst = aroundMethod.Body.Instructions.First(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
                 TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
-                MethodDefinition md = new MethodDefinition("DummyTest", MethodAttributes.Public, voidref);
+                MethodDefinition md = new MethodDefinition(methodName, MethodAttributes.Public, voidref);
                 aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(x));
-                aroundAspect.TypeDefinition.Methods.Add(md);
+                //aroundAspect.TypeDefinition.Methods.Add(md);
+                method.DeclaringType.Methods.Add(md);
             }
         }
 
