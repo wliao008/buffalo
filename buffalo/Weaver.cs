@@ -98,17 +98,37 @@ namespace Buffalo
             var eligibleAroundMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodAroundAspect)));
             foreach (var d in eligibleAroundMethods)
             {
-                var method = d.Key;
-                var aspects = d.Value;
-                var aroundAspect = aspects[0];
-                var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
-                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
-                var inst = aroundMethod.Body.Instructions.First(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
-                TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
-                MethodDefinition md = new MethodDefinition(methodName, MethodAttributes.Public, voidref);
-                aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(x));
-                //aroundAspect.TypeDefinition.Methods.Add(md);
-                method.DeclaringType.Methods.Add(md);
+                var targetMethod = d.Key;
+                var aroundAspect = d.Value[0];
+                //var methodName = string.Format("{0}{1}", targetMethod.Name, DateTime.Now.Ticks);
+                //var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                //var inst = aroundMethod.Body.Instructions.First(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
+                //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
+                //MethodDefinition md = new MethodDefinition(methodName, MethodAttributes.Public, voidref);
+                //aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(x));
+                //targetMethod.DeclaringType.Methods.Add(md);
+
+                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                int i = 0;
+                bool found = false;
+                for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
+                {
+                    if (invokeMethod.Body.Instructions[i].ToString()
+                        .Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    var inst = invokeMethod.Body.Instructions[i];
+                    var methodRef = this.FindMethodReference(targetMethod, aroundAspect, Enums.BoundaryType.Invoke);
+                    //var il = invokeMethod.Body.GetILProcessor();
+                    //var instCall = Instruction.Create(OpCodes.Call, targetMethod);
+                    invokeMethod.Body.Instructions[i].Operand = targetMethod;
+                }
             }
         }
 

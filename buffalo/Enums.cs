@@ -19,7 +19,8 @@ namespace Buffalo
             Before,
             After,
             Success,
-            Exception
+            Exception,
+            Invoke
         }
     }
 }
