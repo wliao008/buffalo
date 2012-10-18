@@ -251,7 +251,7 @@ From the Visual Studio IDE, developer can use Buffalo by creating a custom C\# a
 
 \begin{lstlisting}[caption={Buffalo aspect}, label=buffalocode]
 public class CatchException : System.Attribute, IAspect {
-   public void Exception(Exception e) {
+   public override void Exception(Exception e) {
        Utility.LogToFile(e);
    } 
 }
