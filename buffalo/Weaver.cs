@@ -215,19 +215,25 @@ namespace Buffalo
                         exceptionInstructions.Add(inst2);
                     }
                 }
-
-                exceptionInstructions.ForEach(x =>
-                {
-                    il.InsertAfter(method.Body.Instructions.Last(), x);
-                });
                 //method.Body.OptimizeMacros();
 
                 //the beginning of the catch.. block actually marks the end of the try.. block
                 ///TODO: This is a bug, it should be the first writeException, not the last one
                 ///TODO: This cause runtime exception when no Exception() has been overriden.
-                marker.TryEnd = exceptionInstructions[0];
+                if (exceptionInstructions.Count == 0)
+                {
+                    //a dummy instruction
+                    exceptionInstructions.Add(il.Create(OpCodes.Nop));
+                }
 
-                il.InsertAfter(exceptionInstructions[exceptionInstructions.Count - 1], leave);
+                exceptionInstructions.ForEach(x =>
+                {
+                    il.InsertAfter(method.Body.Instructions.Last(), x);
+                });
+
+                marker.TryEnd = exceptionInstructions[0];
+                var lastExceptionInst = exceptionInstructions.Last();
+                il.InsertAfter(lastExceptionInst, leave);
 
                 var endfinally = il.Create(OpCodes.Endfinally);
 

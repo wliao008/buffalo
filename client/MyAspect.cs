@@ -51,10 +51,10 @@ namespace client
             Console.WriteLine("MyAspect.Success");
         }
 
-        public override void Exception()
-        {
-            Console.WriteLine("MyAspect.Exception");
-        }
+        //public override void Exception()
+        //{
+        //    Console.WriteLine("MyAspect.Exception");
+        //}
     }
 
     [MyAspect(AttributeExclude = true)]
