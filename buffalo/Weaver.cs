@@ -148,7 +148,7 @@ namespace Buffalo
                 List<Instruction> beforeInstructions = new List<Instruction>();
                 List<Instruction> afterInstructions = new List<Instruction>();
                 List<Instruction> successInstructions = new List<Instruction>();
-                List<Instruction> exceptionInstructions = null;
+                List<Instruction> exceptionInstructions = new List<Instruction>();
                 
                 var ret = il.Create(OpCodes.Ret);
                 var pop = il.Create(OpCodes.Pop);
@@ -207,10 +207,6 @@ namespace Buffalo
                     var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Exception);
                     if (exception != null)
                     {
-                        if (exceptionInstructions == null)
-                        {
-                            exceptionInstructions = new List<Instruction>();
-                        }
                         var inst1 = il.Create(OpCodes.Ldarg_0);
                         var inst2 = il.Create(OpCodes.Call, exception);
                         //il.InsertAfter(method.Body.Instructions.Last(), inst1);
@@ -228,6 +224,7 @@ namespace Buffalo
 
                 //the beginning of the catch.. block actually marks the end of the try.. block
                 ///TODO: This is a bug, it should be the first writeException, not the last one
+                ///TODO: This cause runtime exception when no Exception() has been overriden.
                 marker.TryEnd = exceptionInstructions[0];
 
                 il.InsertAfter(exceptionInstructions[exceptionInstructions.Count - 1], leave);
