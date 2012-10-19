@@ -48,12 +48,19 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BuffaloAOP\BuffaloAOP.csproj">
+      <Project>{e45e7862-8266-40f9-a5f1-d4fb45510e68}</Project>
+      <Name>BuffaloAOP</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Buffalo\Buffalo.csproj">
       <Project>{3ac28abb-bf81-432d-92fb-c580ba901985}</Project>
       <Name>Buffalo</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"$(TargetDir)BuffaloAOP.exe" "$(TargetPath)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

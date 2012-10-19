@@ -291,7 +291,7 @@ namespace Buffalo
             ada.Aspects = Aspects;
             ada.UnderlyingAspectTypes = UnderlyingAspectTypes;
             //domain.DoCallBack(new CrossAppDomainDelegate(LoadAssembly));
-            BoundaryObject.DoSomething(ada);
+            BoundaryObject.DoSomething(ada, AssemblyPath);
             domain.DomainUnload += new EventHandler(domain_DomainUnload);
             AppDomain.Unload(domain);
             GC.Collect();
@@ -447,10 +447,10 @@ namespace Buffalo
 
     class BoundaryObject : MarshalByRefObject
     {
-        public static void DoSomething(AppDomainArgs ada)
+        public static void DoSomething(AppDomainArgs ada, string path)
         {
             ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
-            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\buffalo\client\bin\Debug\client.exe";
+            var _assemblyPath = path;
             var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
             var types = assembly.GetTypes().ToList();
 
