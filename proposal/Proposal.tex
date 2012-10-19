@@ -120,7 +120,7 @@ Imagine that if you have 1,000 functions in your program that can potentially th
 
 What if you need to fine tune this try..catch block to catch a specific exception such as the {\em DivideByZeroException} so your program can act accordingly, or instead of using the {\em Utility} object you want to use a different object to handle the actual logging? In the worst case, you would have to make the change to all 1,000 of your functions.
 
-The question is how to prevent those cross-cutting concerns from loitering your program. Even worst, sometimes a program might consist of something like in Listing~\ref{unhandledexception}, where exception is not handled at all.
+The question is how to prevent those cross-cutting concerns from loitering your program. Worst yet, sometimes a program might consist of something like in Listing~\ref{unhandledexception}, where exception is not handled at all.
 
 \begin{lstlisting}[caption={Unhandle exception}, label=unhandledexception]
 public double Divide(double num1, double num2) {
@@ -151,7 +151,7 @@ Besides exception handling, AOP is commonly used in tracing, profiling, security
 
 Gregor Kiczales started and led a Xerox PARC team that developed an implementation of AOP for the JAVA platform called AspectJ\cite{aop}. AspectJ is an extension to the JAVA compiler. It is a language in and of itself, with its own specific syntax and usages, and even its own compiler. It produces JAVA VM compatible binaries. Some people hope that AspectJ will eventually be merged with the JAVA compiler instead of being just an extension~\cite{aspectj_faq}. Still, AspectJ integrates nicely with JAVA, especially when used with its own plugin AJDT in the Eclipse IDE.
 
-AspectJ can introduce new features to a program, as well as the modification of it. It provides the {\em aspect} keyword to denote a piece of code as the advice code. Usage is similar to the {\em class} keyword in JAVA.
+A typical AspectJ aspect looks like Listing~\ref{aspectjcode}.
 
 \begin{lstlisting}[caption={sample AspectJ code}, label=aspecjcode]
 public aspect MyAspectJ {
@@ -165,7 +165,9 @@ public aspect MyAspectJ {
 }
 \end{lstlisting}
 
-The example in Listing~\ref{aspecjcode} shows how an aspect is defined in AspectJ. Suppose we have a class named {\em Sorter}, and we want to add a new method to it but we don't have access to the source code. In AspectJ, we can introduce a brand new method {\em Count} to it, as shown in line 2-4. The pointcut {\em doSomething} does a match to find all matching functions regardless of access privilege, names or parameters, which means pretty much every function in the program. Line 6-8 means before the matched functions are executed, the block of code in line 7 is executed first. This effectively creates a hook into every single function in a program, allowing programmers to inject custom code into it.
+It provides the {\em aspect} keyword to denote a piece of code as the advice code. It is similar to the {\em class} keyword in JAVA. Suppose we have a class named {\em Sorter}, and we want to add a new method to it but we don't have access to the source code. With AspectJ, we can introduce a brand new method {\em Count} to it, as shown in line 2-4. The pointcut {\em doSomething} does a match to find all matching functions regardless of access privilege, names or parameters, which means pretty much every function in the program. Line 6-8 means before the matched functions are executed, the block of code in line 7 is executed first. This effectively creates a hook into every single function in a program, allowing programmers to inject custom code into it.
+
+It is important to note that the purpose of AOP is to solve cross-cutting concerns, and not in patching up of code as Listing~\ref{aspectjcode} might have alluded to.
 
 Behind the scene, AspectJ pieces everything together using bytecode weaving. After JAVA compiles the source, AspectJ takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
 
@@ -187,7 +189,7 @@ One of the most common implementations involves the usage of a proxy, where the 
 
 Using the proxy provides an opportunity for code injection. The advantage of this approach is relative ease of implementation. It is also limiting since in order for the proxy to work, both the proxy and the target object must implement the same interface, therefore the aspect injection point can only occur in the exposed functions for the interface. As this requires reflection at runtime to generate the proxy, it also adds overhead, so performance might not be as good as other approaches.
 
-Another approach is similar to AspectJ, where bytecode weaving is used, but without the extra complexity of a new syntax and language. The commercial product PostSharp~\cite{postsharp} is such an example, where aspect weaving happens post compilation by rewriting the MSIL instruction set. PostSharp uses only the standard C\# language with attribute used for advice codes. The advantage is ease of use, as developers already familiar with C\# will have little to no learning curve at all. And since aspects are woven in the assembly, the runtime incurs no overhead for reflection, and therefore performance is not compromised. The disadvantage is that, since it has to work with MSIL instruction set, it is very low level and therefore the most difficult to implement.
+Another approach is similar to AspectJ, where bytecode weaving is used, but without the extra complexity of a new syntax and language. The commercial product PostSharp~\cite{postsharp} is such an example, where aspect weaving happens post compilation by rewriting the MSIL instruction set. PostSharp uses .NET languages with attribute used for advice codes. The advantage is ease of use, as developers already familiar with C\# will have little to no learning curve at all. And since aspects are woven in the assembly, the runtime incurs no overhead for reflection, and therefore performance is not compromised. The disadvantage is that, since it has to work with MSIL instruction set, it is very low level and therefore the most difficult to implement.
 
 Some frameworks use static weaving~\cite{aspectcs}, where the source files are pre-processed to include all the relevant aspect code. Then the C\# compiler takes over and does the compilation normally. This has the advantage of post compilation weaving but not the complexity of working with MSIL instruction set. On the other hand, a parser generator has to be developed to efficiently parse the source files.
 
@@ -242,7 +244,7 @@ The Around aspect is more involved as we cannot simply replace the target functi
 Contrast from AspectJ, where it has separate getter and setter syntax specifically for Java's properties. In C\#, properties are automatically turned into methods when compiled into MSIL. Since Buffalo will be operating on MSIL, all the aspects will apply to both properties and methods.
 
 \subsection{Compile Time Weaving}
-As shown in Figure~\ref{buffalo_model}, the C\# compiler compiles the source files into an assembly, this assembly is then fed into Buffalo. Buffalo takes apart the assembly using reflection to find all the defined {\em aspects} and possible {\em pointcuts}, then weave them together at the right places by rewriting the MSIL instruction set, and finally produces a new assembly.
+As shown in Figure~\ref{buffalo_model}, the C\# compiler compiles the source files into an assembly, this assembly is then fed into Buffalo. Buffalo takes apart the assembly using reflection to find all the defined {\em aspects} and possible {\em pointcuts}. The defined aspects are simply of attribute type implementing the IAspect interface, an example is shown in Listing~\ref{buffalocode}. Buffalo then weave them together at the right places by rewriting the MSIL instruction set, and finally produces a new assembly.
 
 Once C\# finishes the compilation, the control is transferred to Buffalo. This is archieved by creating a hook into the MSBuild system. If Buffalo detects any {\em aspects} defined in the input assembly, and that the {\em aspects} are being applied, then weaving will take place, otherwise the whole process will simply be ignored.
 
@@ -311,9 +313,9 @@ Date & Action & Status\\
 07/07/2012 & Pre-Proposal & Accepted\\
 07/09/2012 & Proposal & In-progress\\
 07/20/2012 & Begin development of Buffalo & In-progress\\
-09/10/2012 & Finish development, start testing and analysis & - \\
-09/27/2012 & Finish report & - \\
-10/10/2012 & Defense & - \\
+11/15/2012 & Finish development, start testing and analysis & - \\
+11/25/2012 & Finish report & - \\
+12/2012 & Defense & - \\
 \hline
 \end{tabular}
 \caption{Timeline}
