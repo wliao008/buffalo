@@ -12,7 +12,7 @@ namespace client
         static void Main(string[] args)
         {
             Console.WriteLine("Program.Main");
-            new Test().Function1(2);
+            new Test().TestF();
             Console.Read();
         }
     }
@@ -33,21 +33,10 @@ namespace client
             this.Function3();
         }
 
-        public void Function2()
+        public double Function2(int num1, int num2)
         {
-            try
-            {
-                //int result = 1 / zero;
-                Console.WriteLine(md);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-            finally
-            {
-                Console.WriteLine("finally");
-            }
+            double result = num1 / num2;
+            return result;
         }
 
         [MyAspect]
@@ -57,9 +46,9 @@ namespace client
         }
 
         [MyAroundAspect]
-        private void TestF(string name)
+        public void TestF()
         {
-            Console.WriteLine(name);
+            Console.WriteLine("testf");
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Reflection = System.Reflection;
 using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -100,13 +101,44 @@ namespace Buffalo
             {
                 var targetMethod = d.Key;
                 var aroundAspect = d.Value[0];
-                //var methodName = string.Format("{0}{1}", targetMethod.Name, DateTime.Now.Ticks);
-                //var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
-                //var inst = aroundMethod.Body.Instructions.First(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
+
+                //create a replacement function
+                var methodName = string.Format("{0}{1}", targetMethod.Name, DateTime.Now.Ticks);
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
-                //MethodDefinition md = new MethodDefinition(methodName, MethodAttributes.Public, voidref);
-                //aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(x));
-                //targetMethod.DeclaringType.Methods.Add(md);
+                MethodDefinition md = new MethodDefinition(methodName, targetMethod.Attributes, targetMethod.ReturnType);
+                targetMethod.Parameters.ToList().ForEach(x => md.Parameters.Add(new ParameterDefinition(x.ParameterType)));
+                targetMethod.Body.Variables.ToList().ForEach(x => md.Body.Variables.Add(new VariableDefinition(x.VariableType)));
+                
+                //aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(Instruction.Create(x.OpCode, x.Operand)));
+                aroundMethod.Body.Instructions.ToList().ForEach(instruction =>
+                {
+                    var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
+                    var newInstruction = (Instruction)constructorInfo.Invoke(new[] { instruction.OpCode, instruction.Operand});
+                    var fieldDefinition = newInstruction.Operand as FieldDefinition;
+                    if (fieldDefinition != null)
+                    {
+                        this.AssemblyDefinition.MainModule.Import(fieldDefinition.FieldType);
+                        newInstruction.Operand = targetMethod.DeclaringType.Fields.First(x => x.Name == fieldDefinition.Name);
+                    }
+
+                    if (newInstruction.Operand is MethodReference)
+                    {
+                        //Try really hard to import type
+                        var methodReference = (MethodReference)newInstruction.Operand;
+
+                        this.AssemblyDefinition.MainModule.Import(methodReference.MethodReturnType.ReturnType);
+                        this.AssemblyDefinition.MainModule.Import(methodReference.DeclaringType);
+                        this.AssemblyDefinition.MainModule.Import(methodReference);
+                    }
+                    if (newInstruction.Operand is TypeReference)
+                    {
+                        this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
+                    }
+                    md.Body.Instructions.Add(newInstruction);
+                });
+                targetMethod.DeclaringType.Methods.Add(md);
 
                 var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
                 int i = 0;
@@ -123,18 +155,33 @@ namespace Buffalo
 
                 if (found)
                 {
-                    var inst = invokeMethod.Body.Instructions[i];
+                    var inst = md.Body.Instructions[i];
                     var methodRef = this.FindMethodReference(targetMethod, aroundAspect, Enums.BoundaryType.Invoke);
                     //var il = invokeMethod.Body.GetILProcessor();
                     //var instCall = Instruction.Create(OpCodes.Call, targetMethod);
-                    invokeMethod.Body.Instructions[i].Operand = targetMethod;
+                    md.Body.Instructions[i].Operand = targetMethod;
+                }
+
+                //finally, all calls to the original methods should be changed to the newly
+                //generated method
+                foreach (var type in this.AssemblyDefinition.MainModule.Types)
+                {
+                    foreach (var m in type.Methods)
+                    {
+                        for (int j = 0; j < m.Body.Instructions.Count; ++j)
+                        {
+                            if (m.Body.Instructions[j].ToString().Contains(targetMethod.FullName))
+                            {
+                                m.Body.Instructions[j].Operand = md;
+                            }
+                        }
+                    }
                 }
             }
         }
 
         private void InjectBoundaryAspect()
         {
-            //assuming the aspects are all PEPS
             TcfMarker marker = new TcfMarker();
             var ems = this.EligibleMethods.ToList();
             var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));

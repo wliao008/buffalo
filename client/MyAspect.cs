@@ -84,15 +84,16 @@ namespace client
     {
         public override void Invoke(MethodDetail detail)
         {
-            int a = 0;
-            if (a == 1)
-            {
-                detail.Proceed();
-            }
-            else
-            {
-                Console.WriteLine("Never called");
-            }
+            //int a = 0;
+            //if (a == 1)
+            //{
+            //    detail.Proceed();
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Never called");
+            //}
+            Console.WriteLine("Swapped!");
         }
     }
 }
