@@ -93,7 +93,8 @@ namespace client
             //{
             //    Console.WriteLine("Never called");
             //}
-            Console.WriteLine("Swapped!");
+            Console.WriteLine("Swapped! Calling original...");
+            detail.Proceed();
         }
     }
 }

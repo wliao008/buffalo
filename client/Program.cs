@@ -9,17 +9,18 @@ namespace client
 {
     class Program
     {
+        static Test test = new Test();
         static void Main(string[] args)
         {
             Console.WriteLine("Program.Main");
-            new Test().TestF();
+            test.TestF1();
+            test.TestF2();
             Console.Read();
         }
     }
 
     public class Test
     {
-        MethodDetail md = new MethodDetail();
         public Test()
         {
             Console.WriteLine("Test.ctor");
@@ -46,9 +47,32 @@ namespace client
         }
 
         [MyAroundAspect]
-        public void TestF()
+        public void TestF1()
         {
-            Console.WriteLine("testf");
+            Console.WriteLine("testf1");
+        }
+
+        [MyAroundAspect]
+        public void TestF2()
+        {
+            Console.WriteLine("testf2");
+        }
+
+        public void TestF3()
+        {
+            Console.WriteLine("testf3");
+            this.TestF4();
+            this.TestF5();
+        }
+
+        public void TestF4()
+        {
+            Console.WriteLine("testf4");
+        }
+
+        public void TestF5()
+        {
+            Console.WriteLine("testf5");
         }
     }
 }

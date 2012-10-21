@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using System.Collections.Specialized;
 
 namespace Buffalo
 {
@@ -34,6 +35,8 @@ namespace Buffalo
 
         internal AssemblyDefinition AssemblyDefinition { get; set; }
 
+        internal StringCollection NewMethodNames { get; set; }
+
         internal void Inject(string outPath)
         {
             //apply the around aspect if necessary
@@ -59,6 +62,7 @@ namespace Buffalo
         {
             //initialize the variables
             Aspects = new List<Aspect>();
+            NewMethodNames = new StringCollection();
             this.TypeDefinitions = new List<TypeDefinition>();
             this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
@@ -108,6 +112,9 @@ namespace Buffalo
                 var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition md = new MethodDefinition(methodName, targetMethod.Attributes, targetMethod.ReturnType);
+                
+                //md.Body.SimplifyMacros();
+
                 targetMethod.Parameters.ToList().ForEach(x => md.Parameters.Add(new ParameterDefinition(x.ParameterType)));
                 targetMethod.Body.Variables.ToList().ForEach(x => md.Body.Variables.Add(new VariableDefinition(x.VariableType)));
                 
@@ -138,6 +145,7 @@ namespace Buffalo
                     }
                     md.Body.Instructions.Add(newInstruction);
                 });
+                NewMethodNames.Add(methodName);
                 targetMethod.DeclaringType.Methods.Add(md);
 
                 var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
@@ -159,20 +167,25 @@ namespace Buffalo
                     var methodRef = this.FindMethodReference(targetMethod, aroundAspect, Enums.BoundaryType.Invoke);
                     //var il = invokeMethod.Body.GetILProcessor();
                     //var instCall = Instruction.Create(OpCodes.Call, targetMethod);
-                    md.Body.Instructions[i].Operand = targetMethod;
+                    //md.Body.Instructions[i].Operand = targetMethod;
+                    md.Body.Instructions[i - 1] = Instruction.Create(OpCodes.Ldarg_0);
+                    md.Body.Instructions[i] = Instruction.Create(OpCodes.Call, targetMethod);
+                    //md.Body.OptimizeMacros();
                 }
 
                 //finally, all calls to the original methods should be changed to the newly
                 //generated method
                 foreach (var type in this.AssemblyDefinition.MainModule.Types)
                 {
-                    foreach (var m in type.Methods)
+                    foreach (var m in type.Methods.Where(x => !NewMethodNames.Contains(x.Name)))
                     {
                         for (int j = 0; j < m.Body.Instructions.Count; ++j)
                         {
                             if (m.Body.Instructions[j].ToString().Contains(targetMethod.FullName))
                             {
+                                //m.Body.Instructions[j].OpCode = OpCodes.Call;
                                 m.Body.Instructions[j].Operand = md;
+                                //m.Body.OptimizeMacros();
                             }
                         }
                     }
