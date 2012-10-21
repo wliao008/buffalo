@@ -93,8 +93,20 @@ namespace client
             //{
             //    Console.WriteLine("Never called");
             //}
-            Console.WriteLine("Swapped! Calling original...");
-            detail.Proceed();
+            Random r = new Random((int)DateTime.Now.Ticks);
+            Console.WriteLine("Call original method only if tick is even...");
+            var num = r.Next(0, 10);
+            var call = num % 2;
+            Console.WriteLine("num: " + num);
+            if (call == 0)
+            {
+                Console.WriteLine("Calling original method...");
+                detail.Proceed();
+            }
+            else
+            {
+                Console.WriteLine("can't call since it's odd");
+            }
         }
     }
 }

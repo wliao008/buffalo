@@ -113,10 +113,10 @@ namespace Buffalo
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition md = new MethodDefinition(methodName, targetMethod.Attributes, targetMethod.ReturnType);
                 
-                //md.Body.SimplifyMacros();
+                md.Body.SimplifyMacros();
 
                 targetMethod.Parameters.ToList().ForEach(x => md.Parameters.Add(new ParameterDefinition(x.ParameterType)));
-                targetMethod.Body.Variables.ToList().ForEach(x => md.Body.Variables.Add(new VariableDefinition(x.VariableType)));
+                aroundMethod.Body.Variables.ToList().ForEach(x => md.Body.Variables.Add(new VariableDefinition(x.VariableType)));
                 
                 //aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(Instruction.Create(x.OpCode, x.Operand)));
                 aroundMethod.Body.Instructions.ToList().ForEach(instruction =>
@@ -185,9 +185,10 @@ namespace Buffalo
                             {
                                 //m.Body.Instructions[j].OpCode = OpCodes.Call;
                                 m.Body.Instructions[j].Operand = md;
-                                //m.Body.OptimizeMacros();
                             }
                         }
+                        
+                        m.Body.OptimizeMacros();
                     }
                 }
             }

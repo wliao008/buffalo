@@ -74,5 +74,26 @@ namespace client
         {
             Console.WriteLine("testf5");
         }
+
+        public void TestF6()
+        {
+            Console.WriteLine("TestF6...");
+            var ticks = DateTime.Now.Ticks;
+            var call = ticks % 2;
+            Console.WriteLine("ticks: " + ticks);
+            if (ticks == 0)
+            {
+                TestF7();
+            }
+            else
+            {
+                Console.WriteLine("can't call since it's odd");
+            }
+        }
+
+        public void TestF7()
+        {
+            Console.WriteLine("testf7");
+        }
     }
 }
