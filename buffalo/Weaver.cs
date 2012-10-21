@@ -99,6 +99,7 @@ namespace Buffalo
 
         private void InjectAroundAspect()
         {
+            var once = false;
             var ems = this.EligibleMethods.ToList();
             var eligibleAroundMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodAroundAspect)));
             foreach (var d in eligibleAroundMethods)
@@ -112,7 +113,30 @@ namespace Buffalo
                 var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition md = new MethodDefinition(methodName, targetMethod.Attributes, targetMethod.ReturnType);
-                
+
+                if (!once)
+                {
+                    //copy the variables in aspect to the target type
+                    aroundAspect.TypeDefinition.Fields.ToList()
+                        .ForEach(x =>
+                        {
+                            //var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
+                            //var newInstruction = (Instruction)constructorInfo.Invoke(new[] { x.OpCode, instruction.Operand });
+                            //var fieldDefinition = newInstruction.Operand as FieldDefinition;
+
+                            //if (newInstruction.Operand is TypeReference)
+                            //{
+                            //    this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
+                            //}
+
+                            var fd = new FieldDefinition(x.Name, x.Attributes, x.FieldType);
+                            
+                            targetMethod.DeclaringType.Fields.Add(fd);
+                        });
+
+                    once = true;
+                }
+
                 md.Body.SimplifyMacros();
 
                 targetMethod.Parameters.ToList().ForEach(x => md.Parameters.Add(new ParameterDefinition(x.ParameterType)));
