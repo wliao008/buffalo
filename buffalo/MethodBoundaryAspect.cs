@@ -15,6 +15,6 @@
 
         public virtual void Success() { }
 
-        public virtual void Exception() { }
+        public virtual void Exception(MethodDetail detail) { }
     }
 }

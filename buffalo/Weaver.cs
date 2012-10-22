@@ -256,6 +256,14 @@ namespace Buffalo
                         var constructorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
                         MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
                         beforeInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Stloc_0));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        var detailSetName = varType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
+                        var detailSetNameRef = this.AssemblyDefinition.MainModule.Import(detailSetName, before);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, detailSetNameRef));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
                     }
                 }
@@ -292,15 +300,33 @@ namespace Buffalo
                     var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Exception);
                     if (exception != null)
                     {
-                        var inst1 = il.Create(OpCodes.Ldarg_0);
-                        var inst2 = il.Create(OpCodes.Call, exception);
-                        //il.InsertAfter(method.Body.Instructions.Last(), inst1);
-                        //il.InsertAfter(method.Body.Instructions.Last(), inst2);
-                        exceptionInstructions.Add(inst1);
-                        exceptionInstructions.Add(inst2);
+                        //var inst1 = il.Create(OpCodes.Ldarg_0);
+                        //var inst2 = il.Create(OpCodes.Call, exception);
+                        //exceptionInstructions.Add(inst1);
+                        //exceptionInstructions.Add(inst2);
+
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
+                        var varDef = new VariableDefinition("mdb" + i, varType);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
+                        method.Body.Variables.Add(varDef);
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varDef));
+                        var constructorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
+                        MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc_0));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        var detailSetName = varType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
+                        var detailSetNameRef = this.AssemblyDefinition.MainModule.Import(detailSetName, exception);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, detailSetNameRef));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
                     }
                 }
-                //method.Body.OptimizeMacros();
+                method.Body.OptimizeMacros();
 
                 //the beginning of the catch.. block actually marks the end of the try.. block
                 ///TODO: This is a bug, it should be the first writeException, not the last one
@@ -331,7 +357,6 @@ namespace Buffalo
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        var varType2 = after.Parameters[0].Resolve();
                         var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
                         var varDef = new VariableDefinition("mda" + i, varType);
                         afterInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));

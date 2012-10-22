@@ -31,7 +31,7 @@ namespace client
             Console.WriteLine("Test.ctor");
         }
 
-        [TraceAspect(AttributeExclude=true)]
+        //[TraceAspect(AttributeExclude=true)]
         [MyAspect]
         public void Function1(int a)
         {
@@ -57,7 +57,7 @@ namespace client
             Console.WriteLine("testf1");
         }
 
-        [MyAroundAspect]
+        //[MyAroundAspect]
         public void TestF2()
         {
             Console.WriteLine("testf2");
@@ -101,7 +101,7 @@ namespace client
             Console.WriteLine("testf7");
         }
 
-        [MyFakeAddAspect]
+        //[MyFakeAddAspect]
         public void Add(int a, int b)
         {
             Console.WriteLine(a + b);

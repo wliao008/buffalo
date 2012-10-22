@@ -6,9 +6,9 @@ using Buffalo;
 namespace client
 {
     [MyAspect(AttributeExclude = true)]
-    [TraceAspect(AttributeExclude = true)]
-    [MyFakeAddAspect(AttributeExclude = true)]
-    [MyAroundAspect(AttributeExclude = true)]
+    //[TraceAspect(AttributeExclude = true)]
+    //[MyFakeAddAspect(AttributeExclude = true)]
+    //[MyAroundAspect(AttributeExclude = true)]
     public class MyAspect : MethodBoundaryAspect
     {
         public Stopwatch watch;
@@ -53,12 +53,13 @@ namespace client
             Console.WriteLine("MyAspect.Success");
         }
 
-        //public override void Exception()
-        //{
-        //    Console.WriteLine("MyAspect.Exception");
-        //}
+        public override void Exception(MethodDetail detail)
+        {
+            Console.WriteLine("MyAspect.Exception: " + detail.Name);
+        }
     }
 
+    /*
     [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
     [MyFakeAddAspect(AttributeExclude = true)]
@@ -70,7 +71,7 @@ namespace client
             Console.WriteLine("Trace.Before");
         }
 
-        public override void Exception()
+        public override void Exception(MethodDetail detail)
         {
             Console.WriteLine("Trace.Exception");
         }
@@ -127,4 +128,5 @@ namespace client
             Console.WriteLine("7");
         }
     }
+    */
 }

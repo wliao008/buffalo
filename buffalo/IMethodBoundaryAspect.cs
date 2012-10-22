@@ -5,6 +5,6 @@
         void Before(MethodDetail detail);
         void After(MethodDetail detail);
         void Success();
-        void Exception();
+        void Exception(MethodDetail detail);
     }
 }

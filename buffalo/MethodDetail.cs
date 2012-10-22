@@ -7,11 +7,11 @@ namespace Buffalo
     public sealed class MethodDetail
     {
         private string name;
+        private Exception exception;
         private List<Parameter> parameters;
 
         public MethodDetail()
         {
-            //this.Init();
         }
 
         public void Proceed() { }
@@ -32,27 +32,22 @@ namespace Buffalo
             }
         }
 
+        public Exception Exception
+        {
+            get
+            {
+                return this.exception;
+            }
+        }
+
         public void setName(string name)
         {
             this.name = name;
         }
 
-        private void Init()
+        public void setException(Exception e)
         {
-            ///TODO: StackTrace is only available in DEBUG!
-            StackTrace trace = new StackTrace();
-            Console.WriteLine("frames: " + trace.FrameCount);
-            var method = trace.GetFrame(2).GetMethod();
-            var param = method.GetParameters();
-            this.name = method.Name;
-            if (this.parameters == null)
-            {
-                this.parameters = new List<Parameter>();
-            }
-            foreach (var p in param)
-            {
-                this.parameters.Add(new Parameter { Name = p.Name, Type = p.ParameterType });
-            }
+            this.exception = e;
         }
     }
 
