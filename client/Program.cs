@@ -96,4 +96,14 @@ namespace client
             Console.WriteLine("testf7");
         }
     }
+
+    public class MyDummyTest
+    {
+        public void Function1()
+        {
+            //stupid test
+            int a = 0;
+            Console.WriteLine("a = " + a);
+        }
+    }
 }
