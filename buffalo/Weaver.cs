@@ -248,7 +248,7 @@ namespace Buffalo
                     {
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
-                        var varDef = new VariableDefinition("md" + i, varType);
+                        var varDef = new VariableDefinition("mdb" + i, varType);
                         beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
                         method.Body.Variables.Add(varDef);
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
@@ -331,12 +331,31 @@ namespace Buffalo
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        var varType2 = after.Parameters[0].Resolve();
+                        var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
+                        var varDef = new VariableDefinition("mda" + i, varType);
+                        afterInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
+                        method.Body.Variables.Add(varDef);
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varDef));
+                        var constructorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
+                        MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                        afterInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Stloc_0));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        var detailSetName = varType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
+                        var detailSetNameRef = this.AssemblyDefinition.MainModule.Import(detailSetName, after);
+                        afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, detailSetNameRef));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
                         afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
                     }
                 }
                 afterInstructions.Add(endfinally);
                 afterInstructions.ForEach(x => il.InsertAfter(method.Body.Instructions.Last(), x));
                 il.InsertAfter(endfinally, ret);
+                method.Body.OptimizeMacros();
 
                 marker.TryStart = method.Body.Instructions.First();
                 var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)

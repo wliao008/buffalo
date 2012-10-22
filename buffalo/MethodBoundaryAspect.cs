@@ -11,7 +11,7 @@
 
         public virtual void Before(MethodDetail detail) { }
 
-        public virtual void After() { }
+        public virtual void After(MethodDetail detail) { }
 
         public virtual void Success() { }
 

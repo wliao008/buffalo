@@ -18,7 +18,8 @@ namespace client
             Console.WriteLine("Program.Main");
             //test.TestF1();
             //test.TestF2();
-            test.Add(1, 2);
+            //test.Add(1, 2);
+            test.Function1(1);
             Console.Read();
         }
     }
@@ -114,6 +115,17 @@ namespace client
             //stupid test
             int a = 0;
             Console.WriteLine("a = " + a);
+        }
+
+        public void Function2()
+        {
+            MethodDetail det = new MethodDetail();
+            det.setName("Function2()");
+            Function3(det);
+        }
+
+        public void Function3(MethodDetail detail)
+        {
         }
     }
 }

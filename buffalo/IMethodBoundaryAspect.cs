@@ -3,7 +3,7 @@
     internal interface IMethodBoundaryAspect : IAspect
     {
         void Before(MethodDetail detail);
-        void After();
+        void After(MethodDetail detail);
         void Success();
         void Exception();
     }

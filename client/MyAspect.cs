@@ -42,10 +42,10 @@ namespace client
             //Thread.Sleep(i);
         }
 
-        public override void After()
+        public override void After(MethodDetail detail)
         {
             watch.Stop();
-            Console.WriteLine("MyAspect.After, times passed: {0} s {1} ms", watch.Elapsed.Seconds, watch.Elapsed.Milliseconds);
+            Console.WriteLine("MyAspect.After ("+detail.Name+"), times passed: {0} s {1} ms", watch.Elapsed.Seconds, watch.Elapsed.Milliseconds);
         }
 
         public override void Success()

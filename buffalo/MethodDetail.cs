@@ -11,7 +11,7 @@ namespace Buffalo
 
         public MethodDetail()
         {
-            this.Init();
+            //this.Init();
         }
 
         public void Proceed() { }
@@ -32,8 +32,14 @@ namespace Buffalo
             }
         }
 
+        public void setName(string name)
+        {
+            this.name = name;
+        }
+
         private void Init()
         {
+            ///TODO: StackTrace is only available in DEBUG!
             StackTrace trace = new StackTrace();
             Console.WriteLine("frames: " + trace.FrameCount);
             var method = trace.GetFrame(2).GetMethod();
