@@ -120,7 +120,7 @@ Imagine that if you have 1,000 functions in your program that can potentially th
 
 What if you need to fine tune this try..catch block to catch a specific exception such as the {\em DivideByZeroException} so your program can act accordingly, or instead of using the {\em Utility} object you want to use a different object to handle the actual logging? In the worst case, you would have to make the change to all 1,000 of your functions.
 
-The question is how to prevent those cross-cutting concerns from loitering your program. Worst yet, sometimes a program might consist of something like in Listing~\ref{unhandledexception}, where exception is not handled at all.
+The question is how to prevent those cross-cutting concerns from loitering your program. Worst yet, it is not uncommon a program might consist of something like in Listing~\ref{unhandledexception}, where exception is not handled at all.
 
 \begin{lstlisting}[caption={Unhandle exception}, label=unhandledexception]
 public double Divide(double num1, double num2) {
@@ -151,9 +151,9 @@ Besides exception handling, AOP is commonly used in tracing, profiling, security
 
 Gregor Kiczales started and led a Xerox PARC team that developed an implementation of AOP for the JAVA platform called AspectJ\cite{aop}. AspectJ is an extension to the JAVA compiler. It is a language in and of itself, with its own specific syntax and usages, and even its own compiler. It produces JAVA VM compatible binaries. Some people hope that AspectJ will eventually be merged with the JAVA compiler instead of being just an extension~\cite{aspectj_faq}. Still, AspectJ integrates nicely with JAVA, especially when used with its own plugin AJDT in the Eclipse IDE.
 
-A typical AspectJ aspect looks like Listing~\ref{aspectjcode}.
+A typical AspectJ aspect looks like Listing~\ref{aspecjcodesample}.
 
-\begin{lstlisting}[caption={sample AspectJ code}, label=aspecjcode]
+\begin{lstlisting}[caption={sample AspectJ code}, label=aspecjcodesample]
 public aspect MyAspectJ {
    public int Sorter.Count() {
       //do something here
@@ -167,11 +167,11 @@ public aspect MyAspectJ {
 
 It provides the {\em aspect} keyword to denote a piece of code as the advice code. It is similar to the {\em class} keyword in JAVA. Suppose we have a class named {\em Sorter}, and we want to add a new method to it but we don't have access to the source code. With AspectJ, we can introduce a brand new method {\em Count} to it, as shown in line 2-4. The pointcut {\em doSomething} does a match to find all matching functions regardless of access privilege, names or parameters, which means pretty much every function in the program. Line 6-8 means before the matched functions are executed, the block of code in line 7 is executed first. This effectively creates a hook into every single function in a program, allowing programmers to inject custom code into it.
 
-It is important to note that the purpose of AOP is to solve cross-cutting concerns, and not in patching up of code as Listing~\ref{aspectjcode} might have alluded to.
+It is important to note that the purpose of AOP is to solve cross-cutting concerns, and not in patching up of code as Listing~\ref{aspecjcodesample} might have alluded to.
 
 Behind the scene, AspectJ pieces everything together using bytecode weaving. After JAVA compiles the source, AspectJ takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
 
-Despite Eclipse' claim that AspectJ is very easy to learn, one of the disadvantages of AspectJ, as Listing~\ref{aspecjcode} shows, is that the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper. But I agree that once get used to it, AspectJ can be a really powerful tool for programmers~\cite{aspectj_text}.
+Despite Eclipse' claim that AspectJ is very easy to learn, one of the disadvantages of AspectJ, as Listing~\ref{aspecjcodesample} shows, is that the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper. But I agree that once get used to it, AspectJ can be a really powerful tool for programmers~\cite{aspectj_text}.
 
 \subsection{Framework Support}
 
@@ -239,7 +239,7 @@ public class SomeFunction {
 }
 \end{lstlisting}
 
-The Around aspect is more involved as we cannot simply replace the target function with something else. The replacement must be able to call into the original function, along with the right number of parameters.
+The Around aspect is more involved as we cannot simply replace the target function with something else. The replacement must be able to call into the original function, along with the right number of parameters. For this project I plan to get the basic of Around aspect working, then in the future iteration to make it more flexible.
 
 Contrast from AspectJ, where it has separate getter and setter syntax specifically for Java's properties. In C\#, properties are automatically turned into methods when compiled into MSIL. Since Buffalo will be operating on MSIL, all the aspects will apply to both properties and methods.
 
