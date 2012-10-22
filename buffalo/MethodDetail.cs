@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Buffalo
 {
-    public class MethodDetail
+    public sealed class MethodDetail
     {
         private string name;
         private List<Parameter> parameters;

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Reflection = System.Reflection;
 using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using System.Collections.Specialized;
 
 namespace Buffalo
 {
@@ -33,6 +35,8 @@ namespace Buffalo
 
         internal AssemblyDefinition AssemblyDefinition { get; set; }
 
+        internal StringCollection NewMethodNames { get; set; }
+
         internal void Inject(string outPath)
         {
             //apply the around aspect if necessary
@@ -58,6 +62,7 @@ namespace Buffalo
         {
             //initialize the variables
             Aspects = new List<Aspect>();
+            NewMethodNames = new StringCollection();
             this.TypeDefinitions = new List<TypeDefinition>();
             this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
@@ -94,19 +99,78 @@ namespace Buffalo
 
         private void InjectAroundAspect()
         {
+            var once = false;
             var ems = this.EligibleMethods.ToList();
             var eligibleAroundMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodAroundAspect)));
             foreach (var d in eligibleAroundMethods)
             {
                 var targetMethod = d.Key;
                 var aroundAspect = d.Value[0];
-                //var methodName = string.Format("{0}{1}", targetMethod.Name, DateTime.Now.Ticks);
-                //var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
-                //var inst = aroundMethod.Body.Instructions.First(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
+
+                //create a replacement function
+                var methodName = string.Format("{0}{1}", targetMethod.Name, DateTime.Now.Ticks);
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
-                //MethodDefinition md = new MethodDefinition(methodName, MethodAttributes.Public, voidref);
-                //aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(x));
-                //targetMethod.DeclaringType.Methods.Add(md);
+                MethodDefinition md = new MethodDefinition(methodName, targetMethod.Attributes, targetMethod.ReturnType);
+
+                if (!once)
+                {
+                    //copy the variables in aspect to the target type, this should happen only once?
+                    aroundAspect.TypeDefinition.Fields.ToList()
+                        .ForEach(x =>
+                        {
+                            //var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
+                            //var newInstruction = (Instruction)constructorInfo.Invoke(new[] { x.OpCode, instruction.Operand });
+                            //var fieldDefinition = newInstruction.Operand as FieldDefinition;
+
+                            //if (newInstruction.Operand is TypeReference)
+                            //{
+                            //    this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
+                            //}
+
+                            var fd = new FieldDefinition(x.Name, x.Attributes, x.FieldType);
+                            
+                            targetMethod.DeclaringType.Fields.Add(fd);
+                        });
+
+                    once = true;
+                }
+
+                md.Body.SimplifyMacros();
+
+                targetMethod.Parameters.ToList().ForEach(x => md.Parameters.Add(new ParameterDefinition(x.ParameterType)));
+                aroundMethod.Body.Variables.ToList().ForEach(x => md.Body.Variables.Add(new VariableDefinition(x.VariableType)));
+                
+                //aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(Instruction.Create(x.OpCode, x.Operand)));
+                aroundMethod.Body.Instructions.ToList().ForEach(instruction =>
+                {
+                    var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
+                    var newInstruction = (Instruction)constructorInfo.Invoke(new[] { instruction.OpCode, instruction.Operand});
+                    var fieldDefinition = newInstruction.Operand as FieldDefinition;
+                    if (fieldDefinition != null)
+                    {
+                        this.AssemblyDefinition.MainModule.Import(fieldDefinition.FieldType);
+                        newInstruction.Operand = targetMethod.DeclaringType.Fields.First(x => x.Name == fieldDefinition.Name);
+                    }
+
+                    if (newInstruction.Operand is MethodReference)
+                    {
+                        //Try really hard to import type
+                        var methodReference = (MethodReference)newInstruction.Operand;
+
+                        this.AssemblyDefinition.MainModule.Import(methodReference.MethodReturnType.ReturnType);
+                        this.AssemblyDefinition.MainModule.Import(methodReference.DeclaringType);
+                        this.AssemblyDefinition.MainModule.Import(methodReference);
+                    }
+                    if (newInstruction.Operand is TypeReference)
+                    {
+                        this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
+                    }
+                    md.Body.Instructions.Add(newInstruction);
+                });
+                NewMethodNames.Add(methodName);
+                targetMethod.DeclaringType.Methods.Add(md);
 
                 var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
                 int i = 0;
@@ -123,18 +187,39 @@ namespace Buffalo
 
                 if (found)
                 {
-                    var inst = invokeMethod.Body.Instructions[i];
+                    var inst = md.Body.Instructions[i];
                     var methodRef = this.FindMethodReference(targetMethod, aroundAspect, Enums.BoundaryType.Invoke);
                     //var il = invokeMethod.Body.GetILProcessor();
                     //var instCall = Instruction.Create(OpCodes.Call, targetMethod);
-                    invokeMethod.Body.Instructions[i].Operand = targetMethod;
+                    //md.Body.Instructions[i].Operand = targetMethod;
+                    md.Body.Instructions[i - 1] = Instruction.Create(OpCodes.Ldarg_0);
+                    md.Body.Instructions[i] = Instruction.Create(OpCodes.Call, targetMethod);
+                    //md.Body.OptimizeMacros();
+                }
+
+                //finally, all calls to the original methods should be changed to the newly
+                //generated method
+                foreach (var type in this.AssemblyDefinition.MainModule.Types)
+                {
+                    foreach (var m in type.Methods.Where(x => !NewMethodNames.Contains(x.Name)))
+                    {
+                        for (int j = 0; j < m.Body.Instructions.Count; ++j)
+                        {
+                            if (m.Body.Instructions[j].ToString().Contains(targetMethod.FullName))
+                            {
+                                //m.Body.Instructions[j].OpCode = OpCodes.Call;
+                                m.Body.Instructions[j].Operand = md;
+                            }
+                        }
+                        
+                        m.Body.OptimizeMacros();
+                    }
                 }
             }
         }
 
         private void InjectBoundaryAspect()
         {
-            //assuming the aspects are all PEPS
             TcfMarker marker = new TcfMarker();
             var ems = this.EligibleMethods.ToList();
             var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
@@ -148,7 +233,7 @@ namespace Buffalo
                 List<Instruction> beforeInstructions = new List<Instruction>();
                 List<Instruction> afterInstructions = new List<Instruction>();
                 List<Instruction> successInstructions = new List<Instruction>();
-                List<Instruction> exceptionInstructions = null;
+                List<Instruction> exceptionInstructions = new List<Instruction>();
                 
                 var ret = il.Create(OpCodes.Ret);
                 var pop = il.Create(OpCodes.Pop);
@@ -207,10 +292,6 @@ namespace Buffalo
                     var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Exception);
                     if (exception != null)
                     {
-                        if (exceptionInstructions == null)
-                        {
-                            exceptionInstructions = new List<Instruction>();
-                        }
                         var inst1 = il.Create(OpCodes.Ldarg_0);
                         var inst2 = il.Create(OpCodes.Call, exception);
                         //il.InsertAfter(method.Body.Instructions.Last(), inst1);
@@ -219,18 +300,25 @@ namespace Buffalo
                         exceptionInstructions.Add(inst2);
                     }
                 }
+                //method.Body.OptimizeMacros();
+
+                //the beginning of the catch.. block actually marks the end of the try.. block
+                ///TODO: This is a bug, it should be the first writeException, not the last one
+                ///TODO: This cause runtime exception when no Exception() has been overriden.
+                if (exceptionInstructions.Count == 0)
+                {
+                    //a dummy instruction
+                    exceptionInstructions.Add(il.Create(OpCodes.Nop));
+                }
 
                 exceptionInstructions.ForEach(x =>
                 {
                     il.InsertAfter(method.Body.Instructions.Last(), x);
                 });
-                //method.Body.OptimizeMacros();
 
-                //the beginning of the catch.. block actually marks the end of the try.. block
-                ///TODO: This is a bug, it should be the first writeException, not the last one
                 marker.TryEnd = exceptionInstructions[0];
-
-                il.InsertAfter(exceptionInstructions[exceptionInstructions.Count - 1], leave);
+                var lastExceptionInst = exceptionInstructions.Last();
+                il.InsertAfter(lastExceptionInst, leave);
 
                 var endfinally = il.Create(OpCodes.Endfinally);
 
@@ -294,7 +382,7 @@ namespace Buffalo
             ada.Aspects = Aspects;
             ada.UnderlyingAspectTypes = UnderlyingAspectTypes;
             //domain.DoCallBack(new CrossAppDomainDelegate(LoadAssembly));
-            BoundaryObject.DoSomething(ada);
+            BoundaryObject.DoSomething(ada, AssemblyPath);
             domain.DomainUnload += new EventHandler(domain_DomainUnload);
             AppDomain.Unload(domain);
             GC.Collect();
@@ -450,10 +538,10 @@ namespace Buffalo
 
     class BoundaryObject : MarshalByRefObject
     {
-        public static void DoSomething(AppDomainArgs ada)
+        public static void DoSomething(AppDomainArgs ada, string path)
         {
             ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
-            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\buffalo\client\bin\Debug\client.exe";
+            var _assemblyPath = path;
             var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
             var types = assembly.GetTypes().ToList();
 
