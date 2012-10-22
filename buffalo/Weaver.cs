@@ -116,7 +116,7 @@ namespace Buffalo
 
                 if (!once)
                 {
-                    //copy the variables in aspect to the target type
+                    //copy the variables in aspect to the target type, this should happen only once?
                     aroundAspect.TypeDefinition.Fields.ToList()
                         .ForEach(x =>
                         {

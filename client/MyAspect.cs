@@ -7,6 +7,8 @@ namespace client
 {
     [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
+    [MyFakeAddAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
     public class MyAspect : MethodBoundaryAspect
     {
         public Stopwatch watch;
@@ -59,6 +61,8 @@ namespace client
 
     [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
+    [MyFakeAddAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
         public override void Before(MethodDetail detail)
@@ -80,8 +84,11 @@ namespace client
     [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
+    [MyFakeAddAspect(AttributeExclude = true)]
     public class MyAroundAspect : MethodAroundAspect
     {
+        Random r = new Random((int)DateTime.Now.Ticks);
+
         public override void Invoke(MethodDetail detail)
         {
             //int a = 0;
@@ -93,7 +100,6 @@ namespace client
             //{
             //    Console.WriteLine("Never called");
             //}
-            Random r = new Random((int)DateTime.Now.Ticks);
             Console.WriteLine("Call original method only if tick is even...");
             var num = r.Next(0, 10);
             var call = num % 2;
@@ -107,6 +113,18 @@ namespace client
             {
                 Console.WriteLine("can't call since it's odd");
             }
+        }
+    }
+
+    [MyAspect(AttributeExclude = true)]
+    [TraceAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
+    [MyFakeAddAspect(AttributeExclude = true)]
+    public class MyFakeAddAspect : MethodAroundAspect
+    {
+        public override void Invoke(MethodDetail detail)
+        {
+            Console.WriteLine("7");
         }
     }
 }

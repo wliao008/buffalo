@@ -7,14 +7,18 @@ using System.Threading;
 
 namespace client
 {
+    /// <summary>
+    /// post build event: "$(TargetDir)BuffaloAOP.exe" "$(TargetPath)"
+    /// </summary>
     class Program
     {
         static Test test = new Test();
         static void Main(string[] args)
         {
             Console.WriteLine("Program.Main");
-            test.TestF1();
-            test.TestF2();
+            //test.TestF1();
+            //test.TestF2();
+            test.Add(1, 2);
             Console.Read();
         }
     }
@@ -46,7 +50,7 @@ namespace client
             Console.WriteLine("Function 3");
         }
 
-        [MyAroundAspect]
+        //[MyAroundAspect]
         public void TestF1()
         {
             Console.WriteLine("testf1");
@@ -94,6 +98,12 @@ namespace client
         public void TestF7()
         {
             Console.WriteLine("testf7");
+        }
+
+        [MyFakeAddAspect]
+        public void Add(int a, int b)
+        {
+            Console.WriteLine(a + b);
         }
     }
 

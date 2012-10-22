@@ -12,8 +12,11 @@ namespace BuffaloAOP
         static string path;
         static void Main(string[] args)
         {
-            //path = @"C:\Users\Wei.Liao\Documents\Visual Studio 2012\Projects\buffalo\client\bin\Debug\client.exe";
-            //string outpath = @"C:\Users\Wei.Liao\Documents\Visual Studio 2012\Projects\buffalo\client\bin\Debug\client_modified.exe";
+            if (args == null || args.Count() == 0)
+            {
+                Console.WriteLine("USAGE: BuffaloAOP.exe <assembly_path>");
+                Environment.Exit(1);
+            }
 
             path = args[0];
             string outpath = path.Replace(".exe", "_modified.exe").Replace(".dll", "_modified.dll");
