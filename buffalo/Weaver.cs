@@ -245,8 +245,6 @@ namespace Buffalo
                 marker.CatchInnerEnd = method.Body.Instructions[exceptionMarker.EndIndex];
                 marker.TryOuterStart = method.Body.Instructions[0];
                 marker.TryOuterEnd = method.Body.Instructions[exceptionMarker.EndIndex + 1];
-                //var nop = Instruction.Create(OpCodes.Nop);
-                //il.InsertAfter(method.Body.Instructions.Last().Previous, nop);
                 marker.FinallyStart = method.Body.Instructions[afterMarker.BeginIndex];
                 marker.FinallyEnd = ret;
                 this._DoCatch(marker, d.Key);
@@ -365,9 +363,9 @@ namespace Buffalo
                 var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.After);
                 if (after != null)
                 {
-                    //afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                    afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                     //afterInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
-                    //afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
+                    afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
                 }
             }
             afterInstructions.Add(endfinally);
