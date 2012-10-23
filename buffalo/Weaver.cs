@@ -220,6 +220,136 @@ namespace Buffalo
 
         private void InjectBoundaryAspect()
         {
+            //TcfMarker marker = new TcfMarker();
+            var ems = this.EligibleMethods.ToList();
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+
+            foreach (var d in eligibleBoundaryMethods)
+            {
+                var method = d.Key;
+                var il = method.Body.GetILProcessor();
+                var ret = il.Create(OpCodes.Ret);
+                var pop = il.Create(OpCodes.Pop);
+                var leave = il.Create(OpCodes.Leave, ret);
+                var count = method.Body.Instructions.Count;
+                method.Body.Instructions[count - 1] = ret;
+
+                var beforeMarker = this._DoBefore(d);
+                var successMarker = this._DoSuccess(d, ret);
+                var exceptionMarker = this._DoException(d, ret);
+                this._DoCatch(beforeMarker, exceptionMarker, d.Key);
+            }
+        }
+
+        public InstructionMarker _DoBefore(KeyValuePair<MethodDefinition, List<Aspect>> kv)
+        {
+            var method = kv.Key;
+            var aspects = kv.Value;
+            var il = method.Body.GetILProcessor();
+            List<Instruction> beforeInstructions = new List<Instruction>();
+            for (int i = 0; i < aspects.Count; ++i)
+            {
+                var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
+                if (before != null)
+                {
+                    beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                    beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
+                }
+            }
+
+            int idx = 0;
+            beforeInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
+
+            var marker = new InstructionMarker();
+            marker.Begin = method.Body.Instructions.First();
+            marker.End = method.Body.Instructions.Last().Previous;
+            return marker;
+        }
+
+        public InstructionMarker _DoSuccess(KeyValuePair<MethodDefinition, List<Aspect>> kv, Instruction ret)
+        {
+            var method = kv.Key;
+            var aspects = kv.Value;
+            var il = method.Body.GetILProcessor();
+            List<Instruction> successInstructions = new List<Instruction>();
+            for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+            {
+                var success = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Success);
+                if (success != null)
+                {
+                    //writeSuccess = il.Create(OpCodes.Call, success);
+                    //method.Body.Instructions.Insert(idx + i + 1, Instruction.Create(OpCodes.Ldarg_0));
+                    //method.Body.Instructions.Insert(idx + i + 2, writeSuccess);
+                    successInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                    successInstructions.Add(Instruction.Create(OpCodes.Call, success));
+                }
+            }
+
+            successInstructions.Add(Instruction.Create(OpCodes.Leave, ret));
+
+            /* the success instructions are inserted at the end of the method body,
+             * but since the last instruction is always the ret instruction, we need to
+             * insert them right before ret.
+             */
+            var marker = new InstructionMarker();
+            int idx = method.Body.Instructions.Count() - 1;
+            var markerBeginIdx = idx + 1;
+            successInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
+            marker.Begin = method.Body.Instructions[markerBeginIdx];
+            marker.End = method.Body.Instructions.Last().Previous;
+            return marker;
+        }
+
+        public InstructionMarker _DoException(KeyValuePair<MethodDefinition, List<Aspect>> kv, Instruction ret)
+        {
+            var method = kv.Key;
+            var aspects = kv.Value;
+            var il = method.Body.GetILProcessor();
+            List<Instruction> exceptionInstructions = new List<Instruction>();
+            for (int i = 0, j = 0; i <= aspects.Count; i += 2, ++j)
+            {
+                var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Exception);
+                if (exception != null)
+                {
+                    //writeSuccess = il.Create(OpCodes.Call, success);
+                    //method.Body.Instructions.Insert(idx + i + 1, Instruction.Create(OpCodes.Ldarg_0));
+                    //method.Body.Instructions.Insert(idx + i + 2, writeSuccess);
+                    exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                    exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
+                }
+            }
+
+            exceptionInstructions.Add(Instruction.Create(OpCodes.Leave, ret));
+
+            /* the success instructions are inserted at the end of the method body,
+             * but since the last instruction is always the ret instruction, we need to
+             * insert them right before ret.
+             */
+            var marker = new InstructionMarker();
+            int idx = method.Body.Instructions.Count() - 1;
+            var markerBeginIdx = idx;
+            exceptionInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
+
+            marker.Begin = method.Body.Instructions[markerBeginIdx];
+            marker.End = method.Body.Instructions.Last();
+            return marker;
+        }
+
+        public void _DoCatch(InstructionMarker beforeMarker, InstructionMarker exceptionMarker, MethodDefinition method)
+        {
+            var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
+            {
+                TryStart = beforeMarker.Begin,
+                TryEnd = exceptionMarker.Begin,
+                HandlerStart = exceptionMarker.Begin,
+                HandlerEnd = exceptionMarker.End,// endfinally,
+                CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+            };
+            method.Body.ExceptionHandlers.Add(catchHandler);
+        }
+
+        private void InjectBoundaryAspect_OLD()
+        {
             TcfMarker marker = new TcfMarker();
             var ems = this.EligibleMethods.ToList();
             var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
@@ -246,6 +376,7 @@ namespace Buffalo
                     var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
                     if (before != null)
                     {
+                        /*
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
                         var varDef = new VariableDefinition("mdb" + i, varType);
@@ -262,8 +393,9 @@ namespace Buffalo
                         var detailSetName = varType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
                         var detailSetNameRef = this.AssemblyDefinition.MainModule.Import(detailSetName, before);
                         beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, detailSetNameRef));
+                        */
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
                     }
                 }
@@ -300,11 +432,12 @@ namespace Buffalo
                     var exception = this.FindMethodReference(method, aspects[j], Buffalo.Enums.BoundaryType.Exception);
                     if (exception != null)
                     {
-                        //var inst1 = il.Create(OpCodes.Ldarg_0);
-                        //var inst2 = il.Create(OpCodes.Call, exception);
-                        //exceptionInstructions.Add(inst1);
-                        //exceptionInstructions.Add(inst2);
+                        var inst1 = il.Create(OpCodes.Ldarg_0);
+                        var inst2 = il.Create(OpCodes.Call, exception);
+                        exceptionInstructions.Add(inst1);
+                        exceptionInstructions.Add(inst2);
 
+                        /*
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
                         var varDef = new VariableDefinition("mdb" + i, varType);
@@ -324,6 +457,7 @@ namespace Buffalo
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
+                        */
                     }
                 }
                 method.Body.OptimizeMacros();
@@ -356,6 +490,7 @@ namespace Buffalo
                     var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.After);
                     if (after != null)
                     {
+                        /*
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
                         var varDef = new VariableDefinition("mda" + i, varType);
@@ -372,6 +507,7 @@ namespace Buffalo
                         var detailSetName = varType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
                         var detailSetNameRef = this.AssemblyDefinition.MainModule.Import(detailSetName, after);
                         afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, detailSetNameRef));
+                        */
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
                         afterInstructions.Add(Instruction.Create(OpCodes.Call, after));

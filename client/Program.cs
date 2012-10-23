@@ -33,6 +33,7 @@ namespace client
 
         //[TraceAspect(AttributeExclude=true)]
         [MyAspect]
+        [TraceAspect]
         public void Function1(int a)
         {
             Console.WriteLine("Function 1");
@@ -48,6 +49,8 @@ namespace client
         [MyAspect]
         public void Function3()
         {
+            int z = 0;
+            int c = 1 / z;
             Console.WriteLine("Function 3");
         }
 

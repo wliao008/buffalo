@@ -11,4 +11,10 @@ namespace Buffalo
         public Instruction FinallyStart { get; set; }
         public Instruction FinallyEnd { get; set; }
     }
+
+    internal struct InstructionMarker
+    {
+        public Instruction Begin { get; set; }
+        public Instruction End { get; set; }
+    }
 }

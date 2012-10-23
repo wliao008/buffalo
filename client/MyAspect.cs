@@ -6,7 +6,7 @@ using Buffalo;
 namespace client
 {
     [MyAspect(AttributeExclude = true)]
-    //[TraceAspect(AttributeExclude = true)]
+    [TraceAspect(AttributeExclude = true)]
     //[MyFakeAddAspect(AttributeExclude = true)]
     //[MyAroundAspect(AttributeExclude = true)]
     public class MyAspect : MethodBoundaryAspect
@@ -24,28 +24,28 @@ namespace client
         //    watch.Start();
         //}
 
-        public override void Before(MethodDetail detail)
+        public override void Before()
         {
             watch = new Stopwatch();
             watch.Reset();
             watch.Start();
-            Console.WriteLine("MyAspect.Before: {0}: {1}", detail.ToString(), detail.Name);
-            if (detail.Parameters.Count > 0)
-            {
-                Console.WriteLine("\t******** PARAMETERS ************");
-                foreach (var d in detail.Parameters)
-                {
-                    Console.WriteLine("\t{0} ({1})", d.Name, d.Type);
-                }
-            }
+            Console.WriteLine("MyAspect.Before");
+            //if (detail.Parameters.Count > 0)
+            //{
+            //    Console.WriteLine("\t******** PARAMETERS ************");
+            //    foreach (var d in detail.Parameters)
+            //    {
+            //        Console.WriteLine("\t{0} ({1})", d.Name, d.Type);
+            //    }
+            //}
             //Console.WriteLine("MyAspect.Before, sleeping for: {0} ms", i);
             //Thread.Sleep(i);
         }
 
-        public override void After(MethodDetail detail)
+        public override void After()
         {
             watch.Stop();
-            Console.WriteLine("MyAspect.After ("+detail.Name+"), times passed: {0} s {1} ms", watch.Elapsed.Seconds, watch.Elapsed.Milliseconds);
+            Console.WriteLine("MyAspect.After, times passed: {0} s {1} ms", watch.Elapsed.Seconds, watch.Elapsed.Milliseconds);
         }
 
         public override void Success()
@@ -53,25 +53,24 @@ namespace client
             Console.WriteLine("MyAspect.Success");
         }
 
-        public override void Exception(MethodDetail detail)
+        public override void Exception()
         {
-            Console.WriteLine("MyAspect.Exception: " + detail.Name);
+            Console.WriteLine("MyAspect.Exception");
         }
     }
 
-    /*
     [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
-    [MyFakeAddAspect(AttributeExclude = true)]
-    [MyAroundAspect(AttributeExclude = true)]
+    //[MyFakeAddAspect(AttributeExclude = true)]
+    //[MyAroundAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
-        public override void Before(MethodDetail detail)
+        public override void Before()
         {
             Console.WriteLine("Trace.Before");
         }
 
-        public override void Exception(MethodDetail detail)
+        public override void Exception()
         {
             Console.WriteLine("Trace.Exception");
         }
@@ -82,6 +81,7 @@ namespace client
         }
     }
 
+    /*
     [MyAspect(AttributeExclude = true)]
     [TraceAspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]

@@ -9,12 +9,12 @@
 
         public bool AttributeExclude { get; set; }
 
-        public virtual void Before(MethodDetail detail) { }
+        public virtual void Before() { }
 
-        public virtual void After(MethodDetail detail) { }
+        public virtual void After() { }
 
         public virtual void Success() { }
 
-        public virtual void Exception(MethodDetail detail) { }
+        public virtual void Exception() { }
     }
 }
