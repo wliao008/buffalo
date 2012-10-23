@@ -231,20 +231,27 @@ namespace Buffalo
                 var ret = il.Create(OpCodes.Ret);
                 var pop = il.Create(OpCodes.Pop);
                 var leave = il.Create(OpCodes.Leave, ret);
+                var endfinally = il.Create(OpCodes.Endfinally);
                 var count = method.Body.Instructions.Count;
-                method.Body.Instructions[count - 1] = ret;
                 var beforeMarker = this._DoBefore(d);
                 var successMarker = this._DoSuccess(d, leave);
                 var exceptionMarker = this._DoException(d, leave);
                 il.InsertAfter(method.Body.Instructions.Last().Previous, leave);
-
+                var afterMarker = this._DoAfter(d, endfinally);
                 var marker = new TcfMarker();
                 marker.TryInnerStart = method.Body.Instructions[beforeMarker.BeginIndex];
                 marker.TryInnerEnd = method.Body.Instructions[exceptionMarker.BeginIndex];
                 marker.CatchInnerStart = method.Body.Instructions[exceptionMarker.BeginIndex];
                 marker.CatchInnerEnd = method.Body.Instructions[exceptionMarker.EndIndex];
+                marker.TryOuterStart = method.Body.Instructions[0];
+                marker.TryOuterEnd = method.Body.Instructions[exceptionMarker.EndIndex + 1];
+                //var nop = Instruction.Create(OpCodes.Nop);
+                //il.InsertAfter(method.Body.Instructions.Last().Previous, nop);
+                marker.FinallyStart = method.Body.Instructions[afterMarker.BeginIndex];
+                marker.FinallyEnd = ret;
                 this._DoCatch(marker, d.Key);
-                //this._DoFinally(marker, d.Key, ret);
+                this._DoFinally(marker, d.Key, ret);
+                method.Body.Instructions[method.Body.Instructions.Count - 1] = ret;
             }
         }
 
@@ -347,6 +354,36 @@ namespace Buffalo
             return marker;
         }
 
+        public BeginEndMarker _DoAfter(KeyValuePair<MethodDefinition, List<Aspect>> kv, Instruction endfinally)
+        {
+            var method = kv.Key;
+            var aspects = kv.Value;
+            var il = method.Body.GetILProcessor();
+            List<Instruction> afterInstructions = new List<Instruction>();
+            for (int i = 0; i < aspects.Count; ++i)
+            {
+                var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.After);
+                if (after != null)
+                {
+                    //afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                    //afterInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                    //afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
+                }
+            }
+            afterInstructions.Add(endfinally);
+            var idx = method.Body.Instructions.Count - 1;
+            var ai = idx;
+            afterInstructions.ForEach(x => method.Body.Instructions.Insert(ai++, x));
+            //il.InsertAfter(endfinally, ret);
+
+            var marker = new BeginEndMarker
+            {
+                BeginIndex = idx,
+                EndIndex = ai
+            };
+            return marker;
+        }
+
         public void _DoCatch(TcfMarker marker, MethodDefinition method)
         {
             var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
@@ -364,10 +401,10 @@ namespace Buffalo
         {
             var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
             {
-                TryStart = marker.TryStart,
-                TryEnd = marker.TryEnd,
-                HandlerStart = marker.HandlerStart,
-                HandlerEnd = marker.HandlerEnd,// endfinally,
+                TryStart = marker.TryOuterStart,
+                TryEnd = marker.TryOuterEnd,
+                HandlerStart = marker.FinallyStart,
+                HandlerEnd = marker.FinallyEnd,// endfinally,
                 CatchType = null,
             };
             method.Body.ExceptionHandlers.Add(finallyHandler);
