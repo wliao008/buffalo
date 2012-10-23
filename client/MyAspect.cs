@@ -55,7 +55,7 @@ namespace client
 
         public override void Exception()
         {
-            Console.WriteLine("MyAspect.Exception");
+            Console.WriteLine("********* EXCEPTION!! ********");
         }
     }
 
@@ -72,7 +72,7 @@ namespace client
 
         public override void Exception()
         {
-            Console.WriteLine("Trace.Exception");
+            Console.WriteLine("********* TRACE EXCEPTION!! ********");
         }
 
         public override void Success()

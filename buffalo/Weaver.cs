@@ -233,15 +233,22 @@ namespace Buffalo
                 var leave = il.Create(OpCodes.Leave, ret);
                 var count = method.Body.Instructions.Count;
                 method.Body.Instructions[count - 1] = ret;
-
                 var beforeMarker = this._DoBefore(d);
-                var successMarker = this._DoSuccess(d, ret);
-                var exceptionMarker = this._DoException(d, ret);
-                this._DoCatch(beforeMarker, exceptionMarker, d.Key);
+                var successMarker = this._DoSuccess(d, leave);
+                var exceptionMarker = this._DoException(d, leave);
+                il.InsertAfter(method.Body.Instructions.Last().Previous, leave);
+
+                var marker = new TcfMarker();
+                marker.TryInnerStart = method.Body.Instructions[beforeMarker.BeginIndex];
+                marker.TryInnerEnd = method.Body.Instructions[exceptionMarker.BeginIndex];
+                marker.CatchInnerStart = method.Body.Instructions[exceptionMarker.BeginIndex];
+                marker.CatchInnerEnd = method.Body.Instructions[exceptionMarker.EndIndex];
+                this._DoCatch(marker, d.Key);
+                //this._DoFinally(marker, d.Key, ret);
             }
         }
 
-        public InstructionMarker _DoBefore(KeyValuePair<MethodDefinition, List<Aspect>> kv)
+        public BeginEndMarker _DoBefore(KeyValuePair<MethodDefinition, List<Aspect>> kv)
         {
             var method = kv.Key;
             var aspects = kv.Value;
@@ -259,14 +266,15 @@ namespace Buffalo
 
             int idx = 0;
             beforeInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
-
-            var marker = new InstructionMarker();
-            marker.Begin = method.Body.Instructions.First();
-            marker.End = method.Body.Instructions.Last().Previous;
+            var marker = new BeginEndMarker
+            {
+                BeginIndex = 0,
+                EndIndex = method.Body.Instructions.Count
+            };
             return marker;
         }
 
-        public InstructionMarker _DoSuccess(KeyValuePair<MethodDefinition, List<Aspect>> kv, Instruction ret)
+        public BeginEndMarker _DoSuccess(KeyValuePair<MethodDefinition, List<Aspect>> kv, Instruction ret)
         {
             var method = kv.Key;
             var aspects = kv.Value;
@@ -291,16 +299,18 @@ namespace Buffalo
              * but since the last instruction is always the ret instruction, we need to
              * insert them right before ret.
              */
-            var marker = new InstructionMarker();
             int idx = method.Body.Instructions.Count() - 1;
             var markerBeginIdx = idx + 1;
             successInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
-            marker.Begin = method.Body.Instructions[markerBeginIdx];
-            marker.End = method.Body.Instructions.Last().Previous;
+            var marker = new BeginEndMarker
+            {
+                BeginIndex = 0,
+                EndIndex = method.Body.Instructions.Count
+            };
             return marker;
         }
 
-        public InstructionMarker _DoException(KeyValuePair<MethodDefinition, List<Aspect>> kv, Instruction ret)
+        public BeginEndMarker _DoException(KeyValuePair<MethodDefinition, List<Aspect>> kv, Instruction ret)
         {
             var method = kv.Key;
             var aspects = kv.Value;
@@ -325,27 +335,42 @@ namespace Buffalo
              * but since the last instruction is always the ret instruction, we need to
              * insert them right before ret.
              */
-            var marker = new InstructionMarker();
             int idx = method.Body.Instructions.Count() - 1;
             var markerBeginIdx = idx;
             exceptionInstructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
 
-            marker.Begin = method.Body.Instructions[markerBeginIdx];
-            marker.End = method.Body.Instructions.Last();
+            var marker = new BeginEndMarker
+            {
+                BeginIndex = markerBeginIdx,
+                EndIndex = method.Body.Instructions.Count - 1
+            };
             return marker;
         }
 
-        public void _DoCatch(InstructionMarker beforeMarker, InstructionMarker exceptionMarker, MethodDefinition method)
+        public void _DoCatch(TcfMarker marker, MethodDefinition method)
         {
             var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
             {
-                TryStart = beforeMarker.Begin,
-                TryEnd = exceptionMarker.Begin,
-                HandlerStart = exceptionMarker.Begin,
-                HandlerEnd = exceptionMarker.End,// endfinally,
+                TryStart = marker.TryInnerStart,
+                TryEnd = marker.TryInnerEnd,
+                HandlerStart = marker.CatchInnerStart,
+                HandlerEnd = marker.CatchInnerEnd,// endfinally,
                 CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
             };
             method.Body.ExceptionHandlers.Add(catchHandler);
+        }
+
+        public void _DoFinally(TcfMarker marker, MethodDefinition method, Instruction ret)
+        {
+            var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
+            {
+                TryStart = marker.TryStart,
+                TryEnd = marker.TryEnd,
+                HandlerStart = marker.HandlerStart,
+                HandlerEnd = marker.HandlerEnd,// endfinally,
+                CatchType = null,
+            };
+            method.Body.ExceptionHandlers.Add(finallyHandler);
         }
 
         private void InjectBoundaryAspect_OLD()
