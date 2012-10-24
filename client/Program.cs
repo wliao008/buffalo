@@ -16,10 +16,9 @@ namespace client
         static void Main(string[] args)
         {
             Console.WriteLine("Program.Main");
-            //test.TestF1();
-            //test.TestF2();
-            //test.Add(1, 2);
             test.Function1(1);
+            var result = test.Add(10, 2);
+            Console.WriteLine("result: " + result);
             Console.Read();
         }
     }
@@ -31,104 +30,47 @@ namespace client
             Console.WriteLine("Test.ctor");
         }
 
-        //[TraceAspect(AttributeExclude=true)]
-        [MyAspect]
         [TraceAspect]
         public void Function1(int a)
         {
             Console.WriteLine("Function 1");
-            this.Function3();
+            this.Divide();
+        }
+
+        [TraceAspect]
+        public int Add(int a, int b)
+        {
+            return a + b;
+        }
+
+        public void Divide()
+        {
+            int z = 0;
+            int c = 1 / z;
         }
 
         public double Function2(int num1, int num2)
         {
             double result = num1 / num2;
+            Console.WriteLine("blah blah...");
+            int a = 1;
             return result;
         }
 
-        [MyAspect]
-        public void Function3()
+        public int DummyException(int num1, int num2)
         {
-            int z = 0;
-            int c = 1 / z;
-            Console.WriteLine("Function 3");
-        }
-
-        //[MyAroundAspect]
-        public void TestF1()
-        {
-            Console.WriteLine("testf1");
-        }
-
-        //[MyAroundAspect]
-        public void TestF2()
-        {
-            Console.WriteLine("testf2");
-        }
-
-        public void TestF3()
-        {
-            Console.WriteLine("testf3");
-            this.TestF4();
-            this.TestF5();
-        }
-
-        public void TestF4()
-        {
-            Console.WriteLine("testf4");
-        }
-
-        public void TestF5()
-        {
-            Console.WriteLine("testf5");
-        }
-
-        public void TestF6()
-        {
-            Console.WriteLine("TestF6...");
-            var ticks = DateTime.Now.Ticks;
-            var call = ticks % 2;
-            Console.WriteLine("ticks: " + ticks);
-            if (ticks == 0)
+            try
             {
-                TestF7();
+                int result = num1 + num2;
+                Console.WriteLine("blah blah...");
+                int a = 1;
+                return result;
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("can't call since it's odd");
+                Console.WriteLine(e);
+                return -1;
             }
-        }
-
-        public void TestF7()
-        {
-            Console.WriteLine("testf7");
-        }
-
-        //[MyFakeAddAspect]
-        public void Add(int a, int b)
-        {
-            Console.WriteLine(a + b);
-        }
-    }
-
-    public class MyDummyTest
-    {
-        public void Function1()
-        {
-            //stupid test
-            int a = 0;
-            Console.WriteLine("a = " + a);
-        }
-
-        public void Function2()
-        {
-            MethodDetail det = new MethodDetail();
-            det.setName("Function2()");
-            Function3(det);
-        }
-
-        public void Function3(MethodDetail detail)
-        {
         }
     }
 }

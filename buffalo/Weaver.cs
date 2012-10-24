@@ -220,6 +220,88 @@ namespace Buffalo
 
         private void InjectBoundaryAspect()
         {
+            var ems = this.EligibleMethods.ToList();
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            foreach (var d in eligibleBoundaryMethods)
+            {
+                var method = d.Key;
+                var aspects = d.Value;
+                var il = method.Body.GetILProcessor();
+                var voidType = method.ReturnType.FullName.Equals("System.Void");
+                var ret = il.Create(OpCodes.Ret);
+
+                var beforeInstructions = new List<Instruction>();
+                var successInstructions = new List<Instruction>();
+                var exceptionInstructions = new List<Instruction>();
+
+                #region Before, Success
+                for (int i = 0; i < aspects.Count; ++i)
+                {
+                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
+                    if (before != null)
+                    {
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
+                    }
+
+                    var success = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Success);
+                    if (success != null)
+                    {
+                        successInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        successInstructions.Add(Instruction.Create(OpCodes.Call, success));
+                    }
+
+                    var exception = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Exception);
+                    if (exception != null)
+                    {
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
+                    }
+                }
+
+                int beforeIdx = 0;
+                beforeInstructions.ForEach(x => method.Body.Instructions.Insert(beforeIdx++, x));
+
+
+                /* the last instruction after success should jump to return, or 3 instruction before
+                 * return if return type is not void, or as an optimization, maybe we can even skip
+                 * directly to last() - 2?
+                 */
+                var successRet = voidType ? method.Body.Instructions.Last() :
+                    method.Body.Instructions[method.Body.Instructions.Count - 3];
+                Instruction successLeave = il.Create(OpCodes.Leave, successRet);
+                ///TODO: need to double check the format of the MSIL return
+                ///br.s, ldloc, ret when return type is not void, thereby decrement by 3
+                int successIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
+                successInstructions.Add(successLeave);
+                successInstructions.ForEach(x => method.Body.Instructions.Insert(successIdx++, x));
+
+                var exceptionRet = voidType ? method.Body.Instructions.Last() :
+                    method.Body.Instructions[method.Body.Instructions.Count - 3];
+                Instruction exceptionLeave = il.Create(OpCodes.Leave, exceptionRet);
+                int exceptionIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
+                int exceptionIdx2 = exceptionIdx;
+                exceptionInstructions.Add(exceptionLeave);
+                exceptionInstructions.ForEach(x => method.Body.Instructions.Insert(exceptionIdx++, x));
+                #endregion
+
+                //method.Body.Instructions[method.Body.Instructions.Count - 1] = ret;
+                #region Catch..Finally..
+                var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
+                {
+                    TryStart = method.Body.Instructions.First(),
+                    TryEnd = successLeave.Next,
+                    HandlerStart = method.Body.Instructions[exceptionIdx2],
+                    HandlerEnd = exceptionRet,// endfinally,
+                    CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+                };
+                method.Body.ExceptionHandlers.Add(catchHandler);
+                #endregion
+            }
+        }
+
+        private void InjectBoundaryAspect_OLD2()
+        {
             //TcfMarker marker = new TcfMarker();
             var ems = this.EligibleMethods.ToList();
             var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
