@@ -13,10 +13,10 @@ namespace client
         //    Console.WriteLine("Trace.Before");
         //}
 
-        public override void Exception()
-        {
-            Console.WriteLine("********* TRACE EXCEPTION!! ********");
-        }
+        //public override void Exception()
+        //{
+        //    Console.WriteLine("********* TRACE EXCEPTION!! ********");
+        //}
 
         //public override void Success()
         //{

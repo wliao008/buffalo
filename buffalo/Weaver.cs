@@ -269,7 +269,11 @@ namespace Buffalo
                 }
 
                 int beforeIdx = 0;
-                beforeInstructions.ForEach(x => method.Body.Instructions.Insert(beforeIdx++, x));
+                //perform this only if user overrides Before() in the aspect
+                if (beforeInstructions.Count > 0)
+                {
+                    beforeInstructions.ForEach(x => method.Body.Instructions.Insert(beforeIdx++, x));
+                }
 
                 /* the last instruction after success should jump to return, or 3 instruction before
                  * return if return type is not void, or as an optimization, maybe we can even skip
@@ -281,8 +285,12 @@ namespace Buffalo
                 ///TODO: need to double check the format of the MSIL return
                 ///br.s, ldloc, ret when return type is not void, thereby decrement by 3
                 int successIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
-                successInstructions.Add(successLeave);
-                successInstructions.ForEach(x => method.Body.Instructions.Insert(successIdx++, x));
+                //perform this only if user overrides Success() in the aspect
+                if (successInstructions.Count > 0)
+                {
+                    successInstructions.Add(successLeave);
+                    successInstructions.ForEach(x => method.Body.Instructions.Insert(successIdx++, x));
+                }
 
                 int exceptionIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
                 int exceptionIdxConst = exceptionIdx;
@@ -299,10 +307,15 @@ namespace Buffalo
                 var afterRet = voidType ? method.Body.Instructions.Last() :
                     method.Body.Instructions[method.Body.Instructions.Count - 3];
                 var endfinally = il.Create(OpCodes.Endfinally);
-                afterInstructions.Add(endfinally);
                 int afterIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
                 int afterIdxConst = afterIdx;
-                afterInstructions.ForEach(x => method.Body.Instructions.Insert(afterIdx++, x));
+                //perform this only if user overrides After() in the aspect
+                if (afterInstructions.Count > 0)
+                {
+                    afterInstructions.Add(endfinally);
+                    afterInstructions.ForEach(x => method.Body.Instructions.Insert(afterIdx++, x));
+                }
+
                 #endregion
 
                 #region Catch..Finally..
@@ -320,15 +333,19 @@ namespace Buffalo
                     method.Body.ExceptionHandlers.Add(catchHandler);
                 }
 
-                var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
+                //add the finally block only if user overrides After() in the aspect
+                if (afterInstructions.Count > 0)
                 {
-                    TryStart = method.Body.Instructions.First(),
-                    TryEnd = method.Body.Instructions[afterIdxConst],
-                    HandlerStart = method.Body.Instructions[afterIdxConst],
-                    HandlerEnd = afterRet,
-                    CatchType = null,
-                };
-                method.Body.ExceptionHandlers.Add(finallyHandler);
+                    var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
+                    {
+                        TryStart = method.Body.Instructions.First(),
+                        TryEnd = method.Body.Instructions[afterIdxConst],
+                        HandlerStart = method.Body.Instructions[afterIdxConst],
+                        HandlerEnd = afterRet,
+                        CatchType = null,
+                    };
+                    method.Body.ExceptionHandlers.Add(finallyHandler);
+                }
                 #endregion
             }
         }
