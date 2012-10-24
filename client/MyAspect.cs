@@ -22,5 +22,10 @@ namespace client
         {
             Console.WriteLine("Trace.Success");
         }
+
+        public override void After()
+        {
+            Console.WriteLine("Trace.After");
+        }
     }
 }

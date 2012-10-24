@@ -233,8 +233,9 @@ namespace Buffalo
                 var beforeInstructions = new List<Instruction>();
                 var successInstructions = new List<Instruction>();
                 var exceptionInstructions = new List<Instruction>();
+                var afterInstructions = new List<Instruction>();
 
-                #region Before, Success
+                #region Before, Success, Exception, After
                 for (int i = 0; i < aspects.Count; ++i)
                 {
                     var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
@@ -257,11 +258,18 @@ namespace Buffalo
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
                     }
+
+                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.After);
+                    if (after != null)
+                    {
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        //afterInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
+                    }
                 }
 
                 int beforeIdx = 0;
                 beforeInstructions.ForEach(x => method.Body.Instructions.Insert(beforeIdx++, x));
-
 
                 /* the last instruction after success should jump to return, or 3 instruction before
                  * return if return type is not void, or as an optimization, maybe we can even skip
@@ -280,22 +288,39 @@ namespace Buffalo
                     method.Body.Instructions[method.Body.Instructions.Count - 3];
                 Instruction exceptionLeave = il.Create(OpCodes.Leave, exceptionRet);
                 int exceptionIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
-                int exceptionIdx2 = exceptionIdx;
+                int exceptionIdxConst = exceptionIdx;
                 exceptionInstructions.Add(exceptionLeave);
                 exceptionInstructions.ForEach(x => method.Body.Instructions.Insert(exceptionIdx++, x));
+
+                var afterRet = voidType ? method.Body.Instructions.Last() :
+                    method.Body.Instructions[method.Body.Instructions.Count - 3];
+                var endfinally = il.Create(OpCodes.Endfinally);
+                afterInstructions.Add(endfinally);
+                int afterIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
+                int afterIdxConst = afterIdx;
+                afterInstructions.ForEach(x => method.Body.Instructions.Insert(afterIdx++, x));
                 #endregion
 
-                //method.Body.Instructions[method.Body.Instructions.Count - 1] = ret;
                 #region Catch..Finally..
                 var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
                 {
                     TryStart = method.Body.Instructions.First(),
                     TryEnd = successLeave.Next,
-                    HandlerStart = method.Body.Instructions[exceptionIdx2],
-                    HandlerEnd = exceptionRet,// endfinally,
+                    HandlerStart = method.Body.Instructions[exceptionIdxConst],
+                    HandlerEnd = exceptionLeave.Next,
                     CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
                 };
                 method.Body.ExceptionHandlers.Add(catchHandler);
+
+                var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
+                {
+                    TryStart = method.Body.Instructions.First(),
+                    TryEnd = method.Body.Instructions[afterIdxConst],
+                    HandlerStart = method.Body.Instructions[afterIdxConst],
+                    HandlerEnd = afterRet,
+                    CatchType = null,
+                };
+                method.Body.ExceptionHandlers.Add(finallyHandler);
                 #endregion
             }
         }
