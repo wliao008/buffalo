@@ -230,10 +230,42 @@ namespace Buffalo
                 var voidType = method.ReturnType.FullName.Equals("System.Void");
                 var ret = il.Create(OpCodes.Ret);
 
+                var mdInstructions = new List<Instruction>();
                 var beforeInstructions = new List<Instruction>();
                 var successInstructions = new List<Instruction>();
                 var exceptionInstructions = new List<Instruction>();
                 var afterInstructions = new List<Instruction>();
+
+                #region Method detail
+                //var mdType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
+                //var mdSetName = mdType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
+                //var mdSetException = mdType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setException"));
+                //var mdCtorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
+                //MethodReference mdCtor = this.AssemblyDefinition.MainModule.Import(mdCtorInfo);
+                //mdInstructions.Add(Instruction.Create(OpCodes.Newobj, mdCtor));
+                //mdInstructions.Add(Instruction.Create(OpCodes.Stloc_0)); //store methoddetail at index 0
+                //mdInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                //mdInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                //var mdSetNameRef = this.AssemblyDefinition.MainModule.Import(mdSetName, method);
+                //var mdSetExceptionRef = this.AssemblyDefinition.MainModule.Import(mdSetException, method);
+                //mdInstructions.Add(Instruction.Create(OpCodes.Callvirt, mdSetNameRef));
+                int mdIdx = 0;
+                //mdInstructions.ForEach(x => method.Body.Instructions.Insert(mdIdx++, x));
+
+                /*
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
+                        var varDef = new VariableDefinition("md" + i, varType);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
+                        method.Body.Variables.Add(varDef);
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varDef));
+                        var constructorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
+                        MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
+                 */
+                #endregion
 
                 #region Before, Success, Exception, After
                 for (int i = 0; i < aspects.Count; ++i)
@@ -242,6 +274,7 @@ namespace Buffalo
                     if (before != null)
                     {
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
                     }
 
@@ -268,7 +301,7 @@ namespace Buffalo
                     }
                 }
 
-                int beforeIdx = 0;
+                int beforeIdx = mdIdx;
                 //perform this only if user overrides Before() in the aspect
                 if (beforeInstructions.Count > 0)
                 {

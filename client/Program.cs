@@ -40,10 +40,33 @@ namespace client
             this.Divide();
         }
 
+        public void Function1b(int b)
+        {
+            try
+            {
+                MethodDetail m = new MethodDetail();
+                m.setName("hey");
+                this.DoMethodDetail(m);
+                Console.WriteLine("Function 1");
+                this.Divide();
+            }
+            catch (Exception e)
+            {
+                Console.Write(e);
+            }
+        }
+
         [TraceAspect]
         public int Add(int a, int b)
         {
             return a + b;
+        }
+
+        [TraceAspect]
+        public void TestMethodDetail(int a)
+        {
+            MethodDetail m = new MethodDetail();
+            m.setName("hey");
         }
 
         public void Divide()
@@ -54,14 +77,17 @@ namespace client
 
         public double Function2(int num1, int num2)
         {
+            int a = 1;
             double result = num1 / num2;
             Console.WriteLine("blah blah...");
-            int a = 1;
             return result;
         }
 
-        public int DummyException(int num1, int num2)
+        public int DummyException(int num1, int num2, User us)
         {
+            int c = 2;
+            int d = 8;
+            User u = us;
             try
             {
                 int result = num1 + num2;
@@ -81,6 +107,10 @@ namespace client
         {
             User u = new User { Firstname = "Wei" };
             return u;
+        }
+
+        public void DoMethodDetail(MethodDetail detail)
+        {
         }
     }
 
