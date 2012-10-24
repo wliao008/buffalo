@@ -57,7 +57,7 @@
     <Compile Include="MethodDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewriter.cs" />
-    <Compile Include="TcfMarker.cs" />
+    <Compile Include="BeginEndMarker.cs" />
     <Compile Include="Weaver.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
