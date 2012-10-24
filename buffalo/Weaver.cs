@@ -284,13 +284,17 @@ namespace Buffalo
                 successInstructions.Add(successLeave);
                 successInstructions.ForEach(x => method.Body.Instructions.Insert(successIdx++, x));
 
+                int exceptionIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
+                int exceptionIdxConst = exceptionIdx;
                 var exceptionRet = voidType ? method.Body.Instructions.Last() :
                     method.Body.Instructions[method.Body.Instructions.Count - 3];
                 Instruction exceptionLeave = il.Create(OpCodes.Leave, exceptionRet);
-                int exceptionIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
-                int exceptionIdxConst = exceptionIdx;
-                exceptionInstructions.Add(exceptionLeave);
-                exceptionInstructions.ForEach(x => method.Body.Instructions.Insert(exceptionIdx++, x));
+                //perform this only if user overrides Exception() in the aspect
+                if (exceptionInstructions.Count > 0)
+                {
+                    exceptionInstructions.Add(exceptionLeave);
+                    exceptionInstructions.ForEach(x => method.Body.Instructions.Insert(exceptionIdx++, x));
+                }
 
                 var afterRet = voidType ? method.Body.Instructions.Last() :
                     method.Body.Instructions[method.Body.Instructions.Count - 3];
@@ -302,15 +306,19 @@ namespace Buffalo
                 #endregion
 
                 #region Catch..Finally..
-                var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
+                //add the catch block only if user overrides Exception() in the aspect
+                if (exceptionInstructions.Count > 0)
                 {
-                    TryStart = method.Body.Instructions.First(),
-                    TryEnd = successLeave.Next,
-                    HandlerStart = method.Body.Instructions[exceptionIdxConst],
-                    HandlerEnd = exceptionLeave.Next,
-                    CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
-                };
-                method.Body.ExceptionHandlers.Add(catchHandler);
+                    var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
+                    {
+                        TryStart = method.Body.Instructions.First(),
+                        TryEnd = successLeave.Next,
+                        HandlerStart = method.Body.Instructions[exceptionIdxConst],
+                        HandlerEnd = exceptionLeave.Next,
+                        CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+                    };
+                    method.Body.ExceptionHandlers.Add(catchHandler);
+                }
 
                 var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
                 {
@@ -359,6 +367,7 @@ namespace Buffalo
             Console.WriteLine("Unloading domain...");
         }
 
+        /*
         private static void LoadAssembly()
         {
             ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
@@ -366,6 +375,7 @@ namespace Buffalo
             var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
             var types = assembly.GetTypes().ToList();
         }
+        */
 
         private void PrintEligibleMethods()
         {

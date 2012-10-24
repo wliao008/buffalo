@@ -16,7 +16,7 @@ namespace client
         static void Main(string[] args)
         {
             Console.WriteLine("Program.Main");
-            //test.Function1(1);
+            test.Function1(1);
             //var result = test.Add(10, 2);
             //Console.WriteLine("result: " + result);
 
