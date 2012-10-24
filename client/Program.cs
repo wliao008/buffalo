@@ -16,9 +16,12 @@ namespace client
         static void Main(string[] args)
         {
             Console.WriteLine("Program.Main");
-            test.Function1(1);
-            var result = test.Add(10, 2);
-            Console.WriteLine("result: " + result);
+            //test.Function1(1);
+            //var result = test.Add(10, 2);
+            //Console.WriteLine("result: " + result);
+
+            var usr = test.GetUser();
+            Console.WriteLine("User: " + usr.Firstname);
             Console.Read();
         }
     }
@@ -72,5 +75,17 @@ namespace client
                 return -1;
             }
         }
+
+        [TraceAspect]
+        public User GetUser()
+        {
+            User u = new User { Firstname = "Wei" };
+            return u;
+        }
+    }
+
+    public class User
+    {
+        public string Firstname { get; set; }
     }
 }
