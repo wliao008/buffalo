@@ -9,7 +9,7 @@
 
         public bool AttributeExclude { get; set; }
 
-        public virtual void Before() { }
+        public virtual void Before(string name, string fullname) { }
 
         public virtual void After() { }
 

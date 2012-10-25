@@ -8,9 +8,9 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
-        public override void Before()
+        public override void Before(string name, string fullname)
         {
-            Console.WriteLine("Trace.Before");
+            Console.WriteLine("Trace.Before: " + name+", " + fullname);
         }
 
         //public override void Before(MethodDetail detail)

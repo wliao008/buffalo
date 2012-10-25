@@ -275,6 +275,8 @@ namespace Buffalo
                     {
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
                     }
 

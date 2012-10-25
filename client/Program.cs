@@ -38,6 +38,7 @@ namespace client
         {
             Console.WriteLine("Function 1");
             this.Divide();
+            this.DummyString("my", "name");
         }
 
         public void Function1b(int b)
@@ -83,6 +84,7 @@ namespace client
             return result;
         }
 
+        [TraceAspect]
         public int DummyException(int num1, int num2, User us)
         {
             int c = 2;
@@ -97,9 +99,14 @@ namespace client
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(e.ToString());
                 return -1;
             }
+        }
+
+        public void DummyString(string str1, string str2)
+        {
+            Console.WriteLine(str1 + ": " + str2);
         }
 
         [TraceAspect]
