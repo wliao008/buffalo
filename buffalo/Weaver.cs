@@ -285,6 +285,8 @@ namespace Buffalo
                     if (success != null)
                     {
                         successInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                         successInstructions.Add(Instruction.Create(OpCodes.Call, success));
                     }
 
@@ -314,11 +316,16 @@ namespace Buffalo
                             exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
                         }
                         */
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc_S, method.Body.Variables[idx]));
                         //exceptionInstructions.Add(Instruction.Create(OpCodes.Nop));
                         //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, toStringRef));
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc_S, method.Body.Variables[idx]));
                         //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
                     }
 
@@ -326,7 +333,8 @@ namespace Buffalo
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        //afterInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                         afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
                     }
                 }

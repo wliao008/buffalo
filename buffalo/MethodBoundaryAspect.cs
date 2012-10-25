@@ -12,10 +12,10 @@ namespace Buffalo
 
         public virtual void Before(string name, string fullname) { }
 
-        public virtual void After() { }
+        public virtual void After(string name, string fullname) { }
 
-        public virtual void Success() { }
+        public virtual void Success(string name, string fullname) { }
 
-        public virtual void Exception() { }
+        public virtual void Exception(string name, string fullname) { }
     }
 }

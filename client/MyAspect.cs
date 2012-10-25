@@ -10,7 +10,8 @@ namespace client
     {
         public override void Before(string name, string fullname)
         {
-            Console.WriteLine("Trace.Before: " + name+", " + fullname);
+            Console.WriteLine("Trace.Before");
+            Console.WriteLine("\tat: {0}, {1}", name, fullname);
         }
 
         //public override void Before(MethodDetail detail)
@@ -18,9 +19,10 @@ namespace client
         //    Console.WriteLine("Trace.Before: " + detail.Name);
         //}
 
-        public override void Exception()
+        public override void Exception(string name, string fullname)
         {
             Console.WriteLine("********* TRACE EXCEPTION!! ********");
+            Console.WriteLine("\tat: {0}, {1}", name, fullname);
         }
 
         //public override void Success()
