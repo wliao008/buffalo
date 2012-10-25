@@ -15,16 +15,16 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            test.Message = "This is a property";
-            var user = test.GetUser();
-            Console.WriteLine(user.Username);
-            Console.WriteLine(test.Message);
+            test.RealNumNoArgs();
+            //Console.WriteLine("Real result: " + result);
+
+
             Console.WriteLine("DONE");
             Console.Read();
         }
     }
 
-    [TraceAspect]
+    //[TraceAspect]
     public class TraceAspectTester
     {
         private string _message;
@@ -58,6 +58,57 @@ namespace client
         public User GetUser()
         {
             return new User { Username = "weiliao" };
+        }
+
+        [MyAroundAspect]
+        public void RealNum(int a, int b)
+        {
+            //int a = 10;
+            //int b = 40;
+            int c = a + b;
+            Console.WriteLine("RealNum: " + c);
+        }
+
+        [MyAroundAspect]
+        public void RealNumNoArgs()
+        {
+            int a = 10;
+            int b = 40;
+            int c = a + b;
+            Console.WriteLine("RealNum: " + c);
+        }
+
+        public int Add(int a, int b)
+        {
+            int c = a + b;
+            return c;
+        }
+
+        public int Divide(int a, int b)
+        {
+            int c = a / b;
+            return c;
+        }
+
+        public int DivideWithTryCatch(int a, int b)
+        {
+            int c = 0;
+            try
+            {
+                c = a / b;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return c;
+        }
+
+        public void TestOut(out int age)
+        {
+            Console.WriteLine("testing out");
+            age = 12;
         }
     }
 

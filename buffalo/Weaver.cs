@@ -104,45 +104,43 @@ namespace Buffalo
             var eligibleAroundMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodAroundAspect)));
             foreach (var d in eligibleAroundMethods)
             {
-                var targetMethod = d.Key;
-                var aroundAspect = d.Value[0];
+                var method = d.Key;
+                var aspects = d.Value[0];
+                var il = method.Body.GetILProcessor();
 
                 //create a replacement function
-                var methodName = string.Format("{0}{1}", targetMethod.Name, DateTime.Now.Ticks);
-                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
+                var aroundMethod = aspects.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
                 var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
-                MethodDefinition md = new MethodDefinition(methodName, targetMethod.Attributes, targetMethod.ReturnType);
+                MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
+                newmethod.Body.SimplifyMacros();
 
                 if (!once)
                 {
                     //copy the variables in aspect to the target type, this should happen only once?
-                    aroundAspect.TypeDefinition.Fields.ToList()
+                    aspects.TypeDefinition.Fields.ToList()
                         .ForEach(x =>
                         {
                             //var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
                             //var newInstruction = (Instruction)constructorInfo.Invoke(new[] { x.OpCode, instruction.Operand });
                             //var fieldDefinition = newInstruction.Operand as FieldDefinition;
-
                             //if (newInstruction.Operand is TypeReference)
                             //{
                             //    this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
                             //}
 
-                            var fd = new FieldDefinition(x.Name, x.Attributes, x.FieldType);
-                            
-                            targetMethod.DeclaringType.Fields.Add(fd);
+                            var fd = new FieldDefinition(x.Name, x.Attributes, x.FieldType);                            
+                            method.DeclaringType.Fields.Add(fd);
                         });
 
                     once = true;
                 }
 
-                md.Body.SimplifyMacros();
 
-                targetMethod.Parameters.ToList().ForEach(x => md.Parameters.Add(new ParameterDefinition(x.ParameterType)));
-                aroundMethod.Body.Variables.ToList().ForEach(x => md.Body.Variables.Add(new VariableDefinition(x.VariableType)));
+                method.Parameters.ToList().ForEach(x => newmethod.Parameters.Add(new ParameterDefinition(x.ParameterType)));
+                aroundMethod.Body.Variables.ToList().ForEach(x => newmethod.Body.Variables.Add(new VariableDefinition(x.VariableType)));
                 
-                //aroundMethod.Body.Instructions.ToList().ForEach(x => md.Body.Instructions.Add(Instruction.Create(x.OpCode, x.Operand)));
                 aroundMethod.Body.Instructions.ToList().ForEach(instruction =>
                 {
                     var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
@@ -151,7 +149,7 @@ namespace Buffalo
                     if (fieldDefinition != null)
                     {
                         this.AssemblyDefinition.MainModule.Import(fieldDefinition.FieldType);
-                        newInstruction.Operand = targetMethod.DeclaringType.Fields.First(x => x.Name == fieldDefinition.Name);
+                        newInstruction.Operand = method.DeclaringType.Fields.First(x => x.Name == fieldDefinition.Name);
                     }
 
                     if (newInstruction.Operand is MethodReference)
@@ -167,12 +165,12 @@ namespace Buffalo
                     {
                         this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
                     }
-                    md.Body.Instructions.Add(newInstruction);
+                    newmethod.Body.Instructions.Add(newInstruction);
                 });
                 NewMethodNames.Add(methodName);
-                targetMethod.DeclaringType.Methods.Add(md);
+                method.DeclaringType.Methods.Add(newmethod);
 
-                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var invokeMethod = aspects.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
                 int i = 0;
                 bool found = false;
                 for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
@@ -187,14 +185,20 @@ namespace Buffalo
 
                 if (found)
                 {
-                    var inst = md.Body.Instructions[i];
-                    var methodRef = this.FindMethodReference(targetMethod, aroundAspect, Enums.BoundaryType.Invoke);
-                    //var il = invokeMethod.Body.GetILProcessor();
-                    //var instCall = Instruction.Create(OpCodes.Call, targetMethod);
-                    //md.Body.Instructions[i].Operand = targetMethod;
-                    md.Body.Instructions[i - 1] = Instruction.Create(OpCodes.Ldarg_0);
-                    md.Body.Instructions[i] = Instruction.Create(OpCodes.Call, targetMethod);
-                    //md.Body.OptimizeMacros();
+                    //make a call to the original method
+                    var ldarg0 = Instruction.Create(OpCodes.Ldarg_0);
+                    newmethod.Body.Instructions[i - 1] = ldarg0;
+                    newmethod.Body.Instructions[i] = Instruction.Create(OpCodes.Call, method);
+                    int count = i;
+                    if (method.Parameters.Count > 0)
+                    {
+                        for (int j = 0; j < method.Parameters.Count; ++j)
+                        {
+                            var ins = Instruction.Create(OpCodes.Ldarg, method.Parameters[j]);
+                            newmethod.Body.Instructions.Insert(count++, ins);
+                        }
+                    }
+                    newmethod.Body.OptimizeMacros();
                 }
 
                 //finally, all calls to the original methods should be changed to the newly
@@ -205,14 +209,12 @@ namespace Buffalo
                     {
                         for (int j = 0; j < m.Body.Instructions.Count; ++j)
                         {
-                            if (m.Body.Instructions[j].ToString().Contains(targetMethod.FullName))
+                            if (m.Body.Instructions[j].ToString().Contains(method.FullName))
                             {
                                 //m.Body.Instructions[j].OpCode = OpCodes.Call;
-                                m.Body.Instructions[j].Operand = md;
+                                m.Body.Instructions[j].Operand = newmethod;
                             }
                         }
-                        
-                        m.Body.OptimizeMacros();
                     }
                 }
             }

@@ -6,6 +6,7 @@ using Buffalo;
 namespace client
 {
     [TraceAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
         public override void Before(string name, string fullname)
@@ -40,6 +41,23 @@ namespace client
         private void Display(string name, string fullname)
         {
             Console.WriteLine("\tat: {0}\n\t{1}\n", name, fullname);
+        }
+    }
+
+
+    [TraceAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
+    public class MyAroundAspect : MethodAroundAspect
+    {
+        public override void Invoke(MethodDetail detail)
+        {
+            FakeNum(3, 5);
+        }
+
+        public void FakeNum(int a, int b)
+        {
+            int c = a + b;
+            Console.WriteLine("Fake num: " + c);
         }
     }
 }
