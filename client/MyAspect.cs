@@ -23,10 +23,10 @@ namespace client
             Console.WriteLine("********* TRACE EXCEPTION!! ********");
         }
 
-        public override void Success()
-        {
-            Console.WriteLine("Trace.Success");
-        }
+        //public override void Success()
+        //{
+        //    Console.WriteLine("Trace.Success");
+        //}
 
         //public override void After()
         //{

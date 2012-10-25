@@ -1,4 +1,5 @@
-﻿namespace Buffalo
+﻿using System;
+namespace Buffalo
 {
     internal interface IMethodBoundaryAspect : IAspect
     {

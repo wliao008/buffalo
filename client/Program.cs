@@ -84,7 +84,6 @@ namespace client
             return result;
         }
 
-        [TraceAspect]
         public int DummyException(int num1, int num2, User us)
         {
             int c = 2;

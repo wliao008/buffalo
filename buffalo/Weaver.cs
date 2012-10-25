@@ -236,6 +236,7 @@ namespace Buffalo
                 var exceptionInstructions = new List<Instruction>();
                 var afterInstructions = new List<Instruction>();
 
+                method.Body.SimplifyMacros();
                 #region Method detail
                 //var mdType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
                 //var mdSetName = mdType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
@@ -290,6 +291,33 @@ namespace Buffalo
                     var exception = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Exception);
                     if (exception != null)
                     {
+                        var varExpType = this.AssemblyDefinition.MainModule.Import(typeof(System.Exception));
+                        var toString = varExpType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("ToString"));
+                        var toStringRef = this.AssemblyDefinition.MainModule.Import(toString, method);
+                        var expName = "exp" + System.DateTime.Now.Ticks;
+                        var varExp = new VariableDefinition(expName, varExpType);
+                        method.Body.Variables.Add(varExp);
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varExp));
+                        int idx = 0;
+                        var exceptionVarFound = false;
+                        for (; idx < method.Body.Variables.Count; ++idx)
+                        {
+                            if (method.Body.Variables[idx].Name.Equals(expName))
+                            {
+                                exceptionVarFound = true;
+                                break;
+                            }
+                        }
+                        /*
+                        if (exceptionVarFound)
+                        {
+                            exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
+                        }
+                        */
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc_S, method.Body.Variables[idx]));
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Nop));
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
                     }
@@ -321,9 +349,9 @@ namespace Buffalo
                 ///br.s, ldloc, ret when return type is not void, thereby decrement by 3
                 int successIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
                 //perform this only if user overrides Success() in the aspect
+                successInstructions.Add(successLeave);
                 if (successInstructions.Count > 0)
                 {
-                    successInstructions.Add(successLeave);
                     successInstructions.ForEach(x => method.Body.Instructions.Insert(successIdx++, x));
                 }
 
@@ -382,6 +410,7 @@ namespace Buffalo
                     method.Body.ExceptionHandlers.Add(finallyHandler);
                 }
                 #endregion
+                method.Body.OptimizeMacros();
             }
         }
 
