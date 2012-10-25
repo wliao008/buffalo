@@ -11,7 +11,7 @@ namespace client
         public override void Before(string name, string fullname)
         {
             Console.WriteLine("Trace.Before");
-            Console.WriteLine("\tat: {0}, {1}", name, fullname);
+            this.Display(name, fullname);
         }
 
         //public override void Before(MethodDetail detail)
@@ -22,17 +22,24 @@ namespace client
         public override void Exception(string name, string fullname)
         {
             Console.WriteLine("********* TRACE EXCEPTION!! ********");
-            Console.WriteLine("\tat: {0}, {1}", name, fullname);
+            this.Display(name, fullname);
         }
 
-        //public override void Success()
-        //{
-        //    Console.WriteLine("Trace.Success");
-        //}
+        public override void Success(string name, string fullname)
+        {
+            Console.WriteLine("Trace.Success");
+            this.Display(name, fullname);
+        }
 
-        //public override void After()
-        //{
-        //    Console.WriteLine("Trace.After");
-        //}
+        public override void After(string name, string fullname)
+        {
+            Console.WriteLine("Trace.After");
+            this.Display(name, fullname);
+        }
+
+        private void Display(string name, string fullname)
+        {
+            Console.WriteLine("\tat: {0}\n\t{1}\n", name, fullname);
+        }
     }
 }
