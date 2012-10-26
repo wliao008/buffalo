@@ -105,7 +105,7 @@ namespace Buffalo
             foreach (var d in eligibleAroundMethods)
             {
                 var method = d.Key;
-                var aspects = d.Value[0];
+                var aspects = d.Value;
 
                 if (!method.ReturnType.FullName.Equals("System.Void"))
                 {
@@ -119,7 +119,8 @@ namespace Buffalo
 
                 //create a replacement function
                 var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
-                var aroundMethod = aspects.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var aroundAspect = aspects.SingleOrDefault(x => x.Type.BaseType == typeof(MethodAroundAspect));
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
                 var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
@@ -128,7 +129,7 @@ namespace Buffalo
                 if (!once)
                 {
                     //copy the variables in aspect to the target type, this should happen only once?
-                    aspects.TypeDefinition.Fields.ToList()
+                    aroundAspect.TypeDefinition.Fields.ToList()
                         .ForEach(x =>
                         {
                             //var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
@@ -179,7 +180,7 @@ namespace Buffalo
                 NewMethodNames.Add(methodName);
                 method.DeclaringType.Methods.Add(newmethod);
 
-                var invokeMethod = aspects.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
                 int i = 0;
                 bool found = false;
                 for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)

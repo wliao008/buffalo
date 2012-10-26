@@ -15,8 +15,8 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            test.RealNum(4, 5);
-            //Console.WriteLine("Real usr: " + usr.Username);
+            var usr = test.GetUser();
+            Console.WriteLine("Real usr: " + usr.Username);
 
 
             Console.WriteLine("DONE");
