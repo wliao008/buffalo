@@ -101,11 +101,20 @@ namespace Buffalo
         {
             var once = false;
             var ems = this.EligibleMethods.ToList();
-            var eligibleAroundMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            var eligibleAroundMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
             foreach (var d in eligibleAroundMethods)
             {
                 var method = d.Key;
                 var aspects = d.Value[0];
+
+                if (!method.ReturnType.FullName.Equals("System.Void"))
+                {
+#if DEBUG
+                    Console.WriteLine("Around aspect cannot be applied to: \n{0}\nit only applies to void return type.", method.FullName);
+#endif
+                    continue;
+                }
+
                 var il = method.Body.GetILProcessor();
 
                 //create a replacement function
@@ -223,7 +232,7 @@ namespace Buffalo
         private void InjectBoundaryAspect()
         {
             var ems = this.EligibleMethods.ToList();
-            var eligibleBoundaryMethods = ems.Where(x => x.Value.All(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
             foreach (var d in eligibleBoundaryMethods)
             {
                 var method = d.Key;

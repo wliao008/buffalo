@@ -51,13 +51,13 @@ namespace client
     {
         public override void Invoke(MethodDetail detail)
         {
-            FakeNum(3, 5);
+            var usr = GetFakeUser();
+            Console.WriteLine("Fake user: " + usr.Username);
         }
 
-        public void FakeNum(int a, int b)
+        public User GetFakeUser()
         {
-            int c = a + b;
-            Console.WriteLine("Fake num: " + c);
+            return new User { Username = "Fake username" };
         }
     }
 }
