@@ -55,7 +55,7 @@
     <Compile Include="MethodArgs.cs" />
     <Compile Include="MethodAroundAspect.cs" />
     <Compile Include="MethodBoundaryAspect.cs" />
-    <Compile Include="MethodDetail.cs" />
+    <Compile Include="Parameter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewriter.cs" />
     <Compile Include="BeginEndMarker.cs" />

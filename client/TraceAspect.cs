@@ -14,8 +14,14 @@ namespace client
         public override void Before(MethodArgs args)
         {
             Console.WriteLine("Trace.Before " + r.Next(1, 99));
+            Console.WriteLine("\tReturnType: " + args.ReturnType.BaseType.FullName);
             Console.WriteLine("\tName: " + args.Name);
             Console.WriteLine("\tFull Name: " + args.FullName);
+            Console.WriteLine("\tParameters: ");
+            foreach (var p in args.Parameters)
+            {
+                Console.WriteLine("\t\t{0}: {1}", p.Name, p.Type);
+            }
             //this.Display(name, fullname);
         }
 
