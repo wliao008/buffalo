@@ -295,13 +295,13 @@ namespace Buffalo
                     var constructorInfo = t.GetConstructor(new Type[] { });
                     MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
                     aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                     #endregion
 
                     var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
                     if (before != null)
                     {
 
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
@@ -383,7 +383,9 @@ namespace Buffalo
                 }
 
                 int varIdx = 0;
+                //int varIdx2 = 0;
                 aspectVarInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
+                //varIdx2 = varIdx * aspects.Count;
 
                 int beforeIdx = varIdx;
                 //perform this only if user overrides Before() in the aspect
@@ -441,7 +443,7 @@ namespace Buffalo
                 {
                     var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
                     {
-                        TryStart = method.Body.Instructions.First(),
+                        TryStart = method.Body.Instructions[varIdx],
                         TryEnd = successLeave.Next,
                         HandlerStart = method.Body.Instructions[exceptionIdxConst],
                         HandlerEnd = exceptionLeave.Next,
@@ -455,7 +457,7 @@ namespace Buffalo
                 {
                     var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
                     {
-                        TryStart = method.Body.Instructions.First(),
+                        TryStart = method.Body.Instructions[varIdx],
                         TryEnd = method.Body.Instructions[afterIdxConst],
                         HandlerStart = method.Body.Instructions[afterIdxConst],
                         HandlerEnd = afterRet,

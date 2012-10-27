@@ -81,6 +81,7 @@ namespace client
 
 
         [TraceAspect]
+        [Trace2Aspect]
         public int Add(int a, int b)
         {
             //TraceAspect ta = new TraceAspect();

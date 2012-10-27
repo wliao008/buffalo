@@ -6,15 +6,11 @@ using Buffalo;
 namespace client
 {
     [TraceAspect(AttributeExclude = true)]
+    [Trace2Aspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
-        Random r;
-        public TraceAspect()
-        {
-            r = new Random((int)System.DateTime.Now.Ticks);
-        }
-
+        Random r = new Random();
         public override void Before(string name, string fullname)
         {
             Console.WriteLine("Trace.Before " + r.Next(1,99));
@@ -52,6 +48,7 @@ namespace client
 
 
     [TraceAspect(AttributeExclude = true)]
+    [Trace2Aspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
     public class MyAroundAspect : MethodAroundAspect
     {
@@ -64,6 +61,41 @@ namespace client
         public User GetFakeUser()
         {
             return new User { Username = "Fake username" };
+        }
+    }
+
+    [TraceAspect(AttributeExclude = true)]
+    [Trace2Aspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
+    public class Trace2Aspect : MethodBoundaryAspect
+    {
+        public override void Before(string name, string fullname)
+        {
+            Console.WriteLine("Trace2.Before");
+            this.Display(name, fullname);
+        }
+
+        public override void Exception(string name, string fullname)
+        {
+            Console.WriteLine("********* TRACE2 EXCEPTION!! ********:");
+            this.Display(name, fullname);
+        }
+
+        public override void Success(string name, string fullname)
+        {
+            Console.WriteLine("Trace2.Success");
+            this.Display(name, fullname);
+        }
+
+        public override void After(string name, string fullname)
+        {
+            Console.WriteLine("Trace2.After");
+            this.Display(name, fullname);
+        }
+
+        private void Display(string name, string fullname)
+        {
+            Console.WriteLine("\tat: {0}\n\t{1}\n", name, fullname);
         }
     }
 }
