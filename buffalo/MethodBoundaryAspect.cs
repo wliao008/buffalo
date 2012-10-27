@@ -15,7 +15,7 @@ namespace Buffalo
 
         public bool AttributeExclude { get; set; }
 
-        public virtual void Before(string name, string fullname) { }
+        public virtual void Before(MethodArgs args) { }
 
         public virtual void After(string name, string fullname) { }
 

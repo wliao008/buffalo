@@ -54,13 +54,13 @@ namespace client
             }
         }
 
-        [MyAroundAspect]
+        //[MyAroundAspect]
         public User GetUser()
         {
             return new User { Username = "weiliao" };
         }
 
-        [MyAroundAspect]
+        //[MyAroundAspect]
         [TraceAspect]
         public void RealNum(int a, int b)
         {
@@ -81,7 +81,7 @@ namespace client
 
 
         [TraceAspect]
-        [Trace2Aspect]
+        //[Trace2Aspect]
         public int Add(int a, int b)
         {
             //TraceAspect ta = new TraceAspect();

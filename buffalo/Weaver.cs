@@ -120,8 +120,8 @@ namespace Buffalo
                 //create a replacement function
                 var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
                 var aroundAspect = aspects.SingleOrDefault(x => x.Type.BaseType == typeof(MethodAroundAspect));
-                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
-                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"));
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
+                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                 newmethod.Body.SimplifyMacros();
@@ -180,13 +180,13 @@ namespace Buffalo
                 NewMethodNames.Add(methodName);
                 method.DeclaringType.Methods.Add(newmethod);
 
-                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodDetail)"));
+                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
                 int i = 0;
                 bool found = false;
                 for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
                 {
                     if (invokeMethod.Body.Instructions[i].ToString()
-                        .Contains("callvirt System.Void Buffalo.MethodDetail::Proceed()"))
+                        .Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"))
                     {
                         found = true;
                         break;
@@ -242,7 +242,7 @@ namespace Buffalo
                 var voidType = method.ReturnType.FullName.Equals("System.Void");
                 var ret = il.Create(OpCodes.Ret);
 
-                var mdInstructions = new List<Instruction>();
+                var maInstructions = new List<Instruction>();
                 var aspectVarInstructions = new List<Instruction>();
                 var beforeInstructions = new List<Instruction>();
                 var successInstructions = new List<Instruction>();
@@ -251,34 +251,22 @@ namespace Buffalo
 
                 method.Body.SimplifyMacros();
                 #region Method detail
-                //var mdType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
-                //var mdSetName = mdType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setName"));
-                //var mdSetException = mdType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("setException"));
-                //var mdCtorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
-                //MethodReference mdCtor = this.AssemblyDefinition.MainModule.Import(mdCtorInfo);
-                //mdInstructions.Add(Instruction.Create(OpCodes.Newobj, mdCtor));
-                //mdInstructions.Add(Instruction.Create(OpCodes.Stloc_0)); //store methoddetail at index 0
-                //mdInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
-                //mdInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                //var mdSetNameRef = this.AssemblyDefinition.MainModule.Import(mdSetName, method);
-                //var mdSetExceptionRef = this.AssemblyDefinition.MainModule.Import(mdSetException, method);
-                //mdInstructions.Add(Instruction.Create(OpCodes.Callvirt, mdSetNameRef));
-                int mdIdx = 0;
-                //mdInstructions.ForEach(x => method.Body.Instructions.Insert(mdIdx++, x));
+                var maType = typeof(MethodArgs);
+                var maName = "ma" + DateTime.Now.Ticks;
+                var maSetNames = maType.GetMethod("setNames");
+                var varMa = new VariableDefinition(maName, this.AssemblyDefinition.MainModule.Import(maType));
+                method.Body.Variables.Add(varMa);
+                var vaMaIdx = method.Body.Variables.Count - 1;
+                var maCtr = maType.GetConstructor(new Type[] { });
+                MethodReference maCtrRef = this.AssemblyDefinition.MainModule.Import(maCtr);
+                maInstructions.Add(Instruction.Create(OpCodes.Newobj, maCtrRef));
+                maInstructions.Add(Instruction.Create(OpCodes.Stloc, varMa));
+                maInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
+                var maSetNameRef = this.AssemblyDefinition.MainModule.Import(maSetNames, method);
+                maInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetNameRef));
 
-                /*
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        var varType = this.AssemblyDefinition.MainModule.Import(typeof(MethodDetail));
-                        var varDef = new VariableDefinition("md" + i, varType);
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varDef));
-                        method.Body.Variables.Add(varDef);
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Nop));
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varDef));
-                        var constructorInfo = typeof(MethodDetail).GetConstructor(new Type[] { });
-                        MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
-                 */
                 #endregion
 
                 #region Before, Success, Exception, After
@@ -303,10 +291,11 @@ namespace Buffalo
                     {
 
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
 
                         var aspectBefore = aspects[i].Type.GetMethod("Before");
@@ -383,7 +372,7 @@ namespace Buffalo
                 }
 
                 int varIdx = 0;
-                //int varIdx2 = 0;
+                maInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
                 aspectVarInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
                 //varIdx2 = varIdx * aspects.Count;
 

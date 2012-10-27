@@ -10,9 +10,7 @@ namespace Buffalo
         private Exception exception;
         private List<Parameter> parameters;
 
-        public MethodDetail()
-        {
-        }
+        public MethodDetail() { }
 
         public void Proceed() { }
 

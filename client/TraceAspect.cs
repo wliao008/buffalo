@@ -6,15 +6,17 @@ using Buffalo;
 namespace client
 {
     [TraceAspect(AttributeExclude = true)]
-    [Trace2Aspect(AttributeExclude = true)]
-    [MyAroundAspect(AttributeExclude = true)]
+    //[Trace2Aspect(AttributeExclude = true)]
+    //[MyAroundAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
         Random r = new Random();
-        public override void Before(string name, string fullname)
+        public override void Before(MethodArgs args)
         {
-            Console.WriteLine("Trace.Before " + r.Next(1,99));
-            this.Display(name, fullname);
+            Console.WriteLine("Trace.Before " + r.Next(1, 99));
+            Console.WriteLine("\tName: " + args.Name);
+            Console.WriteLine("\tFull Name: " + args.FullName);
+            //this.Display(name, fullname);
         }
 
         //public override void Before(MethodDetail detail)
@@ -46,7 +48,7 @@ namespace client
         }
     }
 
-
+    /*
     [TraceAspect(AttributeExclude = true)]
     [Trace2Aspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
@@ -98,4 +100,5 @@ namespace client
             Console.WriteLine("\tat: {0}\n\t{1}\n", name, fullname);
         }
     }
+    */
 }

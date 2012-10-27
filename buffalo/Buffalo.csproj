@@ -52,6 +52,7 @@
     <Compile Include="IMethodAroundAspect.cs" />
     <Compile Include="IMethodBoundaryAspect.cs" />
     <Compile Include="IRewriter.cs" />
+    <Compile Include="MethodArgs.cs" />
     <Compile Include="MethodAroundAspect.cs" />
     <Compile Include="MethodBoundaryAspect.cs" />
     <Compile Include="MethodDetail.cs" />
