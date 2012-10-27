@@ -332,13 +332,12 @@ namespace Buffalo
                     var exception = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Exception);
                     if (exception != null)
                     {
-                        var varExpType = this.AssemblyDefinition.MainModule.Import(typeof(System.Exception));
-                        var toString = varExpType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("ToString"));
-                        var toStringRef = this.AssemblyDefinition.MainModule.Import(toString, method);
+                        var varExpType = typeof(System.Exception);
                         var expName = "exp" + System.DateTime.Now.Ticks;
-                        var varExp = new VariableDefinition(expName, varExpType);
+                        var varExp = new VariableDefinition(expName, this.AssemblyDefinition.MainModule.Import(varExpType));
                         method.Body.Variables.Add(varExp);
                         //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varExp));
+                        /*
                         int idx = 0;
                         var exceptionVarFound = false;
                         for (; idx < method.Body.Variables.Count; ++idx)
@@ -348,7 +347,7 @@ namespace Buffalo
                                 exceptionVarFound = true;
                                 break;
                             }
-                        }
+                        }*/
                         /*
                         if (exceptionVarFound)
                         {
@@ -366,6 +365,16 @@ namespace Buffalo
                         //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
                         //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                         //exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
+
+                        //var varException = method.Body.Variables[method.Body.Variables.Count - 1];
+                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varExp));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varExp));
+                        var maSetException = maType.GetMethod("SetException");
+                        var maSetExceptionRef = this.AssemblyDefinition.MainModule.Import(maSetException, method);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetExceptionRef));
+
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
                         var aspectException = aspects[i].Type.GetMethod("Exception");

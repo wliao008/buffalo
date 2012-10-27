@@ -35,6 +35,10 @@ namespace client
             Console.WriteLine("********* TRACE EXCEPTION!! ********:");
             Console.WriteLine("\tName: " + args.Name);
             Console.WriteLine("\tFull Name: " + args.FullName);
+            if (args.Exception != null)
+            {
+                Console.WriteLine("\tException: " + args.Exception.Message);
+            }
             //this.Display(name, fullname);
         }
 
