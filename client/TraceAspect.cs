@@ -17,7 +17,7 @@ namespace client
 
         public override void Before(string name, string fullname)
         {
-            Console.WriteLine("Trace.Before " + r.Next(1,100));
+            Console.WriteLine("Trace.Before " + r.Next(1,99));
             this.Display(name, fullname);
         }
 
@@ -34,13 +34,13 @@ namespace client
 
         public override void Success(string name, string fullname)
         {
-            Console.WriteLine("Trace.Success:");
+            Console.WriteLine("Trace.Success:" + r.Next(200, 299));
             this.Display(name, fullname);
         }
 
         public override void After(string name, string fullname)
         {
-            Console.WriteLine("Trace.After");
+            Console.WriteLine("Trace.After: " + r.Next(300, 399));
             this.Display(name, fullname);
         }
 
