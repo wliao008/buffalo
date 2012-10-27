@@ -6,14 +6,36 @@ using Buffalo;
 namespace client
 {
     [TraceAspect(AttributeExclude = true)]
-    //[Trace2Aspect(AttributeExclude = true)]
-    //[MyAroundAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
         Random r = new Random();
         public override void Before(MethodArgs args)
         {
             Console.WriteLine("Trace.Before " + r.Next(1, 99));
+            this.Display(args);
+        }
+
+        public override void Exception(MethodArgs args)
+        {
+            Console.WriteLine("********* TRACE EXCEPTION!! ********:" + r.Next(400,499));
+            this.Display(args);
+        }
+
+        public override void Success(MethodArgs args)
+        {
+            Console.WriteLine("Trace.Success:" + r.Next(200, 299));
+            this.Display(args);
+        }
+
+        public override void After(MethodArgs args)
+        {
+            Console.WriteLine("Trace.After: " + r.Next(300, 399));
+            this.Display(args);
+        }
+
+        private void Display(MethodArgs args)
+        {
             Console.WriteLine("\tReturnType: " + args.ReturnType.BaseType.FullName);
             Console.WriteLine("\tName: " + args.Name);
             Console.WriteLine("\tFull Name: " + args.FullName);
@@ -22,55 +44,18 @@ namespace client
             {
                 Console.WriteLine("\t\t{0}: {1}", p.Name, p.Type);
             }
-            //this.Display(name, fullname);
-        }
-
-        //public override void Before(MethodDetail detail)
-        //{
-        //    Console.WriteLine("Trace.Before: " + detail.Name);
-        //}
-
-        public override void Exception(MethodArgs args)
-        {
-            Console.WriteLine("********* TRACE EXCEPTION!! ********:");
-            Console.WriteLine("\tName: " + args.Name);
-            Console.WriteLine("\tFull Name: " + args.FullName);
             if (args.Exception != null)
             {
                 Console.WriteLine("\tException: " + args.Exception.Message);
             }
-            //this.Display(name, fullname);
-        }
-
-        public override void Success(MethodArgs args)
-        {
-            Console.WriteLine("Trace.Success:" + r.Next(200, 299));
-            Console.WriteLine("\tName: " + args.Name);
-            Console.WriteLine("\tFull Name: " + args.FullName);
-            //this.Display(name, fullname);
-        }
-
-        public override void After(MethodArgs args)
-        {
-            Console.WriteLine("Trace.After: " + r.Next(300, 399));
-            Console.WriteLine("\tName: " + args.Name);
-            Console.WriteLine("\tFull Name: " + args.FullName);
-            //this.Display(name, fullname);
-        }
-
-        private void Display(string name, string fullname)
-        {
-            Console.WriteLine("\tat: {0}\n\t{1}\n", name, fullname);
         }
     }
 
-    /*
     [TraceAspect(AttributeExclude = true)]
-    [Trace2Aspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
     public class MyAroundAspect : MethodAroundAspect
     {
-        public override void Invoke(MethodDetail detail)
+        public override void Invoke(MethodArgs args)
         {
             var usr = GetFakeUser();
             Console.WriteLine("Fake user: " + usr.Username);
@@ -82,6 +67,7 @@ namespace client
         }
     }
 
+    /*
     [TraceAspect(AttributeExclude = true)]
     [Trace2Aspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
