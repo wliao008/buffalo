@@ -15,8 +15,9 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            var usr = test.Add(5,7);
-            Console.WriteLine("result: " + usr);
+            //var usr = test.Add(5,7);
+            //Console.WriteLine("result: " + usr);
+            test.TestDivideByZero();
 
 
             Console.WriteLine("DONE");
@@ -34,6 +35,7 @@ namespace client
             set { _message = value; }
         }
 
+        [TraceAspect]
         public void TestDivideByZero()
         {
             int z = 0;

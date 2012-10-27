@@ -6,6 +6,6 @@ namespace Buffalo
         void Before(MethodArgs args);
         void After(MethodArgs args);
         void Success(MethodArgs args);
-        void Exception(string name, string fullname);
+        void Exception(MethodArgs args);
     }
 }

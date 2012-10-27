@@ -10,6 +10,7 @@ namespace Buffalo
         private string returnTypeStr;
         private string parameterStr;
         private List<Parameter> parameters;
+        private Exception exception;
 
         public MethodArgs()
         {
@@ -45,6 +46,11 @@ namespace Buffalo
             get { return this.parameters; }
         }
 
+        public Exception Exception
+        {
+            get { return this.exception; }
+        }
+
         public void SetProperties(string name, 
             string fullname, 
             string returnTypeStr,
@@ -61,6 +67,11 @@ namespace Buffalo
                 var p = split.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                 this.parameters.Add(new Parameter { Name = p[0], Type = Type.GetType(p[1]) });
             }
+        }
+
+        public void SetException(Exception exception)
+        {
+            this.exception = exception;
         }
 
         public void Proceed() { }

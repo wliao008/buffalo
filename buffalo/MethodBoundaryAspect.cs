@@ -21,6 +21,6 @@ namespace Buffalo
 
         public virtual void Success(MethodArgs args) { }
 
-        public virtual void Exception(string name, string fullname) { }
+        public virtual void Exception(MethodArgs args) { }
     }
 }

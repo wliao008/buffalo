@@ -30,10 +30,12 @@ namespace client
         //    Console.WriteLine("Trace.Before: " + detail.Name);
         //}
 
-        public override void Exception(string name, string fullname)
+        public override void Exception(MethodArgs args)
         {
             Console.WriteLine("********* TRACE EXCEPTION!! ********:");
-            this.Display(name, fullname);
+            Console.WriteLine("\tName: " + args.Name);
+            Console.WriteLine("\tFull Name: " + args.FullName);
+            //this.Display(name, fullname);
         }
 
         public override void Success(MethodArgs args)
