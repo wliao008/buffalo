@@ -9,9 +9,15 @@ namespace client
     [MyAroundAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
+        Random r;
+        public TraceAspect()
+        {
+            r = new Random((int)System.DateTime.Now.Ticks);
+        }
+
         public override void Before(string name, string fullname)
         {
-            Console.WriteLine("Trace.Before");
+            Console.WriteLine("Trace.Before " + r.Next(1,100));
             this.Display(name, fullname);
         }
 
@@ -22,13 +28,13 @@ namespace client
 
         public override void Exception(string name, string fullname)
         {
-            Console.WriteLine("********* TRACE EXCEPTION!! ********");
+            Console.WriteLine("********* TRACE EXCEPTION!! ********:");
             this.Display(name, fullname);
         }
 
         public override void Success(string name, string fullname)
         {
-            Console.WriteLine("Trace.Success");
+            Console.WriteLine("Trace.Success:");
             this.Display(name, fullname);
         }
 

@@ -15,8 +15,8 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            var usr = test.GetUser();
-            Console.WriteLine("Real usr: " + usr.Username);
+            var usr = test.Add(5,7);
+            Console.WriteLine("result: " + usr);
 
 
             Console.WriteLine("DONE");
@@ -24,7 +24,6 @@ namespace client
         }
     }
 
-    //[TraceAspect]
     public class TraceAspectTester
     {
         private string _message;
@@ -80,8 +79,13 @@ namespace client
             Console.WriteLine("RealNum: " + c);
         }
 
+
+        [TraceAspect]
         public int Add(int a, int b)
         {
+            //TraceAspect ta = new TraceAspect();
+            //ta.Before("Add", "wei_Add");
+
             int c = a + b;
             return c;
         }

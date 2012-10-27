@@ -286,11 +286,30 @@ namespace Buffalo
                     var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
                     if (before != null)
                     {
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+                        //create an aspect variable
+                        var varAspectType = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect));
+                        var varAspectName = "asp" + System.DateTime.Now.Ticks;
+                        var varAspect = new VariableDefinition(varAspectName, varAspectType);
+                        method.Body.Variables.Add(varAspect);
+                        var varAspectIdx = method.Body.Variables.Count - 1;
+                        //call ctor
+                        Type t = aspects[i].Type;
+                        var constructorInfo = t.GetConstructor(new Type[] { });
+                        MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
+                        //beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
+
+                        var aspectBefore = aspects[i].Type.GetMethod("Before");
+                        //var aspectBefore = varAspectType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("Before"));
+                        var aspectBeforeRef = this.AssemblyDefinition.MainModule.Import(aspectBefore, method);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
                     }
 
                     var success = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Success);
