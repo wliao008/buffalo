@@ -310,8 +310,9 @@ namespace Buffalo
                         //successInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         //successInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
-                        successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                        successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
+                        successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+                        //successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        //successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                         //successInstructions.Add(Instruction.Create(OpCodes.Call, success));
                         var aspectSuccess = aspects[i].Type.GetMethod("Success");
                         var aspectSuccessRef = this.AssemblyDefinition.MainModule.Import(aspectSuccess, method);
@@ -362,8 +363,9 @@ namespace Buffalo
                     {
                         //afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
-                        afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                        afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
+                        //afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+                        //afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
                         //afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
                         var aspectAfter = aspects[i].Type.GetMethod("After");
                         var aspectAfterRef = this.AssemblyDefinition.MainModule.Import(aspectAfter, method);

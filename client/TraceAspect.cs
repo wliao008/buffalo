@@ -30,16 +30,20 @@ namespace client
             this.Display(name, fullname);
         }
 
-        public override void Success(string name, string fullname)
+        public override void Success(MethodArgs args)
         {
             Console.WriteLine("Trace.Success:" + r.Next(200, 299));
-            this.Display(name, fullname);
+            Console.WriteLine("\tName: " + args.Name);
+            Console.WriteLine("\tFull Name: " + args.FullName);
+            //this.Display(name, fullname);
         }
 
-        public override void After(string name, string fullname)
+        public override void After(MethodArgs args)
         {
             Console.WriteLine("Trace.After: " + r.Next(300, 399));
-            this.Display(name, fullname);
+            Console.WriteLine("\tName: " + args.Name);
+            Console.WriteLine("\tFull Name: " + args.FullName);
+            //this.Display(name, fullname);
         }
 
         private void Display(string name, string fullname)

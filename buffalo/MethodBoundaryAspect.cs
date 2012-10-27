@@ -17,9 +17,9 @@ namespace Buffalo
 
         public virtual void Before(MethodArgs args) { }
 
-        public virtual void After(string name, string fullname) { }
+        public virtual void After(MethodArgs args) { }
 
-        public virtual void Success(string name, string fullname) { }
+        public virtual void Success(MethodArgs args) { }
 
         public virtual void Exception(string name, string fullname) { }
     }
