@@ -48,13 +48,17 @@
   <ItemGroup>
     <Compile Include="Aspect.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="IAspect.cs" />
+    <Compile Include="IInjectable.cs" />
     <Compile Include="IMethodAroundAspect.cs" />
     <Compile Include="IMethodBoundaryAspect.cs" />
     <Compile Include="IRewriter.cs" />
     <Compile Include="MethodArgs.cs" />
     <Compile Include="MethodAroundAspect.cs" />
+    <Compile Include="MethodAroundInjector.cs" />
     <Compile Include="MethodBoundaryAspect.cs" />
+    <Compile Include="MethodBoundaryInjector.cs" />
     <Compile Include="Parameter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewriter.cs" />

@@ -40,19 +40,20 @@ namespace Buffalo
 
         internal void Inject(string outPath)
         {
+            var injectors = new List<IInjectable>();
+
             //apply the around aspect if necessary
             var aroundAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
             if (aroundAspectExist)
-            {
-                this.InjectAroundAspect();
-            }
+                injectors.Add(new MethodAroundInjector());
 
             //apply the boundary aspect if necessary
             var boundaryAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
             if (boundaryAspectExist)
-            {
-                this.InjectBoundaryAspect();
-            }
+                injectors.Add(new MethodBoundaryInjector());
+
+            //inject
+            injectors.ForEach(x => x.Inject(this.AssemblyDefinition, this.EligibleMethods));
 
             //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
@@ -230,8 +231,14 @@ namespace Buffalo
                 }
             }
         }
-
+        
         private void InjectBoundaryAspect()
+        {
+            IInjectable injector = new MethodBoundaryInjector();
+            injector.Inject(this.AssemblyDefinition, this.EligibleMethods);
+        }
+
+        private void InjectBoundaryAspect_OLD()
         {
             var ems = this.EligibleMethods.ToList();
             var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
@@ -296,7 +303,7 @@ namespace Buffalo
                     aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                     #endregion
 
-                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Before);
+                    var before = this.FindMethodReference(method, aspects[i], Buffalo.Enums.AspectType.Before);
                     if (before != null)
                     {
 
@@ -314,7 +321,7 @@ namespace Buffalo
                         beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
                     }
 
-                    var success = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Success);
+                    var success = this.FindMethodReference(method, aspects[i], Buffalo.Enums.AspectType.Success);
                     if (success != null)
                     {
                         //successInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
@@ -329,7 +336,7 @@ namespace Buffalo
                         successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
                     }
 
-                    var exception = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.Exception);
+                    var exception = this.FindMethodReference(method, aspects[i], Buffalo.Enums.AspectType.Exception);
                     if (exception != null)
                     {
                         var varExpType = typeof(System.Exception);
@@ -383,7 +390,7 @@ namespace Buffalo
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectExceptionRef));
                     }
 
-                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.BoundaryType.After);
+                    var after = this.FindMethodReference(method, aspects[i], Buffalo.Enums.AspectType.After);
                     if (after != null)
                     {
                         //afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
@@ -486,7 +493,7 @@ namespace Buffalo
             }
         }
 
-        private MethodReference FindMethodReference(MethodDefinition method, Aspect aspect, Buffalo.Enums.BoundaryType name)
+        private MethodReference FindMethodReference(MethodDefinition method, Aspect aspect, Buffalo.Enums.AspectType name)
         {
             return aspect
                 .TypeDefinition

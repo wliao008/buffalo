@@ -14,7 +14,7 @@ namespace Buffalo
             Excluded
         }
 
-        internal enum BoundaryType
+        internal enum AspectType
         {
             Before,
             After,

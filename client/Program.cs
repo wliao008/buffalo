@@ -15,8 +15,8 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            test.RealNum(5, 1);
-            //Console.WriteLine("result: " + usr);
+            var result = test.Add(102, 40);
+            Console.WriteLine("result: " + result);
 
 
             Console.WriteLine("DONE");
@@ -59,6 +59,11 @@ namespace client
         public User GetUser()
         {
             return new User { Username = "weiliao" };
+        }
+
+        public User GetUserNoAround(User usr)
+        {
+            return usr;
         }
 
         [MyAroundAspect]

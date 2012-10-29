@@ -74,6 +74,9 @@ namespace Buffalo
             this.exception = exception;
         }
 
-        public void Proceed() { }
+        public object Proceed()
+        {
+            return null;
+        }
     }
 }
