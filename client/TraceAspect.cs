@@ -55,10 +55,19 @@ namespace client
     [MyAroundAspect(AttributeExclude = true)]
     public class MyAroundAspect : MethodAroundAspect
     {
-        public override void Invoke(MethodArgs args)
+        public override object Invoke(MethodArgs args)
         {
-            var usr = GetFakeUser();
-            Console.WriteLine("Fake user: " + usr.Username);
+            if (10 % 2 == 0)
+            {
+                object obj = args.Proceed();
+                return obj;
+            }
+            else
+            {
+                var usr = GetFakeUser();
+                Console.WriteLine("Fake user: " + usr.Username);
+                return null;
+            }
         }
 
         public User GetFakeUser()

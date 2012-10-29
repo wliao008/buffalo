@@ -78,8 +78,50 @@ namespace Buffalo
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldstr, method.ReturnType.FullName));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldstr, sb.ToString()));
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                     var maSetPropertiesRef = this.AssemblyDefinition.MainModule.Import(maSetProperties, newmethod);
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
+                    #endregion
+
+                    #region Calling MethodArgs.Invoke
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+                    var aspectInvoke = aspect.Type.GetMethod("Invoke");
+                    var aspectInvokeRef = this.AssemblyDefinition.MainModule.Import(aspectInvoke, newmethod);
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, aspectInvokeRef));
+                    #endregion
+
+                    #region Modify the around instruction to do Proceed()
+                    //var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
+                    //    x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
+                    //int instIdx = 0;
+                    //bool found = false;
+                    //for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
+                    //{
+                    //    if (invoke.Body.Instructions[instIdx].ToString()
+                    //        .Contains("System.Object Buffalo.MethodArgs::Proceed"))
+                    //    {
+                    //        found = true;
+                    //        break;
+                    //    }
+                    //}
+
+                    //if (found)
+                    //{
+                    //    //make a call to the original method
+                    //    var ldarg0 = Instruction.Create(OpCodes.Ldarg_0);
+                    //    invoke.Body.Instructions[instIdx - 1] = ldarg0;
+                    //    invoke.Body.Instructions[instIdx] = Instruction.Create(OpCodes.Call, method);
+                    //    int count = instIdx;
+                    //    if (method.Parameters.Count > 0)
+                    //    {
+                    //        for (int j = 0; j < method.Parameters.Count; ++j)
+                    //        {
+                    //            var ins = Instruction.Create(OpCodes.Ldarg, method.Parameters[j]);
+                    //            newmethod.Body.Instructions.Insert(count++, ins);
+                    //        }
+                    //    }
+                    //}
                     #endregion
 
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));

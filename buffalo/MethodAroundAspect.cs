@@ -10,6 +10,6 @@ namespace Buffalo
 
         public bool AttributeExclude { get; set; }
 
-        public virtual void Invoke(MethodArgs args) { }
+        public virtual object Invoke(MethodArgs args) { return null; }
     }
 }

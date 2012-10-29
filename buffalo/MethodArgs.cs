@@ -11,6 +11,7 @@ namespace Buffalo
         private string parameterStr;
         private List<Parameter> parameters;
         private Exception exception;
+        private Object instance;
 
         public MethodArgs()
         {
@@ -51,15 +52,30 @@ namespace Buffalo
             get { return this.exception; }
         }
 
-        public void SetProperties(string name, 
-            string fullname, 
+        public object Instance
+        {
+            get { return this.instance; }
+        }
+
+        //public void SetProperties(string name, 
+        //    string fullname, 
+        //    string returnTypeStr,
+        //    string parameterStr)
+        //{
+        //    this.SetProperties(name, fullname, returnTypeStr, parameterStr, null);
+        //}
+
+        public void SetProperties(string name,
+            string fullname,
             string returnTypeStr,
-            string parameterStr)
+            string parameterStr,
+            object instance = null)
         {
             this.name = name;
             this.fullName = fullname;
             this.returnTypeStr = returnTypeStr;
             this.parameterStr = parameterStr;
+            this.instance = instance;
 
             var splits = this.parameterStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var split in splits)

@@ -15,8 +15,10 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            var result = test.Add(102, 40);
-            Console.WriteLine("result: " + result);
+            test.RealNumNoArgs();
+            //test.TestDivideByZero();
+            //var result = test.Add(102, 40);
+            //Console.WriteLine("result: " + result);
 
 
             Console.WriteLine("DONE");
@@ -34,7 +36,7 @@ namespace client
             set { _message = value; }
         }
 
-        [TraceAspect]
+        [MyAroundAspect]
         public void TestDivideByZero()
         {
             int z = 0;
@@ -55,7 +57,7 @@ namespace client
             }
         }
 
-        [MyAroundAspect]
+        //[MyAroundAspect]
         public User GetUser()
         {
             return new User { Username = "weiliao" };
@@ -66,8 +68,8 @@ namespace client
             return usr;
         }
 
-        [MyAroundAspect]
-        [TraceAspect]
+        //[MyAroundAspect]
+        //[TraceAspect]
         public void RealNum(int a, int b)
         {
             //int a = 10;

@@ -59,6 +59,7 @@ namespace Buffalo
                 maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
                 maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.ReturnType.FullName));
                 maInstructions.Add(Instruction.Create(OpCodes.Ldstr, sb.ToString()));
+                maInstructions.Add(Instruction.Create(OpCodes.Ldnull));
                 var maSetPropertiesRef = this.AssemblyDefinition.MainModule.Import(maSetProperties, method);
                 maInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
 
