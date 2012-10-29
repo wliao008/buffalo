@@ -36,14 +36,15 @@ namespace Buffalo
 
                 foreach (var aspect in aspects.Where(x => x.Type.BaseType == typeof(MethodAroundAspect)))
                 {
-                    //create a replacement for the annotated function
                     var varTicks = System.DateTime.Now.Ticks;
+
+                    //create a replacement for the annotated function
                     var methodName = string.Format("{0}{1}", method.Name, varTicks);
                     MethodDefinition newmethod =
                         new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                     methodType.Methods.Add(newmethod);
 
-                    //create aspect variable           
+                    //create aspect variable
                     var varAspectName = "asp" + varTicks;
                     var varAspect = new VariableDefinition(varAspectName, aspect.TypeDefinition);
                     newmethod.Body.Variables.Add(varAspect);
@@ -51,43 +52,18 @@ namespace Buffalo
                     var constructorInfo = aspect.Type.GetConstructor(new Type[] { });
                     MethodReference myClassConstructor =
                         this.AssemblyDefinition.MainModule.Import(constructorInfo);
-
+                    //store the newly created aspect variable
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
-
-                    #region Method detail
-                    StringBuilder sb = new StringBuilder();
-                    method.Parameters.ToList()
-                        .ForEach(x =>
-                        {
-                            sb.Append(string.Format("{0}:{1}|", x.Name, x.ParameterType.FullName));
-                        });
-
-                    var maType = typeof(MethodArgs);
-                    var maName = "ma" + DateTime.Now.Ticks;
-                    var maSetProperties = maType.GetMethod("SetProperties");
-                    var varMa = new VariableDefinition(maName, this.AssemblyDefinition.MainModule.Import(maType));
-                    newmethod.Body.Variables.Add(varMa);
-                    var vaMaIdx = newmethod.Body.Variables.Count - 1;
-                    var maCtr = maType.GetConstructor(new Type[] { });
-                    MethodReference maCtrRef = this.AssemblyDefinition.MainModule.Import(maCtr);
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Newobj, maCtrRef));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Stloc, varMa));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldstr, method.ReturnType.FullName));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldstr, sb.ToString()));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                    var maSetPropertiesRef = this.AssemblyDefinition.MainModule.Import(maSetProperties, newmethod);
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
-                    #endregion
-
+                    //create a MethodArgs
+                    var varMa = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
+                    
                     #region Calling MethodArgs.Invoke
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
                     var aspectInvoke = aspect.Type.GetMethod("Invoke");
-                    var aspectInvokeRef = this.AssemblyDefinition.MainModule.Import(aspectInvoke, newmethod);
+                    var aspectInvokeRef = 
+                        this.AssemblyDefinition.MainModule.Import(aspectInvoke, newmethod);
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, aspectInvokeRef));
                     #endregion
 
