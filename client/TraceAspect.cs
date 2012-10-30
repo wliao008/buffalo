@@ -7,6 +7,7 @@ namespace client
 {
     [TraceAspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
+    [FakeAddAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
         Random r = new Random();
@@ -53,6 +54,7 @@ namespace client
 
     [TraceAspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
+    [FakeAddAspect(AttributeExclude = true)]
     public class MyAroundAspect : MethodAroundAspect
     {
         public override object Invoke(MethodArgs args)
@@ -73,6 +75,24 @@ namespace client
         public User GetFakeUser()
         {
             return new User { Username = "Fake username" };
+        }
+    }
+    
+    [TraceAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
+    [FakeAddAspect(AttributeExclude = true)]
+    public class FakeAddAspect : MethodAroundAspect
+    {
+        Random r = new Random((int)DateTime.Now.Ticks);
+        public override object Invoke(MethodArgs args)
+        {
+            //var num = r.Next(1, 100);
+            //if(num % 2 == 0){
+            //    return args.Proceed();
+            //}
+            var result = 2;
+            Console.WriteLine("in fake aspect: " + result);
+            return result;
         }
     }
 

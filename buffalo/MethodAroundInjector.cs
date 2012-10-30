@@ -4,6 +4,7 @@ using System.Linq;
 using System;
 using Mono.Cecil.Cil;
 using System.Text;
+using System.Collections.Specialized;
 
 namespace Buffalo
 {
@@ -21,6 +22,7 @@ namespace Buffalo
              */
             this.AssemblyDefinition = assemblyDefinition;
             this.EligibleMethods = eligibleMethods;
+            var NewMethodNames = new StringCollection();
             
             var eligibleAroundMethods = this.EligibleMethods
                 .Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
@@ -43,6 +45,7 @@ namespace Buffalo
                     MethodDefinition newmethod =
                         new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                     methodType.Methods.Add(newmethod);
+                    NewMethodNames.Add(methodName);
 
                     //create aspect variable
                     var varAspectName = "asp" + varTicks;
@@ -55,9 +58,12 @@ namespace Buffalo
                     //store the newly created aspect variable
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
+                    //copy all the paramters
+                    method.Parameters.ToList().ForEach(x =>
+                        newmethod.Parameters.Add(new ParameterDefinition(x.Name, x.Attributes, x.ParameterType)));
                     //create a MethodArgs
                     var varMa = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
-                    
+
                     #region Calling MethodArgs.Invoke
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
@@ -66,6 +72,18 @@ namespace Buffalo
                         this.AssemblyDefinition.MainModule.Import(aspectInvoke, newmethod);
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, aspectInvokeRef));
                     #endregion
+
+                    if (!newmethod.ReturnType.FullName.Equals("System.Void"))
+                    {
+                        //create an object variable to hold the return value
+                        var varObj = new VariableDefinition("obj" + varTicks,
+                            this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                        newmethod.Body.Variables.Add(varObj);
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Stloc, varObj));
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Ldloc, varObj));
+                    }
 
                     #region Modify the around instruction to do Proceed()
                     //var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
@@ -98,6 +116,23 @@ namespace Buffalo
                     //        }
                     //    }
                     //}
+                    #endregion
+
+                    #region Modify all calls to generated method
+                    foreach (var type in this.AssemblyDefinition.MainModule.Types)
+                    {
+                        foreach (var m in type.Methods.Where(x => !NewMethodNames.Contains(x.Name)))
+                        {
+                            for (int j = 0; j < m.Body.Instructions.Count; ++j)
+                            {
+                                if (m.Body.Instructions[j].ToString().Contains(method.FullName))
+                                {
+                                    //m.Body.Instructions[j].OpCode = OpCodes.Call;
+                                    m.Body.Instructions[j].Operand = newmethod;
+                                }
+                            }
+                        }
+                    }
                     #endregion
 
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
