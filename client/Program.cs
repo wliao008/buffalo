@@ -15,10 +15,12 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            var result = test.Add(230, 4);
-            Console.WriteLine("result type: " + result.GetType());
-            Console.WriteLine("result: " + (int)result);
+            object result = test.Add(230, 4);
+            Console.WriteLine("result: " + result);
 
+            //Console.WriteLine("call a second time:");
+            //result = test.Add(45, 6);
+            //Console.WriteLine("result: " + result);
 
             Console.WriteLine("DONE");
             Console.Read();
@@ -89,7 +91,7 @@ namespace client
 
         //[TraceAspect]
         [FakeAddAspect]
-        public int Add(int a, int b)
+        public object Add(int a, int b)
         {
             //TraceAspect ta = new TraceAspect();
             //ta.Before("Add", "wei_Add");

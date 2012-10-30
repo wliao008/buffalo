@@ -5,6 +5,7 @@ using System;
 using Mono.Cecil.Cil;
 using System.Text;
 using System.Collections.Specialized;
+using Mono.Cecil.Rocks;
 
 namespace Buffalo
 {
@@ -42,10 +43,17 @@ namespace Buffalo
 
                     //create a replacement for the annotated function
                     var methodName = string.Format("{0}{1}", method.Name, varTicks);
+                    var objRef = this.AssemblyDefinition.MainModule.Import(typeof(object));
+                    //if (method.ReturnType.FullName.Equals("System.Void"))
+                    //{
+                    //    objRef = method.ReturnType;
+                    //}
+
                     MethodDefinition newmethod =
                         new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                     methodType.Methods.Add(newmethod);
                     NewMethodNames.Add(methodName);
+                    newmethod.Body.SimplifyMacros();
 
                     //create aspect variable
                     var varAspectName = "asp" + varTicks;
@@ -81,6 +89,16 @@ namespace Buffalo
                         newmethod.Body.Variables.Add(varObj);
                         newmethod.Body.Instructions.Add(
                             Instruction.Create(OpCodes.Stloc, varObj));
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Ldloc, varObj));
+
+                        var console = typeof(Console);
+                        var consoleRef = this.AssemblyDefinition.MainModule.Import(console);
+                        var writeline = console.GetMethod("WriteLine", new[] { typeof(object) });
+                        var writelineRef = this.AssemblyDefinition.MainModule.Import(writeline);
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Call, writelineRef));
+
                         newmethod.Body.Instructions.Add(
                             Instruction.Create(OpCodes.Ldloc, varObj));
                     }
@@ -128,7 +146,8 @@ namespace Buffalo
                                 if (m.Body.Instructions[j].ToString().Contains(method.FullName))
                                 {
                                     //m.Body.Instructions[j].OpCode = OpCodes.Call;
-                                    m.Body.Instructions[j].Operand = newmethod;
+                                    //m.Body.Instructions[j].Operand = newmethod;
+                                    m.Body.Instructions[j] = Instruction.Create(OpCodes.Callvirt, newmethod);
                                 }
                             }
                         }
@@ -136,6 +155,7 @@ namespace Buffalo
                     #endregion
 
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+                    newmethod.Body.OptimizeMacros();
                 }
                 //maInstructions.ForEach(x => newmethod.Body.Instructions.Insert(varIdx++, x));
                 //aspectVarInstructions.ForEach(x => newmethod.Body.Instructions.Insert(varIdx++, x));

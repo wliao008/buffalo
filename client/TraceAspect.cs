@@ -91,7 +91,7 @@ namespace client
             //    return args.Proceed();
             //}
             var result = 2;
-            Console.WriteLine("in fake aspect: " + result);
+            Console.WriteLine("fake result: " + result + ", random: " + r.Next(1,999));
             return result;
         }
     }
