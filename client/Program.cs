@@ -15,7 +15,7 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            test.RealNum(12, 4);
+            test.RealNum(12, 4, true);
             //Console.WriteLine("call a second time:");
             //result = test.Add(45, 6);
             //Console.WriteLine("result: " + result);
@@ -70,11 +70,10 @@ namespace client
         //[MyAroundAspect]
         //[TraceAspect]
         [TraceAspect]
-        public void RealNum(int a, int b)
+        public void RealNum(int a, short b, bool processed)
         {
             //int a = 10;
             //int b = 40;
-            b = b * 2;
             int c = a + b;
             Console.WriteLine("RealNum: " + c);
         }

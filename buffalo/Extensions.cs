@@ -24,6 +24,7 @@ namespace Buffalo
             var instructions = new List<Instruction>();
             method.Body.InitLocals = true;
             var il = method.Body.GetILProcessor();
+            var isValueType = false;
             
             //create var to hold parameter count
             var pcVar = new VariableDefinition("pc" + DateTime.Now.Ticks,
@@ -60,6 +61,7 @@ namespace Buffalo
                 else
                     instructions.Add(il.Create(OpCodes.Ldarg, i + 1));
 
+                isValueType = false;
                 var pType = method.Parameters[i].ParameterType;
                 if (pType.IsByReference)
                 {
@@ -68,16 +70,71 @@ namespace Buffalo
                     {
                         switch (typeSpec.ElementType.MetadataType)
                         {
+                            case MetadataType.Boolean:
+                            case MetadataType.SByte:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I1)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Int16:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I2)); 
+                                isValueType = true;
+                                break;
                             case MetadataType.Int32:
-                                instructions.Add(Instruction.Create(OpCodes.Ldind_I4));
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I4)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Int64:
+                            case MetadataType.UInt64:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I8)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Byte:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_U1)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.UInt16:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_U2)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.UInt32:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_U4)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Single:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_R4));
+                                isValueType = true;
+                                break;
+                            case MetadataType.Double:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_R8));
+                                isValueType = true;
+                                break;
+                            case MetadataType.IntPtr:
+                            case MetadataType.UIntPtr:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I));
+                                isValueType = true;
+                                break;
+                            default:
+                                if (typeSpec.ElementType.IsValueType)
+                                {
+                                    instructions.Add(Instruction.Create(OpCodes.Ldobj, typeSpec.ElementType));
+                                    isValueType = true;
+                                }
+                                else
+                                {
+                                    instructions.Add(Instruction.Create(OpCodes.Ldind_Ref));
+                                    isValueType = false;
+                                }
                                 break;
                         }
                     }
                 }
 
-                if (pType.IsValueType)
+                if (pType.IsValueType || isValueType)
                 {
-                    instructions.Add(Instruction.Create(OpCodes.Box, pType));
+                    if(isValueType)
+                        instructions.Add(Instruction.Create(OpCodes.Box, typeSpec.ElementType));
+                    else
+                        instructions.Add(Instruction.Create(OpCodes.Box, pType));
                 }
 
                 instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
