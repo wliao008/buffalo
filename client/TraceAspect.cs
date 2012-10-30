@@ -8,6 +8,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
     [FakeAddAspect(AttributeExclude = true)]
+    [FakeUserAspect(AttributeExclude = true)]
     public class TraceAspect : MethodBoundaryAspect
     {
         Random r = new Random();
@@ -55,6 +56,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
     [FakeAddAspect(AttributeExclude = true)]
+    [FakeUserAspect(AttributeExclude = true)]
     public class MyAroundAspect : MethodAroundAspect
     {
         public override object Invoke(MethodArgs args)
@@ -81,6 +83,7 @@ namespace client
     [TraceAspect(AttributeExclude = true)]
     [MyAroundAspect(AttributeExclude = true)]
     [FakeAddAspect(AttributeExclude = true)]
+    [FakeUserAspect(AttributeExclude = true)]
     public class FakeAddAspect : MethodAroundAspect
     {
         Random r = new Random((int)DateTime.Now.Ticks);
@@ -93,6 +96,18 @@ namespace client
             var result = 2;
             Console.WriteLine("fake result: " + result + ", random: " + r.Next(1,999));
             return result;
+        }
+    }
+
+    [TraceAspect(AttributeExclude = true)]
+    [MyAroundAspect(AttributeExclude = true)]
+    [FakeAddAspect(AttributeExclude = true)]
+    [FakeUserAspect(AttributeExclude = true)]
+    public class FakeUserAspect : MethodAroundAspect
+    {
+        public override object Invoke(MethodArgs args)
+        {
+            return new User { Username = "Fake user" };
         }
     }
 

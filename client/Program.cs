@@ -15,8 +15,8 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            object result = test.Add(230, 4);
-            Console.WriteLine("result: " + result);
+            User result = test.GetUser();
+            Console.WriteLine("result: " + result.Username);
 
             //Console.WriteLine("call a second time:");
             //result = test.Add(45, 6);
@@ -58,7 +58,7 @@ namespace client
             }
         }
 
-        //[MyAroundAspect]
+        [FakeUserAspect]
         public User GetUser()
         {
             return new User { Username = "weiliao" };
@@ -90,7 +90,7 @@ namespace client
 
 
         //[TraceAspect]
-        [FakeAddAspect]
+        //[FakeAddAspect]
         public int Add(int a, int b)
         {
             //TraceAspect ta = new TraceAspect();
