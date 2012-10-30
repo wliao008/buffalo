@@ -29,6 +29,7 @@ namespace Buffalo
             var maName = "ma" + DateTime.Now.Ticks;
             var maSetProperties = maType.GetMethod("SetProperties");
             var varMa = new VariableDefinition(maName, assemblyDef.MainModule.Import(maType));
+            method.Body.InitLocals = true;
             method.Body.Variables.Add(varMa);
             var vaMaIdx = method.Body.Variables.Count - 1;
             var maCtr = maType.GetConstructor(new Type[] { });
