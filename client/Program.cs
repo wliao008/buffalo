@@ -91,7 +91,7 @@ namespace client
 
         //[TraceAspect]
         [FakeAddAspect]
-        public object Add(int a, int b)
+        public int Add(int a, int b)
         {
             //TraceAspect ta = new TraceAspect();
             //ta.Before("Add", "wei_Add");
@@ -135,14 +135,15 @@ namespace client
 
     public class Dummy
     {
-        public object GetDummyObj()
+        public object Add(int a, int b)
         {
-            return new User { Username = "hey man" };
+            return a + b;
         }
 
         public void HeyDummy()
         {
-            object obj = GetDummyObj();
+            int result = (int)Add(10, 2);
+            Console.WriteLine("result: " + result);
         }
     }
 }

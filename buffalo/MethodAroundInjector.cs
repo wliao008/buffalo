@@ -24,7 +24,7 @@ namespace Buffalo
             this.AssemblyDefinition = assemblyDefinition;
             this.EligibleMethods = eligibleMethods;
             var NewMethodNames = new StringCollection();
-            
+            var objRef = this.AssemblyDefinition.MainModule.Import(typeof(object));
             var eligibleAroundMethods = this.EligibleMethods
                 .Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
             foreach (var d in eligibleAroundMethods)
@@ -43,12 +43,6 @@ namespace Buffalo
 
                     //create a replacement for the annotated function
                     var methodName = string.Format("{0}{1}", method.Name, varTicks);
-                    var objRef = this.AssemblyDefinition.MainModule.Import(typeof(object));
-                    //if (method.ReturnType.FullName.Equals("System.Void"))
-                    //{
-                    //    objRef = method.ReturnType;
-                    //}
-
                     MethodDefinition newmethod =
                         new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                     methodType.Methods.Add(newmethod);
@@ -148,6 +142,9 @@ namespace Buffalo
                                     //m.Body.Instructions[j].OpCode = OpCodes.Call;
                                     //m.Body.Instructions[j].Operand = newmethod;
                                     m.Body.Instructions[j] = Instruction.Create(OpCodes.Callvirt, newmethod);
+                                    var unbox = Instruction.Create(OpCodes.Unbox_Any, objRef);
+                                    var il2 = m.Body.GetILProcessor();
+                                    il2.InsertAfter(m.Body.Instructions[j], unbox);
                                 }
                             }
                         }
