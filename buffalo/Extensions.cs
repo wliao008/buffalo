@@ -171,6 +171,7 @@ namespace Buffalo
             instructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
 
             var.Var = varMa;
+            var.ParamArray = varArray;
             var.VarIdx = idx;
             return var;
         }
@@ -179,6 +180,7 @@ namespace Buffalo
     internal class VariableResult
     {
         public VariableDefinition Var { get; set; }
+        public VariableDefinition ParamArray { get; set; }
         public int VarIdx { get; set; }
     }
 }

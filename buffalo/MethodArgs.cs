@@ -58,6 +58,11 @@ namespace Buffalo
             get { return this.instance; }
         }
 
+        public object[] ParameterArray
+        {
+            get { return this.parameterArray; }
+        }
+
         //public void SetProperties(string name, 
         //    string fullname, 
         //    string returnTypeStr,

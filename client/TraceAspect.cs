@@ -90,10 +90,11 @@ namespace client
         Random r = new Random((int)DateTime.Now.Ticks);
         public override object Invoke(MethodArgs args)
         {
-            //var num = r.Next(1, 100);
-            //if(num % 2 == 0){
-            //    return args.Proceed();
-            //}
+            var num = r.Next(1, 100);
+            if (num % 2 == 0)
+            {
+                return args.Proceed();
+            }
             var result = 2;
             Console.WriteLine("fake result: " + result + ", random: " + r.Next(1,999));
             return result;

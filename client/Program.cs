@@ -15,10 +15,8 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
-            test.RealNum(12, 4, true);
-            //Console.WriteLine("call a second time:");
-            //result = test.Add(45, 6);
-            //Console.WriteLine("result: " + result);
+            var result = test.Add(2, 76);
+            Console.WriteLine("result: " + result);
 
             Console.WriteLine("DONE");
             Console.Read();
@@ -56,10 +54,16 @@ namespace client
             }
         }
 
-        //[FakeUserAspect]
         public User GetUser()
         {
-            return new User { Username = "weiliao" };
+            return new User { Username = "weiliao", Age = 33 };
+        }
+
+        [TraceAspect]
+        public void SetUser(User usr)
+        {
+            User u = usr;
+            Console.WriteLine("{0}: {1}", u.Age, u.Username);
         }
 
         public User GetUserNoAround(User usr)
@@ -89,7 +93,7 @@ namespace client
 
 
         //[TraceAspect]
-        //[FakeAddAspect]
+        [FakeAddAspect]
         public int Add(int a, int b)
         {
             //TraceAspect ta = new TraceAspect();
@@ -130,6 +134,12 @@ namespace client
     public class User
     {
         public string Username { get; set; }
+        public int Age { get; set; }
+
+        //public override string ToString()
+        //{
+        //    return string.Format("{0}: {1}", Age, Username);
+        //}
     }
 
     public class Dummy
