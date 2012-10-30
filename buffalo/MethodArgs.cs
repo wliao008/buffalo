@@ -10,6 +10,7 @@ namespace Buffalo
         private string returnTypeStr;
         private string parameterStr;
         private List<Parameter> parameters;
+        private object[] parameterArray;
         private Exception exception;
         private Object instance;
 
@@ -69,12 +70,14 @@ namespace Buffalo
             string fullname,
             string returnTypeStr,
             string parameterStr,
+            object[] parameterArray,
             object instance = null)
         {
             this.name = name;
             this.fullName = fullname;
             this.returnTypeStr = returnTypeStr;
             this.parameterStr = parameterStr;
+            this.parameterArray = parameterArray;
             this.instance = instance;
 
             var splits = this.parameterStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
@@ -82,6 +85,11 @@ namespace Buffalo
             {
                 var p = split.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                 this.parameters.Add(new Parameter { Name = p[0], Type = Type.GetType(p[1]) });
+            }
+
+            for (int i = 0; i < this.Parameters.Count; ++i)
+            {
+                this.Parameters[i].Value = this.parameterArray[i];
             }
         }
 

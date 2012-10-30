@@ -63,11 +63,11 @@ namespace Buffalo
                     method.Parameters.ToList().ForEach(x =>
                         newmethod.Parameters.Add(new ParameterDefinition(x.Name, x.Attributes, x.ParameterType)));
                     //create a MethodArgs
-                    var varMa = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
+                    var var = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
 
                     #region Calling MethodArgs.Invoke
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                     var aspectInvoke = aspect.Type.GetMethod("Invoke");
                     var aspectInvokeRef = 
                         this.AssemblyDefinition.MainModule.Import(aspectInvoke, newmethod);

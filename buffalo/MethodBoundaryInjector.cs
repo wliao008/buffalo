@@ -37,6 +37,12 @@ namespace Buffalo
 
                 method.Body.SimplifyMacros();
                 #region Method detail
+                //create a MethodArgs
+                var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
+
+                /*
+                //create a MethodArgs
+                //var varMa = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
                 StringBuilder sb = new StringBuilder();
                 method.Parameters.ToList()
                     .ForEach(x =>
@@ -49,7 +55,6 @@ namespace Buffalo
                 var maSetProperties = maType.GetMethod("SetProperties");
                 var varMa = new VariableDefinition(maName, this.AssemblyDefinition.MainModule.Import(maType));
                 method.Body.Variables.Add(varMa);
-                var vaMaIdx = method.Body.Variables.Count - 1;
                 var maCtr = maType.GetConstructor(new Type[] { });
                 MethodReference maCtrRef = this.AssemblyDefinition.MainModule.Import(maCtr);
                 maInstructions.Add(Instruction.Create(OpCodes.Newobj, maCtrRef));
@@ -62,7 +67,7 @@ namespace Buffalo
                 maInstructions.Add(Instruction.Create(OpCodes.Ldnull));
                 var maSetPropertiesRef = this.AssemblyDefinition.MainModule.Import(maSetProperties, method);
                 maInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
-
+                */
                 #endregion
 
                 #region Before, Success, Exception, After
@@ -82,20 +87,14 @@ namespace Buffalo
                     aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                     #endregion
 
+                    #region Before, success, exception
                     var before = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Before);
                     if (before != null)
                     {
 
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc_0));
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                        //beforeInstructions.Add(Instruction.Create(OpCodes.Call, before));
-
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectBefore = aspects[i].Type.GetMethod("Before");
-                        //var aspectBefore = varAspectType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("Before"));
                         var aspectBeforeRef = this.AssemblyDefinition.MainModule.Import(aspectBefore, method);
                         beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
                     }
@@ -103,13 +102,8 @@ namespace Buffalo
                     var success = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Success);
                     if (success != null)
                     {
-                        //successInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        //successInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
-                        successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
-                        //successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                        //successInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                        //successInstructions.Add(Instruction.Create(OpCodes.Call, success));
+                        successInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectSuccess = aspects[i].Type.GetMethod("Success");
                         var aspectSuccessRef = this.AssemblyDefinition.MainModule.Import(aspectSuccess, method);
                         successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
@@ -122,47 +116,15 @@ namespace Buffalo
                         var expName = "exp" + System.DateTime.Now.Ticks;
                         var varExp = new VariableDefinition(expName, this.AssemblyDefinition.MainModule.Import(varExpType));
                         method.Body.Variables.Add(varExp);
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varExp));
-                        /*
-                        int idx = 0;
-                        var exceptionVarFound = false;
-                        for (; idx < method.Body.Variables.Count; ++idx)
-                        {
-                            if (method.Body.Variables[idx].Name.Equals(expName))
-                            {
-                                exceptionVarFound = true;
-                                break;
-                            }
-                        }*/
-                        /*
-                        if (exceptionVarFound)
-                        {
-                            exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
-                        }
-                        */
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Nop));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, toStringRef));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc_S, method.Body.Variables[idx]));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc_S, method.Body.Variables[idx]));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Call, exception));
-
-                        //var varException = method.Body.Variables[method.Body.Variables.Count - 1];
-                        //exceptionInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varExp));
-                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varExp));
-                        var maSetException = maType.GetMethod("SetException");
+                        var maSetException = typeof(MethodArgs).GetMethod("SetException");
                         var maSetExceptionRef = this.AssemblyDefinition.MainModule.Import(maSetException, method);
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetExceptionRef));
 
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
-                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectException = aspects[i].Type.GetMethod("Exception");
                         //var aspectBefore = varAspectType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("Before"));
                         var aspectExceptionRef = this.AssemblyDefinition.MainModule.Import(aspectException, method);
@@ -172,22 +134,18 @@ namespace Buffalo
                     var after = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.After);
                     if (after != null)
                     {
-                        //afterInstructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
-                        //afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                        //afterInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
-                        //afterInstructions.Add(Instruction.Create(OpCodes.Call, after));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectAfter = aspects[i].Type.GetMethod("After");
                         var aspectAfterRef = this.AssemblyDefinition.MainModule.Import(aspectAfter, method);
                         afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectAfterRef));
                     }
+                    #endregion
                 }
 
-                int varIdx = 0;
-                maInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
+                int varIdx = var.VarIdx;
+                //maInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
                 aspectVarInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
-                //varIdx2 = varIdx * aspects.Count;
 
                 int beforeIdx = varIdx;
                 //perform this only if user overrides Before() in the aspect

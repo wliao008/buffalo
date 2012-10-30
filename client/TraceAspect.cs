@@ -44,8 +44,9 @@ namespace client
             Console.WriteLine("\tParameters: ");
             foreach (var p in args.Parameters)
             {
-                Console.WriteLine("\t\t{0}: {1}", p.Name, p.Type);
+                Console.WriteLine("\t\t{0}: {1} = {2}", p.Name, p.Type, p.Value);
             }
+            
             if (args.Exception != null)
             {
                 Console.WriteLine("\tException: " + args.Exception.Message);
