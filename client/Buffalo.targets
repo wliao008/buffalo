@@ -1,0 +1,12 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CompileDependsOn>
+      $(CompileDependsOn);
+      Buffalo
+    </CompileDependsOn>
+  </PropertyGroup>
+
+  <Target Name="Buffalo">
+    <Message Text="Hello Buffalo!"/>
+  </Target>
+</Project>

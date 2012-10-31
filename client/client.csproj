@@ -57,6 +57,9 @@
       <Name>Buffalo</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Buffalo.targets" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
