@@ -47,6 +47,7 @@ namespace Buffalo
                     methodType.Methods.Add(newmethod);
                     NewMethodNames.Add(methodName);
                     newmethod.Body.SimplifyMacros();
+                    newmethod.Body.InitLocals = true;
 
                     //create aspect variable
                     var varAspectName = "asp" + varTicks;
@@ -85,6 +86,8 @@ namespace Buffalo
                             Instruction.Create(OpCodes.Stloc, varObj));
                         newmethod.Body.Instructions.Add(
                             Instruction.Create(OpCodes.Ldloc, varObj));
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Unbox_Any, newmethod.ReturnType));
                     }
                     else
                     {
@@ -143,6 +146,17 @@ namespace Buffalo
                         invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
 
+                        ///TEST
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
+                        //var write = Instruction.Create(OpCodes.Call,
+                        //    this.AssemblyDefinition.MainModule.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
+                        //invokeInstructions.Add(write);
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldlen));
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Conv_I4));
+                        //invokeInstructions.Add(write);
+                        ///END TEST
+                        ///
                         //modify the Invoke() instruction to make a call to the original method
                         invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.DeclaringType));
@@ -159,6 +173,28 @@ namespace Buffalo
 
                         //make the call
                         invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, method));
+
+                        #region Handling return value
+                        if (!method.ReturnType.FullName.Equals("System.Void"))
+                        {
+                            //create an object variable to hold the return value
+                            var varObj = new VariableDefinition("obj" + DateTime.Now.Ticks,
+                                this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                            invoke.Body.Variables.Add(varObj);
+                            invokeInstructions.Add(
+                                Instruction.Create(OpCodes.Box, method.ReturnType));
+                            //invokeInstructions.Add(
+                            //    Instruction.Create(OpCodes.Stloc, varObj));
+                            //invokeInstructions.Add(
+                            //    Instruction.Create(OpCodes.Ldloc, varObj));
+                        }
+                        else
+                        {
+                            //pop the return value since it's not used?
+                            invokeInstructions.Add(
+                                Instruction.Create(OpCodes.Pop));
+                        }
+                        #endregion
 
                         //write out the instruction
                         invokeInstructions.ForEach(
@@ -183,9 +219,9 @@ namespace Buffalo
                                     //other than void
                                     if (!newmethod.ReturnType.FullName.Equals("System.Void"))
                                     {
-                                        var unbox = Instruction.Create(OpCodes.Unbox_Any, newmethod.ReturnType);
-                                        var il2 = m.Body.GetILProcessor();
-                                        il2.InsertAfter(m.Body.Instructions[j], unbox);
+                                        //var unbox = Instruction.Create(OpCodes.Unbox_Any, newmethod.ReturnType);
+                                        //var il2 = m.Body.GetILProcessor();
+                                        //il2.InsertAfter(m.Body.Instructions[j], unbox);
                                     }
                                 }
                             }
