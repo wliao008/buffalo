@@ -95,7 +95,6 @@ namespace Buffalo
                     #endregion
 
                     #region Handling Proceed()
-                    /*
                     var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
                         x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
                     bool found = false;
@@ -112,40 +111,56 @@ namespace Buffalo
 
                     if (found)
                     {
-                        instIdx--;
-                        var ins = Instruction.Create(OpCodes.Call, method);
-                        invoke.Body.Instructions[instIdx] = ins;
-                        int count = instIdx;
+                        var invokeInstructions = new List<Instruction>();
+                        //var ins = Instruction.Create(OpCodes.Call, method);
+                        //invoke.Body.Instructions[instIdx] = ins;
+                        invoke.Body.Instructions.RemoveAt(instIdx);
+                        var startIdx = instIdx;
+
+                        //create a var to hold the original method type instance
+                        var instance = new VariableDefinition("instance" + DateTime.Now.Ticks,
+                            this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                        invoke.Body.Variables.Add(instance);
+                        invoke.Body.InitLocals = true;
+
+                        //get the instance obj from MethodArgs
+                        var getInstance = typeof(MethodArgs).GetMethod("get_Instance");
+                        var getInstanceRef = this.AssemblyDefinition.MainModule.Import(getInstance);
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getInstanceRef));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, instance));
+
+                        //create object array to hold ParameterArray
+                        var objType = this.AssemblyDefinition.MainModule.Import(typeof(object));
+                        var objArray = new ArrayType(objType);
+                        var varArray = new VariableDefinition("va" + DateTime.Now.Ticks,
+                            (TypeReference)objArray);
+                        invoke.Body.Variables.Add(varArray);
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldc_I4, method.Parameters.Count));
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Newarr, objType));
+                        var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
+                        var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
+
                         //modify the Invoke() instruction to make a call to the original method
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.DeclaringType));
                         if (method.Parameters.Count > 0)
                         {
-                            //create object array to hold ParameterArray
-                            var objType = this.AssemblyDefinition.MainModule.Import(typeof(object));
-                            var objArray = new ArrayType(objType);
-                            var varArray = new VariableDefinition("va" + DateTime.Now.Ticks,
-                                (TypeReference)objArray);
-                            invoke.Body.Variables.Add(varArray);
-                            invoke.Body.Instructions.Insert(count++, Instruction.Create(OpCodes.Ldc_I4, method.Parameters.Count));
-                            invoke.Body.Instructions.Insert(count++, Instruction.Create(OpCodes.Newarr, objType));
-                            var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
-                            invoke.Body.Instructions.Insert(count++, Instruction.Create(OpCodes.Stloc, varArray));
-
-                            var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
-                            invoke.Body.Instructions.Insert(count++,
-                                Instruction.Create(OpCodes.Ldarg_1));
-                            invoke.Body.Instructions.Insert(count++,
-                                Instruction.Create(OpCodes.Callvirt, getParameterArrayRef));
-                            //load the parameters
-                            //invoke.Body.Instructions.Insert(count++,
-                            //    Instruction.Create(OpCodes.Ldloc, var.ParamArray));
                             for (int i = 0; i < method.Parameters.Count; ++i)
                             {
-                                invoke.Body.Instructions.Insert(count++,
-                                    il.Create(OpCodes.Ldloc, i));
+                                invokeInstructions.Add(il.Create(OpCodes.Ldloc, i));
                             }
                         }
+
+                        //make the call
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, method));
+
+                        //write out the instruction
+                        invokeInstructions.ForEach(
+                            x => invoke.Body.Instructions.Insert(startIdx++, x));
                     }
-                    */
                     #endregion
 
                     #region Modify all calls from origin to the generated method
