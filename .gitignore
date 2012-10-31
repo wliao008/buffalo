@@ -12,6 +12,12 @@ proposal/*.bbl
 proposal/*.blg
 #proposal/*.pdf
 
+report/*.aux
+report/*.log
+report/*.bbl
+report/*.blg
+report/*.pdf
+
 # ~
 *.*~
 *~
