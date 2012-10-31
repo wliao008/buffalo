@@ -91,6 +91,7 @@ namespace client
         public override object Invoke(MethodArgs args)
         {
             var num = r.Next(1, 100);
+            Console.WriteLine("Random #: " + num);
             if (num % 2 == 0)
             {
                 return args.Proceed();

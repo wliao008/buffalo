@@ -15,6 +15,15 @@ namespace client
         static TraceAspectTester test = new TraceAspectTester();
         static void Main(string[] args)
         {
+
+            //object[] objs = new object[2];
+            //objs[0] = 10;
+            //objs[1] = 11;
+            //TestArgs t = new TestArgs();
+            //DummyArgs arg = new DummyArgs();
+            //arg.SetArgs(objs);
+            //t.Invoke(arg);
+
             var result = test.Add(2, 76);
             Console.WriteLine("result: " + result);
 
@@ -154,5 +163,54 @@ namespace client
             int result = (int)Add(10, 2);
             Console.WriteLine("result: " + result);
         }
+
+        public void TestObjArray()
+        {
+            object[] objs = new object[5];
+            objs[0] = 0;
+            objs[1] = 1;
+            objs[2] = 2;
+            objs[3] = 3;
+            objs[4] = 4;
+
+            for(int i=0;i<5;i++)
+                Console.WriteLine(objs[i]);
+        }
+    }
+
+    public class TestArgs
+    {
+        public void Invoke(DummyArgs args)
+        {
+            Worker w = new Worker();
+            object[] objs = args.Args;
+            var result = w.Add((int)objs[0], (int)objs[1]);
+            Console.WriteLine(result);
+        }
+    }
+
+    public class Worker
+    {
+        public int Add(int a, int b)
+        {
+            return a + b;
+        }
+    }
+
+    public class DummyArgs
+    {
+        object[] args;
+        public object[] Args
+        {
+            get { return args; }
+        }
+        public void SetArgs(object[] args)
+        {
+            this.args = args;
+        }
+    }
+
+    public class DummyParam
+    {
     }
 }

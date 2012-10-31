@@ -150,7 +150,10 @@ namespace Buffalo
                         {
                             for (int i = 0; i < method.Parameters.Count; ++i)
                             {
-                                invokeInstructions.Add(il.Create(OpCodes.Ldloc, i));
+                                invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
+                                invokeInstructions.Add(il.Create(OpCodes.Ldc_I4, i));
+                                invokeInstructions.Add(il.Create(OpCodes.Ldelem_Ref));
+                                invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.Parameters[i].ParameterType));
                             }
                         }
 
@@ -164,9 +167,11 @@ namespace Buffalo
                     #endregion
 
                     #region Modify all calls from origin to the generated method
-                    foreach (var type in this.AssemblyDefinition.MainModule.Types)
+                    foreach (var type in this.AssemblyDefinition.MainModule.Types
+                        .Where(x => x.BaseType == null || !x.BaseType.FullName.Equals("Buffalo.MethodAroundAspect")))
                     {
-                        foreach (var m in type.Methods.Where(x => !NewMethodNames.Contains(x.Name)))
+                        var methods = type.Methods.Where(x => !NewMethodNames.Contains(x.Name));
+                        foreach (var m in methods)
                         {
                             for (int j = 0; j < m.Body.Instructions.Count; ++j)
                             {
