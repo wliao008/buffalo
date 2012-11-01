@@ -2,12 +2,12 @@
   <PropertyGroup>
     <CompileDependsOn>
       $(CompileDependsOn);
-      Buffalo
+      <!--Buffalo-->
     </CompileDependsOn>
   </PropertyGroup>
 
   <Target Name="Buffalo">
     <Message Text="Hello Buffalo! @(IntermediateAssembly)"/>
-    <Exec Command="&quot;C:\Users\wliao\Downloads\Buffalo\BuffaloAOP.exe&quot; &quot;@(IntermediateAssembly)&quot;"/>
+    <Exec Command="&quot;C:\Temp\Buffalo\BuffaloAOP.exe&quot; &quot;@(IntermediateAssembly)&quot;"/>
   </Target>
 </Project>

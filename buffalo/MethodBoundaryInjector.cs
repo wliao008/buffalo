@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
+//using Mono.Cecil.Rocks;
 
 namespace Buffalo
 {
@@ -35,7 +35,7 @@ namespace Buffalo
                 var exceptionInstructions = new List<Instruction>();
                 var afterInstructions = new List<Instruction>();
 
-                method.Body.SimplifyMacros();
+                //method.Body.SimplifyMacros();
                 #region Method detail
                 //create a MethodArgs
                 var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
@@ -226,7 +226,7 @@ namespace Buffalo
                     method.Body.ExceptionHandlers.Add(finallyHandler);
                 }
                 #endregion
-                method.Body.OptimizeMacros();
+                //method.Body.OptimizeMacros();
             }
         }
     }

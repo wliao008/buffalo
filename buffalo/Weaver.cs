@@ -6,7 +6,7 @@ using Reflection = System.Reflection;
 using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
+//using Mono.Cecil.Rocks;
 using System.Collections.Specialized;
 using System.Text;
 
@@ -126,7 +126,7 @@ namespace Buffalo
                 var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
-                newmethod.Body.SimplifyMacros();
+                //newmethod.Body.SimplifyMacros();
 
                 if (!once)
                 {
@@ -210,7 +210,7 @@ namespace Buffalo
                             newmethod.Body.Instructions.Insert(count++, ins);
                         }
                     }
-                    newmethod.Body.OptimizeMacros();
+                    //newmethod.Body.OptimizeMacros();
                 }
 
                 //finally, all calls to the original methods should be changed to the newly

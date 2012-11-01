@@ -43,7 +43,9 @@ namespace Buffalo
             instructions.Add(Instruction.Create(OpCodes.Newarr, objType));
             instructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
 
-            //loop thru the parameters and extract the value
+            #region Handle paramters
+            //loop thru the parameters, extract the values and 
+            //store them in MethodArgs.ParameterArray
             TypeSpecification typeSpec = null;
             for (int i = 0; i < method.Parameters.Count; ++i )
             {
@@ -139,6 +141,7 @@ namespace Buffalo
 
                 instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
             }
+            #endregion
 
             StringBuilder sb = new StringBuilder();
             method.Parameters.ToList()
@@ -163,7 +166,11 @@ namespace Buffalo
             instructions.Add(Instruction.Create(OpCodes.Ldstr, method.ReturnType.FullName));
             instructions.Add(Instruction.Create(OpCodes.Ldstr, sb.ToString()));
             instructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
-            instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            if (method.IsStatic)
+                instructions.Add(Instruction.Create(OpCodes.Ldnull));
+            else
+                instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+
             var maSetPropertiesRef = assemblyDef.MainModule.Import(maSetProperties, method);
             instructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
 

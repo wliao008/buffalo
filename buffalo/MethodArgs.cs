@@ -63,14 +63,6 @@ namespace Buffalo
             get { return this.parameterArray; }
         }
 
-        //public void SetProperties(string name, 
-        //    string fullname, 
-        //    string returnTypeStr,
-        //    string parameterStr)
-        //{
-        //    this.SetProperties(name, fullname, returnTypeStr, parameterStr, null);
-        //}
-
         public void SetProperties(string name,
             string fullname,
             string returnTypeStr,

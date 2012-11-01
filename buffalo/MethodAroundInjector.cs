@@ -5,7 +5,7 @@ using System;
 using Mono.Cecil.Cil;
 using System.Text;
 using System.Collections.Specialized;
-using Mono.Cecil.Rocks;
+//using Mono.Cecil.Rocks;
 
 namespace Buffalo
 {
@@ -46,7 +46,7 @@ namespace Buffalo
                         new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                     methodType.Methods.Add(newmethod);
                     NewMethodNames.Add(methodName);
-                    newmethod.Body.SimplifyMacros();
+                    //newmethod.Body.SimplifyMacros();
                     newmethod.Body.InitLocals = true;
 
                     //create aspect variable
@@ -230,7 +230,7 @@ namespace Buffalo
                     #endregion
 
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
-                    newmethod.Body.OptimizeMacros();
+                    //newmethod.Body.OptimizeMacros();
                 }
             }
         }
