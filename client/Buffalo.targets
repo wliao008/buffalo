@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <Target Name="Buffalo">
-    <Message Text="Hello Buffalo!"/>
+    <Message Text="Hello Buffalo! @(IntermediateAssembly)"/>
+    <Exec Command="&quot;C:\Users\wliao\Downloads\Buffalo\BuffaloAOP.exe&quot; &quot;@(IntermediateAssembly)&quot;"/>
   </Target>
 </Project>
