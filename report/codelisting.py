@@ -9,6 +9,7 @@ def printcode():
 		for filename in fnmatch.filter(filenames, '*.cs'):
 			matches.append(os.path.join(root, filename))
 
+	matches.append('../../buffalo/BuffaloAOP/Program.cs')
 	out = open('codelisting.tex', 'w')
 	for m in matches:
 		with open(m) as f:
