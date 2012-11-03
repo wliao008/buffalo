@@ -2,52 +2,10 @@
 
 %% Obviously you need to delete these lines when you have written up your text
 
+Object Oriented Programming (OOP) languages have given programmers a lot of freedom in expressing themselves in Object Oriented Design. However, they are still lacking in some areas when it comes to particular software design decision such as cross-cutting concern~\cite{aop}.
 
-\begin{itemize}
-\item{} Background: should be sufficient for the reader understand the rest of the report, but 
-perhaps not too long to put the reader to sleep.
-\item{} Basic problem definition and motivation
-\item{} Approaches used to solve the problem (related work)
-\item{} Hypothesis: what you think the problem is and how your solution 
-approach will address the problem
-\item{} Roadmap: how the rest of your report is laid out 
-\end{itemize}
+In this project, we will try to solve this type of problem by designing and implementing a framework called ”Buffalo” for the .NET platform. Buffalo will make use of the .NET attribute system to weave aspect code to any targeted methods. In section 2 we will look at the design of the framework. In section 3 we will discuss how the implementation is carried out in more detail.
 
-And yes, this is how you cite a book by Silberschatz~\cite{Silberschatz05-text} or a paper by Dumont~\cite{Dumont2007-robots}.
+We will show that by using Buffalo developers can separate those concerns from the core of the program for easy maintenance, and ultimately be more productive. We will show the result of the analysis in section 4.
 
-And here are examples of how to include figures and tables in the text. Please note that the captions go below for figures and above for tables.
-
-
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[width=3.0in]{cs-logo.jpg}
-\end{center}
-\caption{The CS Logo is Above}
-\label{fig:lab}
-\end{figure}
-
-
-\begin{table}[h]
-\caption{The Dog Table is Below}
-  \begin{tabular}{ | l | c | r | }
-    \hline
-    tag & breed & age \\
-    \hline \hline
-    13 & Fido & 2 \\
-    \hline
-    14 & Fifi & 4 \\
-    \hline
-  \end{tabular}
-\end{table}
-
-For both tables and figures, the optional argument controls
-placement as shown:
-\begin{itemize}
-  \item{} h is Here, i.e., the position in the text where the table environment appears.
-  \item{} t is Top, i.e., the top of a text page.
-  \item{} b is Bottom, i.e., at the bottom of a text page.
-  \item{} p is Page of floats, i.e., on a separate float page,
-    which is a page containing no text, only floats.
-\end{itemize}
-
-Anyway, you can find some easy tutorials on \LaTeX{}.
+In section 5 we will conclude the report with the current project status. I am looking to open source the project and I will discuss what sort of future works are planned and what lessons I have learned from undergoing this project.
