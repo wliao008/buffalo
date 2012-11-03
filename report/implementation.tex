@@ -35,7 +35,7 @@ Figure~\ref{uml01} depicts part of the system, where it shows how we can use it 
 \begin{figure}[here]
   \includegraphics[scale=1.0]{Uml01.PNG}
   \centering
-  \caption{Logical inclusion\label{uml01}}
+  \caption{Aspect inheritance\label{uml01}}
 \end{figure}
 
 All aspects ultimately implements the IAspect interface, therefore we can conclude that for all the types in an assembly, if it implements IAspect, then it must be an aspect itself.
@@ -55,7 +55,7 @@ The overall implementation process can be illustrated as figure~\ref{implementat
 \begin{figure}[here]
   \includegraphics[scale=1.0]{ImplementationOverview3.PNG}
   \centering
-  \caption{Logical inclusion\label{implementation_overview}}
+  \caption{Implementation overview\label{implementation_overview}}
 \end{figure}
 
 The actual injection phrase will be depending on the type of aspect, as we mentioned above currently Buffalo supports the Boundary aspects where various point of execution can be intercepted, and the Around aspect where a method can be completely replaced.
@@ -82,7 +82,7 @@ If we look at the generated MSIL shown in figure~\ref{methodboundary01}(Note tha
 \begin{figure}[here]
   \includegraphics[scale=1.0]{MethodBoundaryOverviewB4.PNG}
   \centering
-  \caption{MSIL before\label{methodboundary01}}
+  \caption{MSIL generated for sample C\# function\label{methodboundary01}}
 \end{figure}
 
 This is the standard emission of the CLR. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here we can easily figure out where to inject our aspect, as shown in the following figure~\ref{methodboundary02}
