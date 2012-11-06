@@ -24,7 +24,7 @@ namespace client
             //arg.SetArgs(objs);
             //t.Invoke(arg);
 
-            var result = test.Add(2, 6);
+            var result = test.divide(6, 3);
             Console.WriteLine("result: " + result);
 
             Console.WriteLine("DONE");
@@ -35,10 +35,9 @@ namespace client
     public class TraceAspectTester
     {
         [DoubleAspect]
-        public int Add(int a, int b)
+        public double divide(int a, int b)
         {
-            int c = a + b;
-            return c;
+            return a / b;
         }
     }
 }
