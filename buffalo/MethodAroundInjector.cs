@@ -193,7 +193,7 @@ namespace Buffalo
                             //method is suppose to return void, but since
                             //previously it calls Proceed() which returns object type,
                             //we need to handle that.
-                            invoke.Body.Instructions.RemoveAt(instIdx + 1);
+                            invoke.Body.Instructions[instIdx] = Instruction.Create(OpCodes.Nop);
                         }
                         #endregion
 

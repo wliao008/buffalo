@@ -37,6 +37,8 @@ namespace client
         [DoubleAspect]
         public double divide(int a, int b)
         {
+            //Console.WriteLine(a);
+            //Console.WriteLine(b);
             return a / b;
         }
     }
