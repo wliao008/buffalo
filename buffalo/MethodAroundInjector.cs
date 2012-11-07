@@ -190,9 +190,10 @@ namespace Buffalo
                         }
                         else
                         {
-                            //pop the return value since it's not used?
-                            invokeInstructions.Add(
-                                Instruction.Create(OpCodes.Pop));
+                            //method is suppose to return void, but since
+                            //previously it calls Proceed() which returns object type,
+                            //we need to handle that.
+                            invoke.Body.Instructions.RemoveAt(instIdx + 1);
                         }
                         #endregion
 
