@@ -23,6 +23,13 @@ namespace Buffalo
             foreach (var d in eligibleBoundaryMethods)
             {
                 var method = d.Key;
+                if (method.Body == null)
+                {
+#if DEBUG
+                    Console.WriteLine(string.Format("{0} has empty body, skipping", method.FullName));
+#endif
+                    continue;
+                }
                 var aspects = d.Value;
                 var il = method.Body.GetILProcessor();
                 var voidType = method.ReturnType.FullName.Equals("System.Void");
