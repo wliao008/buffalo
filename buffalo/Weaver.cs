@@ -294,8 +294,8 @@ namespace Buffalo
 #if DEBUG
                 Console.WriteLine("\t{0}: {1}", t.Name, status.ToString());
 #endif
-                if (status == Buffalo.Enums.Status.Excluded)
-                    continue;
+                //if (status == Buffalo.Enums.Status.Excluded)
+                //    continue;
 
                 var mths = this.GetMethodDefinitions(t, status, aspect);
                 mths.ForEach(x =>
@@ -360,7 +360,12 @@ namespace Buffalo
             bool attrFound = false;
             for (int i = 0; i < def.CustomAttributes.Count; ++i)
             {
-                //var t = def.CustomAttributes[i].AttributeType.Resolve();
+                if (def.CustomAttributes[i].AttributeType.FullName.Equals("System.Runtime.CompilerServices.CompilerGeneratedAttribute"))
+                {
+                    status = Enums.Status.Excluded;
+                    break;
+                }
+
                 if (aspect.Type != null 
                     && (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
                     || aspect.Type.BaseType == typeof(MethodAroundAspect))

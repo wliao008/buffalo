@@ -7,6 +7,8 @@ namespace client
 {
     public class DoubleAspect : MethodAroundAspect
     {
+        [Trace(AttributeExclude = true)]
+        [DoubleAspect(AttributeExclude = true)]
         public override object Invoke(MethodArgs args)
         {
             Console.WriteLine("Enter a num: ");
@@ -15,6 +17,16 @@ namespace client
                 return args.Proceed();
             else
                 return -1.0;
+        }
+    }
+
+    [Trace(AttributeExclude = true)]
+    [DoubleAspect(AttributeExclude = true)]
+    public class Trace : MethodBoundaryAspect
+    {
+        public override void Before(MethodArgs args)
+        {
+            Console.WriteLine(args.Name);
         }
     }
 }

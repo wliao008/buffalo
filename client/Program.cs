@@ -27,6 +27,13 @@ namespace client
             var result = test.divide(6, 3);
             Console.WriteLine("result: " + result);
 
+            int x = 10;
+            Func<int, int> foo = y => y + x;
+            Console.WriteLine("y: " + foo(x));
+
+            List<int> arr = new List<int>() { 1, 2, 3 };
+            int three = arr.FirstOrDefault(z => z == 3);
+            Console.WriteLine("Found: " + three);
             Console.WriteLine("DONE");
             Console.Read();
         }
@@ -34,7 +41,7 @@ namespace client
 
     public class TraceAspectTester
     {
-        [DoubleAspect]
+        //[DoubleAspect]
         public double divide(int a, int b)
         {
             //Console.WriteLine(a);
