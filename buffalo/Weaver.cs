@@ -70,7 +70,8 @@ namespace Buffalo
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
             //populate the type definition first
             foreach (var m in this.AssemblyDefinition.Modules)
-                m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
+                m.Types
+                    .ToList().ForEach(x => this.TypeDefinitions.Add(x));
             //extract aspects from the type definitions
             this.TypeDefinitions
                 .Where(x => x.BaseType != null 
@@ -288,14 +289,16 @@ namespace Buffalo
 
         private void CheckEligibleMethods(Aspect aspect)
         {
-            foreach (var t in this.TypeDefinitions.Where(x => !x.Name.Equals("<Module>")))
+            foreach (var t in this.TypeDefinitions.Where(x => !x.Name.Equals("<Module>")
+                && (x.BaseType == null || (x.BaseType.FullName != typeof(MethodBoundaryAspect).FullName
+                    && x.BaseType.FullName != typeof(MethodAroundAspect).FullName))))
             {
                 var status = this.CheckAspectStatus(t, aspect);
 #if DEBUG
                 Console.WriteLine("\t{0}: {1}", t.Name, status.ToString());
 #endif
-                //if (status == Buffalo.Enums.Status.Excluded)
-                //    continue;
+                if (status == Buffalo.Enums.Status.Excluded)
+                    continue;
 
                 var mths = this.GetMethodDefinitions(t, status, aspect);
                 mths.ForEach(x =>
