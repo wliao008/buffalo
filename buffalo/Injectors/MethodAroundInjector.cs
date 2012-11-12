@@ -5,9 +5,10 @@ using System;
 using Mono.Cecil.Cil;
 using System.Text;
 using System.Collections.Specialized;
+using Buffalo.Interfaces;
 //using Mono.Cecil.Rocks;
 
-namespace Buffalo
+namespace Buffalo.Injectors
 {
     internal class MethodAroundInjector : IInjectable
     {

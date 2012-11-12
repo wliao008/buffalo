@@ -1,5 +1,4 @@
-﻿using System;
-namespace Buffalo
+﻿namespace Buffalo.Interfaces
 {
     internal interface IMethodBoundaryAspect : IAspect
     {

@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Buffalo.Injectors;
+using Buffalo.Interfaces;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using System;
 using System.Collections.Generic;
+//using Mono.Cecil.Rocks;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using Reflection = System.Reflection;
-using System.Runtime.CompilerServices;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-//using Mono.Cecil.Rocks;
-using System.Collections.Specialized;
-using System.Text;
 
 namespace Buffalo
 {

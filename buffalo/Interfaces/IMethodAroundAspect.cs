@@ -1,5 +1,4 @@
-﻿
-namespace Buffalo
+﻿namespace Buffalo.Interfaces
 {
     internal interface IMethodAroundAspect : IAspect
     {

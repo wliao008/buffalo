@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Buffalo.Interfaces;
 //using Mono.Cecil.Rocks;
 
-namespace Buffalo
+namespace Buffalo.Injectors
 {
     internal class MethodBoundaryInjector : IInjectable
     {
