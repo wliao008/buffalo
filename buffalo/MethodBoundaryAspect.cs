@@ -1,4 +1,5 @@
-﻿using Buffalo.Interfaces;
+﻿using Buffalo.Arguments;
+using Buffalo.Interfaces;
 
 namespace Buffalo
 {

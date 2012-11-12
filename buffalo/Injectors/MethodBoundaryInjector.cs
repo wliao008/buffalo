@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Buffalo.Arguments;
+using Buffalo.Common;
+using Buffalo.Extensions;
+using Buffalo.Interfaces;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Buffalo.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 //using Mono.Cecil.Rocks;
 
 namespace Buffalo.Injectors
@@ -96,7 +98,7 @@ namespace Buffalo.Injectors
                     #endregion
 
                     #region Before, success, exception
-                    var before = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Before);
+                    var before = method.FindMethodReference(aspects[i], Enums.AspectType.Before);
                     if (before != null)
                     {
 
@@ -107,7 +109,7 @@ namespace Buffalo.Injectors
                         beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
                     }
 
-                    var success = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Success);
+                    var success = method.FindMethodReference(aspects[i], Enums.AspectType.Success);
                     if (success != null)
                     {
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
@@ -117,7 +119,7 @@ namespace Buffalo.Injectors
                         successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
                     }
 
-                    var exception = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Exception);
+                    var exception = method.FindMethodReference(aspects[i], Enums.AspectType.Exception);
                     if (exception != null)
                     {
                         var varExpType = typeof(System.Exception);
@@ -139,7 +141,7 @@ namespace Buffalo.Injectors
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectExceptionRef));
                     }
 
-                    var after = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.After);
+                    var after = method.FindMethodReference(aspects[i], Enums.AspectType.After);
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));

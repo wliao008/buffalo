@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Buffalo
+namespace Buffalo.Arguments
 {
     public sealed class Parameter
     {

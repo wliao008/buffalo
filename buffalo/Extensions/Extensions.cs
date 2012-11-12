@@ -1,15 +1,17 @@
-﻿using System.Linq;
+﻿using Buffalo.Arguments;
+using Buffalo.Common;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace Buffalo
+namespace Buffalo.Extensions
 {
     internal static class Extensions
     {
-        internal static MethodReference FindMethodReference(this MethodDefinition method, Aspect aspect, Buffalo.Enums.AspectType name)
+        internal static MethodReference FindMethodReference(this MethodDefinition method, Aspect aspect, Enums.AspectType name)
         {
             return aspect
                 .TypeDefinition
