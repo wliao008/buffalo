@@ -260,16 +260,6 @@ namespace Buffalo
             Console.WriteLine("Unloading domain...");
         }
 
-        /*
-        private static void LoadAssembly()
-        {
-            ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
-            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
-            var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
-            var types = assembly.GetTypes().ToList();
-        }
-        */
-
         private void PrintEligibleMethods()
         {
             foreach (var de in this.EligibleMethods)

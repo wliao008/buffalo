@@ -148,17 +148,6 @@ namespace Buffalo.Injectors
                         invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
 
-                        ///TEST
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
-                        //var write = Instruction.Create(OpCodes.Call,
-                        //    this.AssemblyDefinition.MainModule.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
-                        //invokeInstructions.Add(write);
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldlen));
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Conv_I4));
-                        //invokeInstructions.Add(write);
-                        ///END TEST
-                        ///
                         //modify the Invoke() instruction to make a call to the original method
                         invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.DeclaringType));
@@ -185,10 +174,6 @@ namespace Buffalo.Injectors
                             invoke.Body.Variables.Add(varObj);
                             invokeInstructions.Add(
                                 Instruction.Create(OpCodes.Box, method.ReturnType));
-                            //invokeInstructions.Add(
-                            //    Instruction.Create(OpCodes.Stloc, varObj));
-                            //invokeInstructions.Add(
-                            //    Instruction.Create(OpCodes.Ldloc, varObj));
                         }
                         else
                         {

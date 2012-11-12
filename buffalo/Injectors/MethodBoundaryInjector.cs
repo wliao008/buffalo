@@ -49,35 +49,6 @@ namespace Buffalo.Injectors
                 #region Method detail
                 //create a MethodArgs
                 var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
-
-                /*
-                //create a MethodArgs
-                //var varMa = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
-                StringBuilder sb = new StringBuilder();
-                method.Parameters.ToList()
-                    .ForEach(x =>
-                    {
-                        sb.Append(string.Format("{0}:{1}|", x.Name, x.ParameterType.FullName));
-                    });
-
-                var maType = typeof(MethodArgs);
-                var maName = "ma" + DateTime.Now.Ticks;
-                var maSetProperties = maType.GetMethod("SetProperties");
-                var varMa = new VariableDefinition(maName, this.AssemblyDefinition.MainModule.Import(maType));
-                method.Body.Variables.Add(varMa);
-                var maCtr = maType.GetConstructor(new Type[] { });
-                MethodReference maCtrRef = this.AssemblyDefinition.MainModule.Import(maCtr);
-                maInstructions.Add(Instruction.Create(OpCodes.Newobj, maCtrRef));
-                maInstructions.Add(Instruction.Create(OpCodes.Stloc, varMa));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.ReturnType.FullName));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, sb.ToString()));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldnull));
-                var maSetPropertiesRef = this.AssemblyDefinition.MainModule.Import(maSetProperties, method);
-                maInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
-                */
                 #endregion
 
                 #region Before, Success, Exception, After
