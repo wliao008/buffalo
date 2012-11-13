@@ -101,13 +101,13 @@ namespace Buffalo.Injectors
 
                     #region Handling Proceed()
                     var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
-                        x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
+                        x => x.FullName.Contains("::Invoke(Buffalo.Arguments.MethodArgs)"));
                     bool found = false;
                     int instIdx = 0;
                     for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
                     {
                         if (invoke.Body.Instructions[instIdx].ToString()
-                            .Contains("System.Object Buffalo.MethodArgs::Proceed"))
+                            .Contains("System.Object Buffalo.Arguments.MethodArgs::Proceed"))
                         {
                             found = true;
                             break;

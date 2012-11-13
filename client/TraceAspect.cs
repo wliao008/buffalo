@@ -13,7 +13,7 @@ namespace client
             if (num % 2 == 0)
                 return args.Proceed();
             else
-                return -1.0;
+                return -1;
         }
     }
 
