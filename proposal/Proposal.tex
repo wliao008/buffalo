@@ -125,9 +125,8 @@ The question is how to prevent those cross-cutting concerns from loitering your 
 
 \begin{lstlisting}[caption={Unhandle exception}, label=unhandledexception]
 public void SomeFunction() {
-    //perform some operations that
-    //might fail, such as accessing a file.
-    //...
+    //perform some operations that might fail, 
+    //such as accessing a file.
 }
 \end{lstlisting}
 
@@ -280,9 +279,7 @@ The real benefit will be evident when an aspect is applied to a large number of 
 [assembly:CatchException]
 namespace MyAssembly {
    public class MyClass {
-      public void SomeFunction() {
-         //...
-      }
+      public void SomeFunction() {...}
       //other functions...
    }
    //other classes...
