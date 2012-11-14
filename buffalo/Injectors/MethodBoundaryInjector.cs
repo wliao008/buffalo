@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Buffalo.Arguments;
+using Buffalo.Common;
+using Buffalo.Extensions;
+using Buffalo.Interfaces;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 //using Mono.Cecil.Rocks;
 
-namespace Buffalo
+namespace Buffalo.Injectors
 {
     internal class MethodBoundaryInjector : IInjectable
     {
@@ -23,6 +26,13 @@ namespace Buffalo
             foreach (var d in eligibleBoundaryMethods)
             {
                 var method = d.Key;
+                if (method.Body == null)
+                {
+#if DEBUG
+                    Console.WriteLine(string.Format("{0} has empty body, skipping", method.FullName));
+#endif
+                    continue;
+                }
                 var aspects = d.Value;
                 var il = method.Body.GetILProcessor();
                 var voidType = method.ReturnType.FullName.Equals("System.Void");
@@ -39,35 +49,6 @@ namespace Buffalo
                 #region Method detail
                 //create a MethodArgs
                 var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
-
-                /*
-                //create a MethodArgs
-                //var varMa = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
-                StringBuilder sb = new StringBuilder();
-                method.Parameters.ToList()
-                    .ForEach(x =>
-                    {
-                        sb.Append(string.Format("{0}:{1}|", x.Name, x.ParameterType.FullName));
-                    });
-
-                var maType = typeof(MethodArgs);
-                var maName = "ma" + DateTime.Now.Ticks;
-                var maSetProperties = maType.GetMethod("SetProperties");
-                var varMa = new VariableDefinition(maName, this.AssemblyDefinition.MainModule.Import(maType));
-                method.Body.Variables.Add(varMa);
-                var maCtr = maType.GetConstructor(new Type[] { });
-                MethodReference maCtrRef = this.AssemblyDefinition.MainModule.Import(maCtr);
-                maInstructions.Add(Instruction.Create(OpCodes.Newobj, maCtrRef));
-                maInstructions.Add(Instruction.Create(OpCodes.Stloc, varMa));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, method.ReturnType.FullName));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldstr, sb.ToString()));
-                maInstructions.Add(Instruction.Create(OpCodes.Ldnull));
-                var maSetPropertiesRef = this.AssemblyDefinition.MainModule.Import(maSetProperties, method);
-                maInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
-                */
                 #endregion
 
                 #region Before, Success, Exception, After
@@ -88,7 +69,7 @@ namespace Buffalo
                     #endregion
 
                     #region Before, success, exception
-                    var before = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Before);
+                    var before = method.FindMethodReference(aspects[i], Enums.AspectType.Before);
                     if (before != null)
                     {
 
@@ -99,7 +80,7 @@ namespace Buffalo
                         beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
                     }
 
-                    var success = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Success);
+                    var success = method.FindMethodReference(aspects[i], Enums.AspectType.Success);
                     if (success != null)
                     {
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
@@ -109,7 +90,7 @@ namespace Buffalo
                         successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
                     }
 
-                    var exception = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.Exception);
+                    var exception = method.FindMethodReference(aspects[i], Enums.AspectType.Exception);
                     if (exception != null)
                     {
                         var varExpType = typeof(System.Exception);
@@ -131,7 +112,7 @@ namespace Buffalo
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectExceptionRef));
                     }
 
-                    var after = method.FindMethodReference(aspects[i], Buffalo.Enums.AspectType.After);
+                    var after = method.FindMethodReference(aspects[i], Enums.AspectType.After);
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));

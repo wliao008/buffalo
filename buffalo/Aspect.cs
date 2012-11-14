@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Buffalo.Common;
 using Mono.Cecil;
 
 namespace Buffalo
@@ -7,12 +7,12 @@ namespace Buffalo
     {
         public Aspect()
         {
-            this.AssemblyLevelStatus = Buffalo.Enums.Status.NotApplied;
+            this.AssemblyLevelStatus = Enums.Status.NotApplied;
         }
 
         public string Name { get; set; }
 
-        public Buffalo.Enums.Status AssemblyLevelStatus { get; set; }
+        public Enums.Status AssemblyLevelStatus { get; set; }
 
         public TypeDefinition TypeDefinition { get; set; }
 

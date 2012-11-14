@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Mono.Cecil;
 
-namespace Buffalo
+namespace Buffalo.Interfaces
 {
     internal interface IInjectable
     {

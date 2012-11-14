@@ -1,6 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 
-namespace Buffalo
+namespace Buffalo.Common
 {
     internal struct BeginEndMarker
     {

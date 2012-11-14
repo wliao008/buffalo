@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using Buffalo.Arguments;
+using Buffalo.Extensions;
+using Buffalo.Interfaces;
 using Mono.Cecil;
-using System.Linq;
-using System;
 using Mono.Cecil.Cil;
-using System.Text;
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 //using Mono.Cecil.Rocks;
 
-namespace Buffalo
+namespace Buffalo.Injectors
 {
     internal class MethodAroundInjector : IInjectable
     {
@@ -99,13 +101,13 @@ namespace Buffalo
 
                     #region Handling Proceed()
                     var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
-                        x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
+                        x => x.FullName.Contains("::Invoke(Buffalo.Arguments.MethodArgs)"));
                     bool found = false;
                     int instIdx = 0;
                     for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
                     {
                         if (invoke.Body.Instructions[instIdx].ToString()
-                            .Contains("System.Object Buffalo.MethodArgs::Proceed"))
+                            .Contains("System.Object Buffalo.Arguments.MethodArgs::Proceed"))
                         {
                             found = true;
                             break;
@@ -146,17 +148,6 @@ namespace Buffalo
                         invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
 
-                        ///TEST
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
-                        //var write = Instruction.Create(OpCodes.Call,
-                        //    this.AssemblyDefinition.MainModule.Import(typeof(Console).GetMethod("WriteLine", new[] { typeof(object) })));
-                        //invokeInstructions.Add(write);
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldlen));
-                        //invokeInstructions.Add(Instruction.Create(OpCodes.Conv_I4));
-                        //invokeInstructions.Add(write);
-                        ///END TEST
-                        ///
                         //modify the Invoke() instruction to make a call to the original method
                         invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.DeclaringType));
@@ -183,16 +174,13 @@ namespace Buffalo
                             invoke.Body.Variables.Add(varObj);
                             invokeInstructions.Add(
                                 Instruction.Create(OpCodes.Box, method.ReturnType));
-                            //invokeInstructions.Add(
-                            //    Instruction.Create(OpCodes.Stloc, varObj));
-                            //invokeInstructions.Add(
-                            //    Instruction.Create(OpCodes.Ldloc, varObj));
                         }
                         else
                         {
-                            //pop the return value since it's not used?
-                            invokeInstructions.Add(
-                                Instruction.Create(OpCodes.Pop));
+                            //method is suppose to return void, but since
+                            //previously it calls Proceed() which returns object type,
+                            //we need to handle that.
+                            invoke.Body.Instructions[instIdx] = Instruction.Create(OpCodes.Nop);
                         }
                         #endregion
 

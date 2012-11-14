@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Buffalo.Common;
+using Buffalo.Injectors;
+using Buffalo.Interfaces;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using System;
 using System.Collections.Generic;
+//using Mono.Cecil.Rocks;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using Reflection = System.Reflection;
-using System.Runtime.CompilerServices;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-//using Mono.Cecil.Rocks;
-using System.Collections.Specialized;
-using System.Text;
 
 namespace Buffalo
 {
@@ -70,7 +71,8 @@ namespace Buffalo
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
             //populate the type definition first
             foreach (var m in this.AssemblyDefinition.Modules)
-                m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
+                m.Types
+                    .ToList().ForEach(x => this.TypeDefinitions.Add(x));
             //extract aspects from the type definitions
             this.TypeDefinitions
                 .Where(x => x.BaseType != null 
@@ -86,7 +88,7 @@ namespace Buffalo
             });
             //finally, get the eligible methods
             Aspects
-                .Where(x => x.AssemblyLevelStatus != Buffalo.Enums.Status.Excluded)
+                .Where(x => x.AssemblyLevelStatus != Enums.Status.Excluded)
                 .ToList()
                 .ForEach(x =>
                 {
@@ -122,8 +124,8 @@ namespace Buffalo
                 //create a replacement function
                 var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
                 var aroundAspect = aspects.SingleOrDefault(x => x.Type.BaseType == typeof(MethodAroundAspect));
-                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
-                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"));
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.Arguments.MethodArgs)"));
+                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.Arguments.MethodArgs::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                 //newmethod.Body.SimplifyMacros();
@@ -182,13 +184,13 @@ namespace Buffalo
                 NewMethodNames.Add(methodName);
                 method.DeclaringType.Methods.Add(newmethod);
 
-                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
+                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.Arguments.MethodArgs)"));
                 int i = 0;
                 bool found = false;
                 for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
                 {
                     if (invokeMethod.Body.Instructions[i].ToString()
-                        .Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"))
+                        .Contains("callvirt System.Void Buffalo.Arguments.MethodArgs::Proceed()"))
                     {
                         found = true;
                         break;
@@ -258,16 +260,6 @@ namespace Buffalo
             Console.WriteLine("Unloading domain...");
         }
 
-        /*
-        private static void LoadAssembly()
-        {
-            ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
-            var _assemblyPath = @"C:\Users\wliao\Documents\Visual Studio 2010\Projects\buffalo\client\bin\Debug\client.exe";
-            var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
-            var types = assembly.GetTypes().ToList();
-        }
-        */
-
         private void PrintEligibleMethods()
         {
             foreach (var de in this.EligibleMethods)
@@ -288,13 +280,15 @@ namespace Buffalo
 
         private void CheckEligibleMethods(Aspect aspect)
         {
-            foreach (var t in this.TypeDefinitions.Where(x => !x.Name.Equals("<Module>")))
+            foreach (var t in this.TypeDefinitions.Where(x => !x.Name.Equals("<Module>")
+                && (x.BaseType == null || (x.BaseType.FullName != typeof(MethodBoundaryAspect).FullName
+                    && x.BaseType.FullName != typeof(MethodAroundAspect).FullName))))
             {
                 var status = this.CheckAspectStatus(t, aspect);
 #if DEBUG
                 Console.WriteLine("\t{0}: {1}", t.Name, status.ToString());
 #endif
-                if (status == Buffalo.Enums.Status.Excluded)
+                if (status == Enums.Status.Excluded)
                     continue;
 
                 var mths = this.GetMethodDefinitions(t, status, aspect);
@@ -313,7 +307,7 @@ namespace Buffalo
             }
         }
 
-        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Buffalo.Enums.Status typeStatus, Aspect aspect)
+        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Enums.Status typeStatus, Aspect aspect)
         {
             if (typeDef.Name.Contains("Test"))
             {
@@ -328,15 +322,15 @@ namespace Buffalo
                 //if (status != Status.Applied && typeStatus != Status.Applied)
                 //    continue;
 
-                if (status == Buffalo.Enums.Status.Applied)
+                if (status == Enums.Status.Applied)
                 {
                     list.Add(method);
                 }
                 else
                 {
-                    if (typeStatus == Buffalo.Enums.Status.Applied && status != Buffalo.Enums.Status.Excluded)
+                    if (typeStatus == Enums.Status.Applied && status != Enums.Status.Excluded)
                     {
-                        status = Buffalo.Enums.Status.Applied;
+                        status = Enums.Status.Applied;
                         list.Add(method);
                     }
                 }
@@ -353,14 +347,19 @@ namespace Buffalo
         /// ICustomAttributeProvider interface, so it can be used here
         /// to determined if a method is marked as exclude or not.
         /// </summary>
-        private Buffalo.Enums.Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
+        private Enums.Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
         {
-            Buffalo.Enums.Status status = aspect.AssemblyLevelStatus;
+            Enums.Status status = aspect.AssemblyLevelStatus;
 
             bool attrFound = false;
             for (int i = 0; i < def.CustomAttributes.Count; ++i)
             {
-                //var t = def.CustomAttributes[i].AttributeType.Resolve();
+                if (def.CustomAttributes[i].AttributeType.FullName.Equals("System.Runtime.CompilerServices.CompilerGeneratedAttribute"))
+                {
+                    status = Enums.Status.Excluded;
+                    break;
+                }
+
                 if (aspect.Type != null 
                     && (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
                     || aspect.Type.BaseType == typeof(MethodAroundAspect))
@@ -369,14 +368,14 @@ namespace Buffalo
                     attrFound = true;
                     if (def.CustomAttributes[i].Properties.Count == 0)
                     {
-                        status = Buffalo.Enums.Status.Applied;
+                        status = Enums.Status.Applied;
                     }
                     else
                     {
                         var exclude = def.CustomAttributes[i].Properties.First(x => x.Name == "AttributeExclude");
                         if ((bool)exclude.Argument.Value == true)
                         {
-                            status = Buffalo.Enums.Status.Excluded;
+                            status = Enums.Status.Excluded;
                             //Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
                             def.CustomAttributes.RemoveAt(i);
                         }
@@ -384,7 +383,7 @@ namespace Buffalo
                 }
             }
 
-            if (!attrFound && aspect.AssemblyLevelStatus == Buffalo.Enums.Status.Applied)
+            if (!attrFound && aspect.AssemblyLevelStatus == Enums.Status.Applied)
             {
                 //this aspect is applied on the assembly level and
                 //as a result the type and method might not have the

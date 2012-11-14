@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Buffalo.Arguments;
+using Buffalo.Interfaces;
+
 namespace Buffalo
 {
     public abstract class MethodBoundaryAspect : System.Attribute, IMethodBoundaryAspect
