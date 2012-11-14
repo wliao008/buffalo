@@ -13,7 +13,7 @@ namespace client
             if (num % 2 == 0)
                 return args.Proceed();
             else
-                return -1;
+                return new decimal(-1);
         }
     }
 
@@ -22,6 +22,16 @@ namespace client
         public override void Before(MethodArgs args)
         {
             Console.WriteLine(args.FullName);
+        }
+
+        public override void Exception(MethodArgs args)
+        {
+            Console.WriteLine("Exception occured in {0}", args.FullName);
+            Console.WriteLine(args.Exception.ToString());
+            foreach (var p in args.Parameters)
+            {
+                Console.WriteLine("\t{0} ({1}): {2}", p.Name, p.Type, p.Value);
+            }
         }
     }
 }
