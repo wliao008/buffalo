@@ -77,7 +77,7 @@ Rochester, New York \\ [0.3in]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Abstract
 \section*{Abstract}
-Aspect Oriented Programming (AOP) is a paradigm that let programmers isolate and separate cross-cutting concerns from the basis of their program. The concept has not been widely adapted by modern languages, support in toolings such as Integrated Development Environment (IDE) is also rare. In this project we will design and implement a framework called Buffalo that provides AOP functionality for C\# via IL code weaving, and integrate it with the Visual Studio IDE build system.
+Aspect Oriented Programming (AOP) is a paradigm that lets programmers isolate and separate cross-cutting concerns from the basis of their program. The concept has not been widely adopted by modern languages, support in toolings such as Integrated Development Environment (IDE) is also rare. In this project we will design and implement a framework called Buffalo that provides AOP functionality for C\# via IL code weaving, and show how we can integrate it with the Visual Studio IDE build system.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vfill{}
 
@@ -87,11 +87,11 @@ Aspect Oriented Programming (AOP) is a paradigm that let programmers isolate and
 \newpage{}
 %\setlength{\parindent}{1cm}
 \section{Introduction}
-Object Oriented Programming (OOP) languages have given programmers a lot of freedom in expressing themselves in Object Oriented Design. However, they are still lacking in some areas when it comes to particular software design decision such as cross-cutting concern~\cite{aop}. 
+Object Oriented Programming (OOP) languages have given programmers a lot of freedom in expressing themselves in Object Oriented Design. However, they are still lacking in some areas when it comes to particular software design decisions such as cross-cutting concerns~\cite{aop}. 
 
-In this project, we will try to solve this type of problem by designing and implementing a framework called "Buffalo" for the C\# platform. We will show that by using Buffalo programmers can separate those concerns from the core of the program, and ultimately be more productive.
+In this project, we will try to solve this type of problem by designing and implementing a framework called "Buffalo" for the .NET platform. We will show that by using Buffalo programmers can separate those concerns from the core of the program, and ultimately be more productive.
 
-In section 2 we will explain the background of the problem, show some examples where the current programming paradigms are not efficient. In section 3, we will explore the existing works and show what had been done. In section 5, we will explain what we propose to do with an overview of the architecture of Buffalo, what we want the end result to be, and how to evaluate it. A tentative roadmap will be given in section 6.
+In section 2 we will explain the background of the problem, show some examples where the current programming paradigms are not efficient. In section 3, we will explore the existing works and show what had been done. In section 5, we will explain what we propose to do with an overview of the architecture of Buffalo, what we want the end result to be, and how to evaluate it. A tentative roadmap is given in section 6.
 
 \section{Background}
 In this section we will explain more about the cross-cutting problem and how AOP can be used to help.
@@ -99,14 +99,15 @@ In this section we will explain more about the cross-cutting problem and how AOP
 \subsection{The Problem}
 Procedural Languages such as C achieve modularity by grouping codes into subroutines, so that they can be reused. Whereas OOP languages, such as JAVA or C\# go one step further, by allowing programmers to abstract real world objects into properties and behaviors. Both paradigms give programmers the ability to make their codes cleaner and more reusable.
 
-While OOP languages offer data abstraction and encapsulation in the form of classes and objects, the usage of declared instances of all these classes could still be scattered throughout different modules of the program. Over time, these tangled cross-cutting relations [1] can become difficult and expensive to maintain. One of the often cited example of such concerns is exception handling: the ability for programs to handle errors or terminate gracefully.
+While OOP languages offer data abstraction and encapsulation in the form of classes and objects, the usage of declared instances of all these classes could still be scattered throughout different modules of the program. Over time, these tangled cross-cutting relations [1] can become difficult and expensive to maintain. One of the often cited example of such concerns is exception handling: the ability for programs to handle errors and terminate gracefully.
 
 To handle an exception in our code, we usually use the follow try..catch block:
 
 \begin{lstlisting}[caption={try..catch pattern}, label=trycatch]
-public double Divide(double num1, double num2) {
+public void SomeFunction() {
    try {
-       return num1 / num2;
+       //perform some operations that might fail, 
+       //such as accessing a file.
    } catch (Exception e) {
        //log exception to file, etc
        Utility.LogToFile(e);
@@ -114,17 +115,19 @@ public double Divide(double num1, double num2) {
 }
 \end{lstlisting}
 
-The code snippet in Listing~\ref{trycatch} illustrated a few key points. If {\em num2} is 0, the execution will fail, causing an exception to be thrown, and when that happens, execution control is transferred to line 6, where the exception is logged to a file. 
+The code snippet in Listing~\ref{trycatch} illustrates a few key points. If the program tries to access a non-existent file, the execution will fails. In that case an exception will be thrown causing execution control to be transferred to line 7, where the exception is logged to a file. 
 
 Imagine that if you have 1,000 functions in your program that can potentially throw exceptions, you would have to apply the try..catch block on all of them. And note that the functionality of actually logging the exception is nicely encapsulated in the {\em Utility} object, but it does not change the fact that the code is still repetitive, because {\em Utility.LogToFile(e)} still have to be called in 1,000 different places in the source code. Since an OOP program most likely consists of different modules, this repetitive pattern will cut through and appears in all the them.
 
-What if you need to fine tune this try..catch block to catch a specific exception such as the {\em DivideByZeroException} so your program can act accordingly, or instead of using the {\em Utility} object you want to use a different object to handle the actual logging? In the worst case, you would have to make the change to all 1,000 of your functions.
+What if you need to fine tune this try..catch block to catch a specific exception such as the {\em SocketException} so your program can act accordingly, or instead of using the {\em Utility} object you want to use a different object to handle the actual logging? In the worst case, you would have to make the change to all 1,000 of your functions.
 
-The question is how to prevent those cross-cutting concerns from loitering your program. Worst yet, it is not uncommon a program might consist of something like in Listing~\ref{unhandledexception}, where exception is not handled at all.
+The question is how to prevent those cross-cutting concerns from loitering your program. Worst yet, it is not uncommon a program might consist of something like in Listing~\ref{unhandledexception}, where exception is not handled at all. When that happens the program will die an ungraceful death.
 
 \begin{lstlisting}[caption={Unhandle exception}, label=unhandledexception]
-public double Divide(double num1, double num2) {
-   return num1 / num2;
+public void SomeFunction() {
+    //perform some operations that
+    //might fail, such as accessing a file.
+    //...
 }
 \end{lstlisting}
 
@@ -137,13 +140,13 @@ The Aspect Oriented Programming paradigm was first discussed in 1997~\cite{aop}.
 
 {\em aspect} - the piece of isolated code that can be used to solve the issue of a particluar concern.
 
-{\em join point} - These are the locations throughout the program where the concern is leaked into; they are also where the aspect will be applied to solve the concern.
+{\em join point} - These are the locations throughout the program where aspect will be applied to solve the cross-cutting concerns.
 
 The idea of AOP is fairly simple. We have code that is duplicated all over the place, making it difficult to maintain. We need to isolate that duplication into a separate single unit. Then we inject that unit of code into all relevant places in a program either at runtime or at compile time, so that the programmers does not have to do it manually in the source code.
 
 In other words, AOP is about injecting code into a program. This is especially handy when programmers don't have access to the original source code.
 
-Besides exception handling, AOP is commonly used in tracing, profiling, security, etc.
+Besides unhandled exception catching, AOP is commonly used in tracing, profiling, security, etc.
 
 \section{Related Work}Most modern programming languages already display some AOP-like properties, but full native support is rare. Delphi Prism is one of them, where the weaving of aspect code happens at compile time~\cite{delphi_prism2010}. AOP can be implemented in a variety of ways. However, just like other programming paradigms, it is most effective and beneficial when it is implemented by the compiler. That makes it a first class citizen like other properties of a language.
 
@@ -171,7 +174,7 @@ It is important to note that the purpose of AOP is to solve cross-cutting concer
 
 Behind the scene, AspectJ pieces everything together using bytecode weaving. After JAVA compiles the source, AspectJ takes the classes and aspects in bytecode form and weaves them together, producing new .class files that can be loaded onto the virtual machine.
 
-Despite Eclipse' claim that AspectJ is very easy to learn, one of the disadvantages of AspectJ, as Listing~\ref{aspecjcodesample} shows, is that the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper. But I agree that once get used to it, AspectJ can be a really powerful tool for programmers~\cite{aspectj_text}.
+Despite Eclipse' claim that AspectJ is very easy to learn, one of the disadvantages of AspectJ, as Listing~\ref{aspecjcodesample} shows, is that the syntax is somewhat different from a normal JAVA program, making the learning curve much deeper. But I agree that AspectJ can be a really powerful tool for programmers~\cite{aspectj_text}.
 
 \subsection{Framework Support}
 
@@ -189,14 +192,14 @@ One of the most common implementations involves the usage of a proxy, where the 
 
 Using the proxy provides an opportunity for code injection. The advantage of this approach is relative ease of implementation. It is also limiting since in order for the proxy to work, both the proxy and the target object must implement the same interface, therefore the aspect injection point can only occur in the exposed functions for the interface. As this requires reflection at runtime to generate the proxy, it also adds overhead, so performance might not be as good as other approaches.
 
-Another approach is similar to AspectJ, where bytecode weaving is used, but without the extra complexity of a new syntax and language. The commercial product PostSharp~\cite{postsharp} is such an example, where aspect weaving happens post compilation by rewriting the MSIL instruction set. PostSharp uses .NET languages with attribute used for advice codes. The advantage is ease of use, as developers already familiar with C\# will have little to no learning curve at all. And since aspects are woven in the assembly, the runtime incurs no overhead for reflection, and therefore performance is not compromised. The disadvantage is that, since it has to work with MSIL instruction set, it is very low level and therefore the most difficult to implement.
+Another approach is similar to AspectJ, where bytecode weaving is used, but without the extra complexity of a new syntax and language. The commercial product PostSharp~\cite{postsharp} is such an example, where aspect weaving happens post compilation by rewriting the MSIL instruction set. PostSharp uses .NET languages with attribute used for advice codes. The advantage is ease of use, as programmers already familiar with C\# will have little to no learning curve at all. And since aspects are woven in the assembly, the runtime incurs no overhead for reflection, and therefore performance is not compromised. The disadvantage is that, since it has to work with MSIL instruction set, it is very low level and therefore the most difficult to implement.
 
 Some frameworks use static weaving~\cite{aspectcs}, where the source files are pre-processed to include all the relevant aspect code. Then the C\# compiler takes over and does the compilation normally. This has the advantage of post compilation weaving but not the complexity of working with MSIL instruction set. On the other hand, a parser generator has to be developed to efficiently parse the source files.
 
 \section{Hypothesis}
 The OOP paradigm cannot efficiently solve the cross-cutting problem. However even though the C\# compiler will not support the AOP paradigm, we can still archieve the same goal by performing the separation of concerns via Buffalo.
 
-We can further make the developer's life easier by hooking up Buffalo with the Microsoft's build system in Visual Studio to perform automatic aspect weaving. With zero, developers can just focus on creating the aspects to deal with the problems.
+We can further make the programmer's life easier by hooking up Buffalo with the Microsoft's build system in Visual Studio to perform automatic aspect weaving. This is possible with modification to the Microsoft.Common.targets configuration files in various version of the .NET framework under the Windows directory. Once setup, Buffalo will be invoked for every post compilation to perform the IL transformation. Programmers can just focus on creating the aspects to deal with the concerns.
 
 \section{Approach and Methodology}
 In this section I will give an overview of the architecture of Buffalo, the tools and approaches I will be using to implement it.
@@ -213,71 +216,72 @@ The approach we plan to take is to perform compile time weaving. Figure~\ref{buf
 \subsection{Feature Implementation}
 For this project, I plan to work on weavering of several aspects. Specifically they are the various interception points of a function: 
 
-{\em Before} - Before the execution of a function.
+{\em OnBefore} - Before the execution of a function.
 
-{\em After} - After the execution of a function, right before it returns.
+{\em OnAfter} - After the execution of a function, right before it returns.
 
-{\em Success} - The function has successfully executed without error.
+{\em OnSuccess} - The function has successfully executed without error.
 
-{\em Exception} - The function throws an exception during execution.
+{\em OnException} - The function throws an exception during execution.
 
-{\em Around} - Swap out the target function with one provided by the developer, while preserving the option to call into the original function.
+{\em Around} - Swap out the target function with one provided by the programmer, while preserving the option to call into the original function.
 
-The first four aspects can be nicely group together using a try..catch..finally. As shown in Listing~\ref{boundaryaspect}, this is how a function would be modified in MSIL when a developer wants to intercep any of those execution points. The try..catch..finally is wrapped around the target function with calls to various custom code supplied by the developer. 
+The first four aspects can be nicely group together using a try..catch..finally. As shown in Listing~\ref{boundaryaspect}, this is how a function would be modified in MSIL when a programmer wants to intercep any of those execution points. The try..catch..finally is wrapped around the target function with calls to various custom code supplied by the programmer. 
 
 \begin{lstlisting}[caption={Buffalo aspects}, label=boundaryaspect]
 public class SomeFunction {
    try {
-       Before();
+       OnBefore();
        //original method body...
-       Success();
+       OnSuccess();
    }catch(Exception e){
-       Exception(e);
+       OnException(e);
    }finally{
-       After();
+       OnAfter();
    }
 }
 \end{lstlisting}
 
-The Around aspect is more involved as we cannot simply replace the target function with something else. The replacement must be able to call into the original function, along with the right number of parameters. For this project I plan to get the basic of Around aspect working, then in the future iteration to make it more flexible.
+The Around aspect is more involved as we cannot simply replace the target function with something else. The replacement must be able to call into the original function, along with the right number of parameters.
 
 Contrast from AspectJ, where it has separate getter and setter syntax specifically for Java's properties. In C\#, properties are automatically turned into methods when compiled into MSIL. Since Buffalo will be operating on MSIL, all the aspects will apply to both properties and methods.
 
 \subsection{Compile Time Weaving}
-As shown in Figure~\ref{buffalo_model}, the C\# compiler compiles the source files into an assembly, this assembly is then fed into Buffalo. Buffalo takes apart the assembly using reflection to find all the defined {\em aspects} and possible {\em pointcuts}. The defined aspects are simply of attribute type implementing the IAspect interface, an example is shown in Listing~\ref{buffalocode}. Buffalo then weave them together at the right places by rewriting the MSIL instruction set, and finally produces a new assembly.
+As shown in Figure~\ref{buffalo_model}, the C\# compiler compiles the source files into an assembly, this assembly is then fed into Buffalo. Buffalo takes apart the assembly using reflection to find all the defined {\em aspects} and possible {\em pointcuts}. The defined aspects are simply of attribute type inheriting the predefined MethodBoundary or MethodAround aspects that implement the IAspect interface, an example is shown in Listing~\ref{buffalocode}. Buffalo then weave them together at the right places by rewriting the MSIL instruction set, and finally produces a new assembly.
 
 Once C\# finishes the compilation, the control is transferred to Buffalo. This is archieved by creating a hook into the MSBuild system. If Buffalo detects any {\em aspects} defined in the input assembly, and that the {\em aspects} are being applied, then weaving will take place, otherwise the whole process will simply be ignored.
 
 \subsection{Intended Usage}
-From the Visual Studio IDE, developer can use Buffalo by creating a custom C\# attribue class; extending a Buffalo interface IAspect (subject to change), for example:
+From the Visual Studio IDE, programmer can use Buffalo by creating a custom C\# attribue class; inheriting a Buffalo aspect (subject to change), for example:
 
 \begin{lstlisting}[caption={Buffalo aspect}, label=buffalocode]
-public class CatchException : System.Attribute, IAspect {
-   public override void Exception(Exception e) {
-       Utility.LogToFile(e);
+public class CatchExceptionAspect : Buffalo.MethodBoundaryAspect {
+   public override void OnException(MethodArgs arg) {
+       Utility.LogToFile(arg.Exception);
    } 
 }
 \end{lstlisting}
 
-The cross-cutting concern is now cleanly separated into a custom attribute {\em CatchException}. It will be treated as an aspect by Buffalo, any change made to it will be propagated to all the annontated functions. To use this aspect, simply treat it like a regular attribute and apply it to any method, class or assembly.
+The cross-cutting concern is now cleanly separated into a custom attribute {\em CatchExceptionAspect}. It will be treated as an aspect by Buffalo, any change made to it will be propagated to all the annotated functions upon recompilation. To use this aspect, simply treat it like a regular attribute and apply it to any method, class or assembly.
 
 \begin{lstlisting}[caption={applying Buffalo aspect}, label=applybuffalo]
-[CatchException]
-public double Divide(double num1, double num2) {
-   return num1 / num2;
+[CatchExceptionAspect]
+public void SomeFunction() {
+   //perform some operations that might fail, 
+   //such as accessing a file.
 }
 \end{lstlisting}
 
 As the code snippets in Listing~\ref{applybuffalo} shows, by applying this attribute to a function, the repetitive try..catch block is no longer necessary. The target code is much shorter and cleaner. 
 
-The real benefit will be evident when an aspect is applied to a large number of functions, or asemblies. For example, if we want every function in every class to be able to catch exception we can apply the attribute to the assembly:
+The real benefit will be evident when an aspect is applied to a large number of functions, or asemblies. For example, if we want every function in every class to be able to catch unhandled exception we can apply the attribute to the assembly:
 
 \begin{lstlisting}[caption={applying Buffalo aspect on an assembly}, label=applybuffaloassembly]
 [assembly:CatchException]
 namespace MyAssembly {
    public class MyClass {
-      public double Divide(double num1, double num2) {
-         return num1 / num2;
+      public void SomeFunction() {
+         //...
       }
       //other functions...
    }
@@ -285,10 +289,10 @@ namespace MyAssembly {
 }
 \end{lstlisting}
 
-By applying the attribute on the assembly level, a single line of code, will effectively allow every function to have exception handling capability. This will be a huge developer productivity gain.
+By applying the attribute on the assembly level, a single line of code, will effectively allow every function to have exception handling capability. This will be a huge programmer productivity gain.
 
 \subsection{Platform, Languages and Tools}
-This project will be developed using C\# and Visual Studio 2010, on Windows 7. For IL rewriting several options are available. One is to use the Reflection.Emit library that comes with the .NET Framework. However all research indicates that this library represents only a subset of the MSIL instruction set.
+This project will be developed using C\# and Visual Studio 2012, on Windows 7. For IL rewriting several options are available. One is to use the Reflection.Emit library that comes with the .NET Framework. However all research indicates that this library represents only a subset of the MSIL instruction set.
 
 Another option is to use the Profiler API by Microsoft, but this API is intended as a debugging feature, therefore is unsuitable for production environment.
 
@@ -299,10 +303,10 @@ The following utility tools will also be heavily used during development: ILSpy,
 \subsection{Measurement}
 To evalulate Buffalo, we will show that with Buffalo, code duplication can be reduced. The cross-cutting concern will be separated into single unit of code where it will be easy to maintain. We will use the {\em Call Hierarchy} feature of Visual Studio to show how many calls are issued before and after IL rewrite with Buffalo. 
 
-The line count of code a developer has to write will also be reduced considerably. As a result the code will be cleaner and easier to look at. This can also be translated directly into an estimation of development cost savings. We will compare line counts before and after IL code rewrite by Buffalo using the {\em Code Analysis} function provided by Visual Studio.
+The line count of code a programmer has to write will also be reduced considerably. As a result the code will be cleaner and easier to look at. This can also be translated directly into an estimation of development cost savings. We will compare line counts before and after IL code rewrite by Buffalo using the {\em Code Analysis} function provided by Visual Studio.
 
 \section{Roadmap}
-Table~\ref{tab:roadmap_tbl} shows the tentative schedule for the major phases of this project.
+Table~\ref{tab:roadmap_tbl} shows the timeline and tentative schedule for the major phases of this project.
 
 \begin{table}[H]
 \centering
@@ -311,11 +315,12 @@ Table~\ref{tab:roadmap_tbl} shows the tentative schedule for the major phases of
 Date & Action & Status\\
 \hline
 07/07/2012 & Pre-Proposal & Accepted\\
-07/09/2012 & Proposal & In-progress\\
-07/20/2012 & Begin development of Buffalo & In-progress\\
-11/15/2012 & Finish development, start testing and analysis & - \\
-11/25/2012 & Finish report & - \\
-12/2012 & Defense & - \\
+07/09/2012 & Proposal & Submitted\\
+11/13/2012 & Proposal & Accepted\\
+11/15/2012 & Buffalo development (beta) & Completed \\
+12/01/2012 & Testing and analysis&In-Progress\\
+12/15/2012 & Finish report & In-Progress \\
+02/2013 & Defense & - \\
 \hline
 \end{tabular}
 \caption{Timeline}
