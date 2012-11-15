@@ -11,10 +11,10 @@
 
         internal enum AspectType
         {
-            Before,
-            After,
-            Success,
-            Exception,
+            OnBefore,
+            OnAfter,
+            OnSuccess,
+            OnException,
             Invoke
         }
     }

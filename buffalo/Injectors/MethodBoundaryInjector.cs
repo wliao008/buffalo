@@ -68,28 +68,28 @@ namespace Buffalo.Injectors
                     #endregion
 
                     #region Before, success, exception
-                    var before = method.FindMethodReference(aspects[i], Enums.AspectType.Before);
+                    var before = method.FindMethodReference(aspects[i], Enums.AspectType.OnBefore);
                     if (before != null)
                     {
 
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectBefore = aspects[i].Type.GetMethod("Before");
+                        var aspectBefore = aspects[i].Type.GetMethod("OnBefore");
                         var aspectBeforeRef = this.AssemblyDefinition.MainModule.Import(aspectBefore, method);
                         beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
                     }
 
-                    var success = method.FindMethodReference(aspects[i], Enums.AspectType.Success);
+                    var success = method.FindMethodReference(aspects[i], Enums.AspectType.OnSuccess);
                     if (success != null)
                     {
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectSuccess = aspects[i].Type.GetMethod("Success");
+                        var aspectSuccess = aspects[i].Type.GetMethod("OnSuccess");
                         var aspectSuccessRef = this.AssemblyDefinition.MainModule.Import(aspectSuccess, method);
                         successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
                     }
 
-                    var exception = method.FindMethodReference(aspects[i], Enums.AspectType.Exception);
+                    var exception = method.FindMethodReference(aspects[i], Enums.AspectType.OnException);
                     if (exception != null)
                     {
                         var varExpType = typeof(System.Exception);
@@ -105,18 +105,18 @@ namespace Buffalo.Injectors
 
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectException = aspects[i].Type.GetMethod("Exception");
+                        var aspectException = aspects[i].Type.GetMethod("OnException");
                         //var aspectBefore = varAspectType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("Before"));
                         var aspectExceptionRef = this.AssemblyDefinition.MainModule.Import(aspectException, method);
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectExceptionRef));
                     }
 
-                    var after = method.FindMethodReference(aspects[i], Enums.AspectType.After);
+                    var after = method.FindMethodReference(aspects[i], Enums.AspectType.OnAfter);
                     if (after != null)
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectAfter = aspects[i].Type.GetMethod("After");
+                        var aspectAfter = aspects[i].Type.GetMethod("OnAfter");
                         var aspectAfterRef = this.AssemblyDefinition.MainModule.Import(aspectAfter, method);
                         afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectAfterRef));
                     }

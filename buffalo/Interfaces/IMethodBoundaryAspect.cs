@@ -2,9 +2,9 @@
 {
     internal interface IMethodBoundaryAspect : IAspect
     {
-        void Before(MethodArgs args);
-        void After(MethodArgs args);
-        void Success(MethodArgs args);
-        void Exception(MethodArgs args);
+        void OnBefore(MethodArgs args);
+        void OnAfter(MethodArgs args);
+        void OnSuccess(MethodArgs args);
+        void OnException(MethodArgs args);
     }
 }

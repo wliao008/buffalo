@@ -18,12 +18,12 @@ namespace client
 
     public class Trace : MethodBoundaryAspect
     {
-        public override void Before(MethodArgs args)
+        public override void OnBefore(MethodArgs args)
         {
             Console.WriteLine(args.FullName);
         }
 
-        public override void Exception(MethodArgs args)
+        public override void OnException(MethodArgs args)
         {
             Console.WriteLine("Exception occured in {0}", args.FullName);
             Console.WriteLine(args.Exception.ToString());

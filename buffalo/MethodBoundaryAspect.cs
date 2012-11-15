@@ -16,12 +16,12 @@ namespace Buffalo
 
         public bool AttributeExclude { get; set; }
 
-        public virtual void Before(MethodArgs args) { }
+        public virtual void OnBefore(MethodArgs args) { }
 
-        public virtual void After(MethodArgs args) { }
+        public virtual void OnAfter(MethodArgs args) { }
 
-        public virtual void Success(MethodArgs args) { }
+        public virtual void OnSuccess(MethodArgs args) { }
 
-        public virtual void Exception(MethodArgs args) { }
+        public virtual void OnException(MethodArgs args) { }
     }
 }
