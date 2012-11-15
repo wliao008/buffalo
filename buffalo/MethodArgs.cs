@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Buffalo.Arguments
+namespace Buffalo
 {
     public sealed class MethodArgs
     {

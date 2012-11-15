@@ -124,8 +124,8 @@ namespace Buffalo
                 //create a replacement function
                 var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
                 var aroundAspect = aspects.SingleOrDefault(x => x.Type.BaseType == typeof(MethodAroundAspect));
-                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.Arguments.MethodArgs)"));
-                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.Arguments.MethodArgs::Proceed()"));
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
+                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"));
                 //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
                 MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
                 //newmethod.Body.SimplifyMacros();
@@ -184,13 +184,13 @@ namespace Buffalo
                 NewMethodNames.Add(methodName);
                 method.DeclaringType.Methods.Add(newmethod);
 
-                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.Arguments.MethodArgs)"));
+                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
                 int i = 0;
                 bool found = false;
                 for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
                 {
                     if (invokeMethod.Body.Instructions[i].ToString()
-                        .Contains("callvirt System.Void Buffalo.Arguments.MethodArgs::Proceed()"))
+                        .Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"))
                     {
                         found = true;
                         break;

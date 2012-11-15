@@ -1,6 +1,4 @@
-﻿using Buffalo.Arguments;
-
-namespace Buffalo.Interfaces
+﻿namespace Buffalo.Interfaces
 {
     internal interface IMethodAroundAspect : IAspect
     {

@@ -50,12 +50,12 @@
     <Compile Include="Interfaces\IInjectable.cs" />
     <Compile Include="Interfaces\IMethodAroundAspect.cs" />
     <Compile Include="Interfaces\IMethodBoundaryAspect.cs" />
-    <Compile Include="Arguments\MethodArgs.cs" />
+    <Compile Include="MethodArgs.cs" />
     <Compile Include="MethodAroundAspect.cs" />
     <Compile Include="Injectors\MethodAroundInjector.cs" />
     <Compile Include="MethodBoundaryAspect.cs" />
     <Compile Include="Injectors\MethodBoundaryInjector.cs" />
-    <Compile Include="Arguments\Parameter.cs" />
+    <Compile Include="Parameter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Common\BeginEndMarker.cs" />
     <Compile Include="Weaver.cs" />

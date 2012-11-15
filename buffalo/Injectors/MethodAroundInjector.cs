@@ -1,5 +1,4 @@
-﻿using Buffalo.Arguments;
-using Buffalo.Extensions;
+﻿using Buffalo.Extensions;
 using Buffalo.Interfaces;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -101,13 +100,13 @@ namespace Buffalo.Injectors
 
                     #region Handling Proceed()
                     var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
-                        x => x.FullName.Contains("::Invoke(Buffalo.Arguments.MethodArgs)"));
+                        x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
                     bool found = false;
                     int instIdx = 0;
                     for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
                     {
                         if (invoke.Body.Instructions[instIdx].ToString()
-                            .Contains("System.Object Buffalo.Arguments.MethodArgs::Proceed"))
+                            .Contains("System.Object Buffalo.MethodArgs::Proceed"))
                         {
                             found = true;
                             break;

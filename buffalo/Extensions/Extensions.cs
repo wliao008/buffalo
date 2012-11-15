@@ -1,5 +1,4 @@
-﻿using Buffalo.Arguments;
-using Buffalo.Common;
+﻿using Buffalo.Common;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
