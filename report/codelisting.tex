@@ -1,0 +1,1383 @@
+\begin{lstlisting}[caption={../buffalo/MethodAroundAspect.cs}, label=../buffalo/MethodAroundAspect.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Interfaces;
+
+namespace Buffalo
+{
+    public abstract class MethodAroundAspect : System.Attribute, IMethodAroundAspect
+    {
+        public MethodAroundAspect(bool attributeExclude = false)
+        {
+            this.AttributeExclude = attributeExclude;
+        }
+
+        public bool AttributeExclude { get; set; }
+
+        public virtual object Invoke(MethodArgs args) { return null; }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/MethodArgs.cs}, label=../buffalo/MethodArgs.cs, frame=tb, basicstyle=\scriptsize]﻿using System;
+using System.Collections.Generic;
+
+namespace Buffalo
+{
+    public sealed class MethodArgs
+    {
+        private string name;
+        private string fullName;
+        private string returnTypeStr;
+        private string parameterStr;
+        private List<Parameter> parameters;
+        private object[] parameterArray;
+        private Exception exception;
+        private Object instance;
+
+        public MethodArgs()
+        {
+            this.parameters = new List<Parameter>();
+        }
+
+        public string Name
+        {
+            get
+            {
+                return this.name;
+            }
+        }
+
+        public string FullName
+        {
+            get
+            {
+                return this.fullName;
+            }
+        }
+
+        public Type ReturnType
+        {
+            get
+            {
+                return Type.GetType(this.returnTypeStr);
+            }
+        }
+
+        public List<Parameter> Parameters
+        {
+            get { return this.parameters; }
+        }
+
+        public Exception Exception
+        {
+            get { return this.exception; }
+        }
+
+        public object Instance
+        {
+            get { return this.instance; }
+        }
+
+        public object[] ParameterArray
+        {
+            get { return this.parameterArray; }
+        }
+
+        public void SetProperties(string name,
+            string fullname,
+            string returnTypeStr,
+            string parameterStr,
+            object[] parameterArray,
+            object instance = null)
+        {
+            this.name = name;
+            this.fullName = fullname;
+            this.returnTypeStr = returnTypeStr;
+            this.parameterStr = parameterStr;
+            this.parameterArray = parameterArray;
+            this.instance = instance;
+
+            var splits = this.parameterStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var split in splits)
+            {
+                var p = split.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                this.parameters.Add(new Parameter { Name = p[0], Type = Type.GetType(p[1]) });
+            }
+
+            for (int i = 0; i < this.Parameters.Count; ++i)
+            {
+                this.Parameters[i].Value = this.parameterArray[i];
+            }
+        }
+
+        public void SetException(Exception exception)
+        {
+            this.exception = exception;
+        }
+
+        public object Proceed()
+        {
+            return null;
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Aspect.cs}, label=../buffalo/Aspect.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Common;
+using Mono.Cecil;
+
+namespace Buffalo
+{
+    internal class Aspect : IAspect
+    {
+        public Aspect()
+        {
+            this.AssemblyLevelStatus = Enums.Status.NotApplied;
+        }
+
+        public string Name { get; set; }
+
+        public Enums.Status AssemblyLevelStatus { get; set; }
+
+        public TypeDefinition TypeDefinition { get; set; }
+
+        public System.Type Type { get; set; }
+
+        public override string ToString()
+        {
+            return this.Name;
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/MethodBoundaryAspect.cs}, label=../buffalo/MethodBoundaryAspect.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Interfaces;
+
+namespace Buffalo
+{
+    public abstract class MethodBoundaryAspect : System.Attribute, IMethodBoundaryAspect
+    {
+        public MethodBoundaryAspect()
+        {
+            this.AttributeExclude = false;
+        }
+
+        public MethodBoundaryAspect(bool attributeExclude = false)
+        {
+            this.AttributeExclude = attributeExclude;
+        }
+
+        public bool AttributeExclude { get; set; }
+
+        public virtual void OnBefore(MethodArgs args) { }
+
+        public virtual void OnAfter(MethodArgs args) { }
+
+        public virtual void OnSuccess(MethodArgs args) { }
+
+        public virtual void OnException(MethodArgs args) { }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Weaver.cs}, label=../buffalo/Weaver.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Common;
+using Buffalo.Injectors;
+using Buffalo.Interfaces;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using System;
+using System.Collections.Generic;
+//using Mono.Cecil.Rocks;
+using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
+using Reflection = System.Reflection;
+
+namespace Buffalo
+{
+    internal class Weaver
+    {
+        public Weaver(string assemblyPath)
+        {
+            ///TODO: Maybe just don't do anything if file not found
+            if (!File.Exists(assemblyPath))
+                throw new FileNotFoundException();
+
+            AssemblyPath = assemblyPath;
+            this.Init();
+        }
+
+        static internal string AssemblyPath { get; set; }
+
+        static internal List<Aspect> Aspects { get; set; }
+
+        static internal Dictionary<string, Type> UnderlyingAspectTypes { get; set; }
+
+        internal Dictionary<MethodDefinition, List<Aspect>> EligibleMethods { get; set; }
+
+        internal List<TypeDefinition> TypeDefinitions { get; set; }
+
+        internal AssemblyDefinition AssemblyDefinition { get; set; }
+
+        internal StringCollection NewMethodNames { get; set; }
+
+        internal void Inject(string outPath)
+        {
+            var injectors = new List<IInjectable>();
+
+            //apply the around aspect if necessary
+            var aroundAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            if (aroundAspectExist)
+                injectors.Add(new MethodAroundInjector());
+
+            //apply the boundary aspect if necessary
+            var boundaryAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            if (boundaryAspectExist)
+                injectors.Add(new MethodBoundaryInjector());
+
+            //inject
+            injectors.ForEach(x => x.Inject(this.AssemblyDefinition, this.EligibleMethods));
+
+            //write out the modified assembly
+            this.AssemblyDefinition.Write(outPath);
+            Console.WriteLine("DONE");
+        }
+
+        private void Init()
+        {
+            //initialize the variables
+            Aspects = new List<Aspect>();
+            NewMethodNames = new StringCollection();
+            this.TypeDefinitions = new List<TypeDefinition>();
+            this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
+            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
+            //populate the type definition first
+            foreach (var m in this.AssemblyDefinition.Modules)
+                m.Types
+                    .ToList().ForEach(x => this.TypeDefinitions.Add(x));
+            //extract aspects from the type definitions
+            this.TypeDefinitions
+                .Where(x => x.BaseType != null 
+                    && (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName 
+                    || x.BaseType.FullName == typeof(MethodAroundAspect).FullName))
+                .ToList()
+                .ForEach(x => Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
+            //set the original types
+            SetUnderlyingAspectTypes();
+            Aspects.ForEach(x =>
+            {
+                x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
+            });
+            //finally, get the eligible methods
+            Aspects
+                .Where(x => x.AssemblyLevelStatus != Enums.Status.Excluded)
+                .ToList()
+                .ForEach(x =>
+                {
+#if DEBUG
+                    Console.WriteLine("Aspect {0}: {1}", x.Name, x.AssemblyLevelStatus.ToString());
+                    Console.WriteLine("============================================");
+#endif
+                    this.CheckEligibleMethods(x);
+                    Console.WriteLine("");
+                });
+        }
+
+        private void InjectAroundAspect()
+        {
+            var once = false;
+            var ems = this.EligibleMethods.ToList();
+            var eligibleAroundMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            foreach (var d in eligibleAroundMethods)
+            {
+                var method = d.Key;
+                var aspects = d.Value;
+
+                if (!method.ReturnType.FullName.Equals("System.Void"))
+                {
+#if DEBUG
+                    Console.WriteLine("Around aspect cannot be applied to: \n{0}\nit only applies to void return type.", method.FullName);
+#endif
+                    continue;
+                }
+
+                var il = method.Body.GetILProcessor();
+
+                //create a replacement function
+                var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
+                var aroundAspect = aspects.SingleOrDefault(x => x.Type.BaseType == typeof(MethodAroundAspect));
+                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
+                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(x => x.ToString().Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"));
+                //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
+                MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
+                //newmethod.Body.SimplifyMacros();
+
+                if (!once)
+                {
+                    //copy the variables in aspect to the target type, this should happen only once?
+                    aroundAspect.TypeDefinition.Fields.ToList()
+                        .ForEach(x =>
+                        {
+                            //var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
+                            //var newInstruction = (Instruction)constructorInfo.Invoke(new[] { x.OpCode, instruction.Operand });
+                            //var fieldDefinition = newInstruction.Operand as FieldDefinition;
+                            //if (newInstruction.Operand is TypeReference)
+                            //{
+                            //    this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
+                            //}
+
+                            var fd = new FieldDefinition(x.Name, x.Attributes, x.FieldType);                            
+                            method.DeclaringType.Fields.Add(fd);
+                        });
+
+                    once = true;
+                }
+
+
+                method.Parameters.ToList().ForEach(x => newmethod.Parameters.Add(new ParameterDefinition(x.ParameterType)));
+                aroundMethod.Body.Variables.ToList().ForEach(x => newmethod.Body.Variables.Add(new VariableDefinition(x.VariableType)));
+                
+                aroundMethod.Body.Instructions.ToList().ForEach(instruction =>
+                {
+                    var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
+                    var newInstruction = (Instruction)constructorInfo.Invoke(new[] { instruction.OpCode, instruction.Operand});
+                    var fieldDefinition = newInstruction.Operand as FieldDefinition;
+                    if (fieldDefinition != null)
+                    {
+                        this.AssemblyDefinition.MainModule.Import(fieldDefinition.FieldType);
+                        newInstruction.Operand = method.DeclaringType.Fields.First(x => x.Name == fieldDefinition.Name);
+                    }
+
+                    if (newInstruction.Operand is MethodReference)
+                    {
+                        //Try really hard to import type
+                        var methodReference = (MethodReference)newInstruction.Operand;
+
+                        this.AssemblyDefinition.MainModule.Import(methodReference.MethodReturnType.ReturnType);
+                        this.AssemblyDefinition.MainModule.Import(methodReference.DeclaringType);
+                        this.AssemblyDefinition.MainModule.Import(methodReference);
+                    }
+                    if (newInstruction.Operand is TypeReference)
+                    {
+                        this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
+                    }
+                    newmethod.Body.Instructions.Add(newInstruction);
+                });
+                NewMethodNames.Add(methodName);
+                method.DeclaringType.Methods.Add(newmethod);
+
+                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
+                int i = 0;
+                bool found = false;
+                for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
+                {
+                    if (invokeMethod.Body.Instructions[i].ToString()
+                        .Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    //make a call to the original method
+                    var ldarg0 = Instruction.Create(OpCodes.Ldarg_0);
+                    newmethod.Body.Instructions[i - 1] = ldarg0;
+                    newmethod.Body.Instructions[i] = Instruction.Create(OpCodes.Call, method);
+                    int count = i;
+                    if (method.Parameters.Count > 0)
+                    {
+                        for (int j = 0; j < method.Parameters.Count; ++j)
+                        {
+                            var ins = Instruction.Create(OpCodes.Ldarg, method.Parameters[j]);
+                            newmethod.Body.Instructions.Insert(count++, ins);
+                        }
+                    }
+                    //newmethod.Body.OptimizeMacros();
+                }
+
+                //finally, all calls to the original methods should be changed to the newly
+                //generated method
+                foreach (var type in this.AssemblyDefinition.MainModule.Types)
+                {
+                    foreach (var m in type.Methods.Where(x => !NewMethodNames.Contains(x.Name)))
+                    {
+                        for (int j = 0; j < m.Body.Instructions.Count; ++j)
+                        {
+                            if (m.Body.Instructions[j].ToString().Contains(method.FullName))
+                            {
+                                //m.Body.Instructions[j].OpCode = OpCodes.Call;
+                                m.Body.Instructions[j].Operand = newmethod;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        private static void SetUnderlyingAspectTypes()
+        {
+            ///TODO: This block would not be needed if I can get the underlying types
+            ///directly from cecil
+            AppDomain domain = AppDomain.CreateDomain("domain");
+            BoundaryObject boundary = (BoundaryObject)
+                domain.CreateInstanceAndUnwrap(
+                typeof(BoundaryObject).Assembly.FullName,
+                typeof(BoundaryObject).FullName);
+            AppDomainArgs ada = new AppDomainArgs();
+            ada.AssemblyPath = AssemblyPath;
+            ada.Aspects = Aspects;
+            ada.UnderlyingAspectTypes = UnderlyingAspectTypes;
+            //domain.DoCallBack(new CrossAppDomainDelegate(LoadAssembly));
+            BoundaryObject.DoSomething(ada, AssemblyPath);
+            domain.DomainUnload += new EventHandler(domain_DomainUnload);
+            AppDomain.Unload(domain);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        private static void domain_DomainUnload(object sender, EventArgs e)
+        {
+            Console.WriteLine("Unloading domain...");
+        }
+
+        private void PrintEligibleMethods()
+        {
+            foreach (var de in this.EligibleMethods)
+            {
+                Console.WriteLine(de.Key.FullName);
+                foreach (var a in de.Value)
+                {
+                    Console.WriteLine("\t" + a.Name);
+                }
+            }
+        }
+
+        [Obsolete]
+        private void CheckEligibleMethods()
+        {
+            Aspects.ForEach(x => this.CheckEligibleMethods(x));
+        }
+
+        private void CheckEligibleMethods(Aspect aspect)
+        {
+            foreach (var t in this.TypeDefinitions.Where(x => !x.Name.Equals("<Module>")
+                && (x.BaseType == null || (x.BaseType.FullName != typeof(MethodBoundaryAspect).FullName
+                    && x.BaseType.FullName != typeof(MethodAroundAspect).FullName))))
+            {
+                var status = this.CheckAspectStatus(t, aspect);
+#if DEBUG
+                Console.WriteLine("\t{0}: {1}", t.Name, status.ToString());
+#endif
+                if (status == Enums.Status.Excluded)
+                    continue;
+
+                var mths = this.GetMethodDefinitions(t, status, aspect);
+                mths.ForEach(x =>
+                {
+                    if (!this.EligibleMethods.ContainsKey(x))
+                    {
+                        this.EligibleMethods.Add(x, new List<Aspect>() { aspect });
+                    }
+                    else
+                    {
+                        var aspects = this.EligibleMethods[x];
+                        aspects.Add(aspect);
+                    }
+                });
+            }
+        }
+
+        private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Enums.Status typeStatus, Aspect aspect)
+        {
+            if (typeDef.Name.Contains("Test"))
+            {
+                System.Diagnostics.Debug.WriteLine("Test");
+            }
+
+            var list = new List<MethodDefinition>();
+            foreach (var method in typeDef.Methods)
+            {
+                var status = this.CheckAspectStatus(method, aspect);
+                //only add methods that are not excluded
+                //if (status != Status.Applied && typeStatus != Status.Applied)
+                //    continue;
+
+                if (status == Enums.Status.Applied)
+                {
+                    list.Add(method);
+                }
+                else
+                {
+                    if (typeStatus == Enums.Status.Applied && status != Enums.Status.Excluded)
+                    {
+                        status = Enums.Status.Applied;
+                        list.Add(method);
+                    }
+                }
+#if DEBUG
+                Console.WriteLine("\t\t{0}: {1}", method.Name, status.ToString());
+#endif
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// A TypeDefinition and MethodDefinition both implement the
+        /// ICustomAttributeProvider interface, so it can be used here
+        /// to determined if a method is marked as exclude or not.
+        /// </summary>
+        private Enums.Status CheckAspectStatus(ICustomAttributeProvider def, Aspect aspect)
+        {
+            Enums.Status status = aspect.AssemblyLevelStatus;
+
+            bool attrFound = false;
+            for (int i = 0; i < def.CustomAttributes.Count; ++i)
+            {
+                if (def.CustomAttributes[i].AttributeType.FullName.Equals("System.Runtime.CompilerServices.CompilerGeneratedAttribute"))
+                {
+                    status = Enums.Status.Excluded;
+                    break;
+                }
+
+                if (aspect.Type != null 
+                    && (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
+                    || aspect.Type.BaseType == typeof(MethodAroundAspect))
+                    && def.CustomAttributes[i].AttributeType.FullName.Equals(aspect.Name))
+                {
+                    attrFound = true;
+                    if (def.CustomAttributes[i].Properties.Count == 0)
+                    {
+                        status = Enums.Status.Applied;
+                    }
+                    else
+                    {
+                        var exclude = def.CustomAttributes[i].Properties.First(x => x.Name == "AttributeExclude");
+                        if ((bool)exclude.Argument.Value == true)
+                        {
+                            status = Enums.Status.Excluded;
+                            //Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
+                            def.CustomAttributes.RemoveAt(i);
+                        }
+                    }
+                }
+            }
+
+            if (!attrFound && aspect.AssemblyLevelStatus == Enums.Status.Applied)
+            {
+                //this aspect is applied on the assembly level and
+                //as a result the type and method might not have the
+                //attributed annotated, this is to programmatically add
+                //in the annotation so IL can be generated correctly.
+                MethodReference attrCtor = this.AssemblyDefinition.MainModule.Import(
+                    aspect.Type.GetConstructor(Type.EmptyTypes));
+                //var methodRef = this.AssemblyDefinition.MainModule.Import(aspect.Type);
+                
+                def.CustomAttributes.Add(new CustomAttribute(attrCtor));
+                //Console.WriteLine("Injecting custome attr for: " + def.ToString());
+            }
+
+            return status;
+        }
+    }
+
+    class BoundaryObject : MarshalByRefObject
+    {
+        public static void DoSomething(AppDomainArgs ada, string path)
+        {
+            ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
+            var _assemblyPath = path;
+            var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
+            var types = assembly.GetTypes().ToList();
+
+            foreach (var aspect in ada.Aspects)
+            {
+                var type = types.FirstOrDefault(x => x.FullName.Equals(aspect.TypeDefinition.FullName));
+                if (type != null)
+                {
+                    aspect.Type = type;
+                }
+            }
+        }
+    }
+
+    class AppDomainArgs : MarshalByRefObject
+    {
+        internal string AssemblyPath { get; set; }
+
+        internal List<Aspect> Aspects { get; set; }
+
+        internal Dictionary<string, Type> UnderlyingAspectTypes { get; set; }
+    }
+}\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Parameter.cs}, label=../buffalo/Parameter.cs, frame=tb, basicstyle=\scriptsize]﻿using System;
+
+namespace Buffalo
+{
+    public sealed class Parameter
+    {
+        public Type Type { get; set; }
+
+        public string Name { get; set; }
+
+        public object Value { get; set; }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Injectors/MethodAroundInjector.cs}, label=../buffalo/Injectors/MethodAroundInjector.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Extensions;
+using Buffalo.Interfaces;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
+//using Mono.Cecil.Rocks;
+
+namespace Buffalo.Injectors
+{
+    internal class MethodAroundInjector : IInjectable
+    {
+        AssemblyDefinition AssemblyDefinition;
+        Dictionary<MethodDefinition, List<Aspect>> EligibleMethods;
+
+        public void Inject(Mono.Cecil.AssemblyDefinition assemblyDefinition, 
+            Dictionary<Mono.Cecil.MethodDefinition, List<Aspect>> eligibleMethods)
+        {
+            /* The around aspect is to intercept all calls to the target method, and
+             * replace those calls with a completely different method. While preserving
+             * the option to call back to the target method when necessary.
+             */
+            this.AssemblyDefinition = assemblyDefinition;
+            this.EligibleMethods = eligibleMethods;
+            var NewMethodNames = new StringCollection();
+            var eligibleAroundMethods = this.EligibleMethods
+                .Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            foreach (var d in eligibleAroundMethods)
+            {
+                var method = d.Key;
+                var aspects = d.Value;
+                var il = method.Body.GetILProcessor();
+                var methodType = method.DeclaringType;
+                var maInstructions = new List<Instruction>();
+                var aspectVarInstructions = new List<Instruction>();
+                var aroundInstructions = new List<Instruction>();
+
+                foreach (var aspect in aspects.Where(x => x.Type.BaseType == typeof(MethodAroundAspect)))
+                {
+                    var varTicks = System.DateTime.Now.Ticks;
+
+                    //create a replacement for the annotated function
+                    var methodName = string.Format("{0}{1}", method.Name, varTicks);
+                    MethodDefinition newmethod =
+                        new MethodDefinition(methodName, method.Attributes, method.ReturnType);
+                    methodType.Methods.Add(newmethod);
+                    NewMethodNames.Add(methodName);
+                    //newmethod.Body.SimplifyMacros();
+                    newmethod.Body.InitLocals = true;
+
+                    //create aspect variable
+                    var varAspectName = "asp" + varTicks;
+                    var varAspect = new VariableDefinition(varAspectName, aspect.TypeDefinition);
+                    newmethod.Body.Variables.Add(varAspect);
+                    var varAspectIdx = newmethod.Body.Variables.Count - 1;
+                    var constructorInfo = aspect.Type.GetConstructor(new Type[] { });
+                    MethodReference myClassConstructor =
+                        this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                    //store the newly created aspect variable
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
+                    //copy all the paramters
+                    method.Parameters.ToList().ForEach(x =>
+                        newmethod.Parameters.Add(new ParameterDefinition(x.Name, x.Attributes, x.ParameterType)));
+                    //create a MethodArgs
+                    var var = newmethod.AddMethodArgsVariable(this.AssemblyDefinition);
+
+                    #region Calling MethodArgs.Invoke
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
+                    var aspectInvoke = aspect.Type.GetMethod("Invoke");
+                    var aspectInvokeRef = 
+                        this.AssemblyDefinition.MainModule.Import(aspectInvoke, newmethod);
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, aspectInvokeRef));
+                    #endregion
+
+                    #region Handling return value
+                    if (!newmethod.ReturnType.FullName.Equals("System.Void"))
+                    {
+                        //create an object variable to hold the return value
+                        var varObj = new VariableDefinition("obj" + varTicks,
+                            this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                        newmethod.Body.Variables.Add(varObj);
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Stloc, varObj));
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Ldloc, varObj));
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Unbox_Any, newmethod.ReturnType));
+                    }
+                    else
+                    {
+                        //pop the return value since it's not used?
+                        newmethod.Body.Instructions.Add(
+                            Instruction.Create(OpCodes.Pop));
+                    }
+                    #endregion
+
+                    #region Handling Proceed()
+                    var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
+                        x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
+                    bool found = false;
+                    int instIdx = 0;
+                    for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
+                    {
+                        if (invoke.Body.Instructions[instIdx].ToString()
+                            .Contains("System.Object Buffalo.MethodArgs::Proceed"))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found)
+                    {
+                        var invokeInstructions = new List<Instruction>();
+                        //var ins = Instruction.Create(OpCodes.Call, method);
+                        //invoke.Body.Instructions[instIdx] = ins;
+                        invoke.Body.Instructions.RemoveAt(instIdx);
+                        var startIdx = instIdx;
+
+                        //create a var to hold the original method type instance
+                        var instance = new VariableDefinition("instance" + DateTime.Now.Ticks,
+                            this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                        invoke.Body.Variables.Add(instance);
+                        invoke.Body.InitLocals = true;
+
+                        //get the instance obj from MethodArgs
+                        var getInstance = typeof(MethodArgs).GetMethod("get_Instance");
+                        var getInstanceRef = this.AssemblyDefinition.MainModule.Import(getInstance);
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getInstanceRef));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, instance));
+
+                        //create object array to hold ParameterArray
+                        var objType = this.AssemblyDefinition.MainModule.Import(typeof(object));
+                        var objArray = new ArrayType(objType);
+                        var varArray = new VariableDefinition("va" + DateTime.Now.Ticks,
+                            (TypeReference)objArray);
+                        invoke.Body.Variables.Add(varArray);
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Ldc_I4, method.Parameters.Count));
+                        //invokeInstructions.Add(Instruction.Create(OpCodes.Newarr, objType));
+                        var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
+                        var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
+
+                        //modify the Invoke() instruction to make a call to the original method
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.DeclaringType));
+                        if (method.Parameters.Count > 0)
+                        {
+                            for (int i = 0; i < method.Parameters.Count; ++i)
+                            {
+                                invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
+                                invokeInstructions.Add(il.Create(OpCodes.Ldc_I4, i));
+                                invokeInstructions.Add(il.Create(OpCodes.Ldelem_Ref));
+                                invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.Parameters[i].ParameterType));
+                            }
+                        }
+
+                        //make the call
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, method));
+
+                        #region Handling return value
+                        if (!method.ReturnType.FullName.Equals("System.Void"))
+                        {
+                            //create an object variable to hold the return value
+                            var varObj = new VariableDefinition("obj" + DateTime.Now.Ticks,
+                                this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                            invoke.Body.Variables.Add(varObj);
+                            invokeInstructions.Add(
+                                Instruction.Create(OpCodes.Box, method.ReturnType));
+                        }
+                        else
+                        {
+                            //method is suppose to return void, but since
+                            //previously it calls Proceed() which returns object type,
+                            //we need to handle that.
+                            invoke.Body.Instructions[instIdx] = Instruction.Create(OpCodes.Nop);
+                        }
+                        #endregion
+
+                        //write out the instruction
+                        invokeInstructions.ForEach(
+                            x => invoke.Body.Instructions.Insert(startIdx++, x));
+                    }
+                    #endregion
+
+                    #region Modify all calls from origin to the generated method
+                    foreach (var type in this.AssemblyDefinition.MainModule.Types
+                        .Where(x => x.BaseType == null || !x.BaseType.FullName.Equals("Buffalo.MethodAroundAspect")))
+                    {
+                        var methods = type.Methods.Where(x => !NewMethodNames.Contains(x.Name));
+                        foreach (var m in methods)
+                        {
+                            for (int j = 0; j < m.Body.Instructions.Count; ++j)
+                            {
+                                if (m.Body.Instructions[j].ToString().Contains(method.FullName))
+                                {
+                                    m.Body.Instructions[j].Operand = newmethod;
+                                    //MethodArgs.Invoke returns an object, need to unbox it here to the original type
+                                    //However, unboxing is needed only if the original method has a return type
+                                    //other than void
+                                    if (!newmethod.ReturnType.FullName.Equals("System.Void"))
+                                    {
+                                        //var unbox = Instruction.Create(OpCodes.Unbox_Any, newmethod.ReturnType);
+                                        //var il2 = m.Body.GetILProcessor();
+                                        //il2.InsertAfter(m.Body.Instructions[j], unbox);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+                    //newmethod.Body.OptimizeMacros();
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Injectors/MethodBoundaryInjector.cs}, label=../buffalo/Injectors/MethodBoundaryInjector.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Common;
+using Buffalo.Extensions;
+using Buffalo.Interfaces;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+//using Mono.Cecil.Rocks;
+
+namespace Buffalo.Injectors
+{
+    internal class MethodBoundaryInjector : IInjectable
+    {
+        AssemblyDefinition AssemblyDefinition;
+        Dictionary<MethodDefinition, List<Aspect>> EligibleMethods;
+
+        public void Inject(AssemblyDefinition assemblyDefinition, Dictionary<MethodDefinition, List<Aspect>> eligibleMethods)
+        {
+            this.AssemblyDefinition = assemblyDefinition;
+            this.EligibleMethods = eligibleMethods;
+
+            var ems = this.EligibleMethods.ToList();
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            foreach (var d in eligibleBoundaryMethods)
+            {
+                var method = d.Key;
+                if (method.Body == null)
+                {
+#if DEBUG
+                    Console.WriteLine(string.Format("{0} has empty body, skipping", method.FullName));
+#endif
+                    continue;
+                }
+                var aspects = d.Value;
+                var il = method.Body.GetILProcessor();
+                var voidType = method.ReturnType.FullName.Equals("System.Void");
+                var ret = il.Create(OpCodes.Ret);
+
+                var maInstructions = new List<Instruction>();
+                var aspectVarInstructions = new List<Instruction>();
+                var beforeInstructions = new List<Instruction>();
+                var successInstructions = new List<Instruction>();
+                var exceptionInstructions = new List<Instruction>();
+                var afterInstructions = new List<Instruction>();
+
+                //method.Body.SimplifyMacros();
+                #region Method detail
+                //create a MethodArgs
+                var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
+                #endregion
+
+                #region Before, Success, Exception, After
+                for (int i = 0; i < aspects.Count; ++i)
+                {
+                    #region Create an aspect variable
+                    //var varAspectType = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect));
+                    var varAspectName = "asp" + System.DateTime.Now.Ticks;
+                    var varAspect = new VariableDefinition(varAspectName, aspects[i].TypeDefinition);
+                    method.Body.Variables.Add(varAspect);
+                    var varAspectIdx = method.Body.Variables.Count - 1;
+                    //call ctor
+                    Type t = aspects[i].Type;
+                    var constructorInfo = t.GetConstructor(new Type[] { });
+                    MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
+                    #endregion
+
+                    #region Before, success, exception
+                    var before = method.FindMethodReference(aspects[i], Enums.AspectType.OnBefore);
+                    if (before != null)
+                    {
+
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
+                        var aspectBefore = aspects[i].Type.GetMethod("OnBefore");
+                        var aspectBeforeRef = this.AssemblyDefinition.MainModule.Import(aspectBefore, method);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
+                    }
+
+                    var success = method.FindMethodReference(aspects[i], Enums.AspectType.OnSuccess);
+                    if (success != null)
+                    {
+                        successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                        successInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
+                        var aspectSuccess = aspects[i].Type.GetMethod("OnSuccess");
+                        var aspectSuccessRef = this.AssemblyDefinition.MainModule.Import(aspectSuccess, method);
+                        successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
+                    }
+
+                    var exception = method.FindMethodReference(aspects[i], Enums.AspectType.OnException);
+                    if (exception != null)
+                    {
+                        var varExpType = typeof(System.Exception);
+                        var expName = "exp" + System.DateTime.Now.Ticks;
+                        var varExp = new VariableDefinition(expName, this.AssemblyDefinition.MainModule.Import(varExpType));
+                        method.Body.Variables.Add(varExp);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varExp));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varExp));
+                        var maSetException = typeof(MethodArgs).GetMethod("SetException");
+                        var maSetExceptionRef = this.AssemblyDefinition.MainModule.Import(maSetException, method);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, maSetExceptionRef));
+
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
+                        var aspectException = aspects[i].Type.GetMethod("OnException");
+                        //var aspectBefore = varAspectType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("Before"));
+                        var aspectExceptionRef = this.AssemblyDefinition.MainModule.Import(aspectException, method);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectExceptionRef));
+                    }
+
+                    var after = method.FindMethodReference(aspects[i], Enums.AspectType.OnAfter);
+                    if (after != null)
+                    {
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                        afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
+                        var aspectAfter = aspects[i].Type.GetMethod("OnAfter");
+                        var aspectAfterRef = this.AssemblyDefinition.MainModule.Import(aspectAfter, method);
+                        afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectAfterRef));
+                    }
+                    #endregion
+                }
+
+                int varIdx = var.VarIdx;
+                //maInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
+                aspectVarInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
+
+                int beforeIdx = varIdx;
+                //perform this only if user overrides Before() in the aspect
+                if (beforeInstructions.Count > 0)
+                {
+                    beforeInstructions.ForEach(x => method.Body.Instructions.Insert(beforeIdx++, x));
+                }
+
+                /* the last instruction after success should jump to return, or 3 instruction before
+                 * return if return type is not void, or as an optimization, maybe we can even skip
+                 * directly to last() - 2?
+                 */
+                var successRet = voidType ? method.Body.Instructions.Last() :
+                    method.Body.Instructions[method.Body.Instructions.Count - 3];
+                Instruction successLeave = il.Create(OpCodes.Leave, successRet);
+                ///TODO: need to double check the format of the MSIL return
+                ///br.s, ldloc, ret when return type is not void, thereby decrement by 3
+                int successIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
+                //perform this only if user overrides Success() in the aspect
+                successInstructions.Add(successLeave);
+                if (successInstructions.Count > 0)
+                {
+                    successInstructions.ForEach(x => method.Body.Instructions.Insert(successIdx++, x));
+                }
+
+                int exceptionIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
+                int exceptionIdxConst = exceptionIdx;
+                var exceptionRet = voidType ? method.Body.Instructions.Last() :
+                    method.Body.Instructions[method.Body.Instructions.Count - 3];
+                Instruction exceptionLeave = il.Create(OpCodes.Leave, exceptionRet);
+                //perform this only if user overrides Exception() in the aspect
+                if (exceptionInstructions.Count > 0)
+                {
+                    exceptionInstructions.Add(exceptionLeave);
+                    exceptionInstructions.ForEach(x => method.Body.Instructions.Insert(exceptionIdx++, x));
+                }
+
+                var afterRet = voidType ? method.Body.Instructions.Last() :
+                    method.Body.Instructions[method.Body.Instructions.Count - 3];
+                var endfinally = il.Create(OpCodes.Endfinally);
+                int afterIdx = voidType ? method.Body.Instructions.Count - 1 : method.Body.Instructions.Count - 3;
+                int afterIdxConst = afterIdx;
+                //perform this only if user overrides After() in the aspect
+                if (afterInstructions.Count > 0)
+                {
+                    afterInstructions.Add(endfinally);
+                    afterInstructions.ForEach(x => method.Body.Instructions.Insert(afterIdx++, x));
+                }
+
+                #endregion
+
+                #region Catch..Finally..
+                //add the catch block only if user overrides Exception() in the aspect
+                if (exceptionInstructions.Count > 0)
+                {
+                    var catchHandler = new ExceptionHandler(ExceptionHandlerType.Catch)
+                    {
+                        TryStart = method.Body.Instructions[varIdx],
+                        TryEnd = successLeave.Next,
+                        HandlerStart = method.Body.Instructions[exceptionIdxConst],
+                        HandlerEnd = exceptionLeave.Next,
+                        CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+                    };
+                    method.Body.ExceptionHandlers.Add(catchHandler);
+                }
+
+                //add the finally block only if user overrides After() in the aspect
+                if (afterInstructions.Count > 0)
+                {
+                    var finallyHandler = new ExceptionHandler(ExceptionHandlerType.Finally)
+                    {
+                        TryStart = method.Body.Instructions[varIdx],
+                        TryEnd = method.Body.Instructions[afterIdxConst],
+                        HandlerStart = method.Body.Instructions[afterIdxConst],
+                        HandlerEnd = afterRet,
+                        CatchType = null,
+                    };
+                    method.Body.ExceptionHandlers.Add(finallyHandler);
+                }
+                #endregion
+                //method.Body.OptimizeMacros();
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Properties/AssemblyInfo.cs}, label=../buffalo/Properties/AssemblyInfo.cs, frame=tb, basicstyle=\scriptsize]﻿using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
+[assembly: AssemblyTitle("Buffalo")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyProduct("Buffalo")]
+[assembly: AssemblyCopyright("Copyright © Microsoft 2012")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// Setting ComVisible to false makes the types in this assembly not visible 
+// to COM components.  If you need to access a type in this assembly from 
+// COM, set the ComVisible attribute to true on that type.
+[assembly: ComVisible(false)]
+
+// The following GUID is for the ID of the typelib if this project is exposed to COM
+[assembly: Guid("625c6e79-7034-48cf-8689-b9e44f3bf96d")]
+
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Build and Revision Numbers 
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: InternalsVisibleTo("BuffaloAOP")]\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Common/BeginEndMarker.cs}, label=../buffalo/Common/BeginEndMarker.cs, frame=tb, basicstyle=\scriptsize]﻿using Mono.Cecil.Cil;
+
+namespace Buffalo.Common
+{
+    internal struct BeginEndMarker
+    {
+        public int BeginIndex { get; set; }
+        public int EndIndex { get; set; }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Common/Enums.cs}, label=../buffalo/Common/Enums.cs, frame=tb, basicstyle=\scriptsize]﻿namespace Buffalo.Common
+{
+    internal class Enums
+    {
+        internal enum Status
+        {
+            Applied,
+            NotApplied,
+            Excluded
+        }
+
+        internal enum AspectType
+        {
+            OnBefore,
+            OnAfter,
+            OnSuccess,
+            OnException,
+            Invoke
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Extensions/Extensions.cs}, label=../buffalo/Extensions/Extensions.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Common;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Buffalo.Extensions
+{
+    internal static class Extensions
+    {
+        internal static MethodReference FindMethodReference(this MethodDefinition method, Aspect aspect, Enums.AspectType name)
+        {
+            return aspect
+                .TypeDefinition
+                .Methods
+                .FirstOrDefault(x => x.Name.Equals(name.ToString()));
+        }
+
+        internal static VariableResult AddMethodArgsVariable(this MethodDefinition method,
+            AssemblyDefinition assemblyDef)
+        {
+            var var = new VariableResult();
+            var instructions = new List<Instruction>();
+            method.Body.InitLocals = true;
+            var il = method.Body.GetILProcessor();
+            var isValueType = false;
+            
+            //create var to hold parameter count
+            var pcVar = new VariableDefinition("pc" + DateTime.Now.Ticks,
+                assemblyDef.MainModule.Import(typeof(int)));
+            method.Body.Variables.Add(pcVar);
+            instructions.Add(Instruction.Create(OpCodes.Ldc_I4, method.Parameters.Count));
+            instructions.Add(Instruction.Create(OpCodes.Stloc, pcVar));
+
+            //create an object array to hold the parameter values
+            var objType = assemblyDef.MainModule.Import(typeof(object));
+            var objArray = new ArrayType(objType);
+            var varArray = new VariableDefinition("va" + DateTime.Now.Ticks,
+                (TypeReference)objArray);
+            method.Body.Variables.Add(varArray);
+            instructions.Add(Instruction.Create(OpCodes.Ldloc, pcVar));
+            instructions.Add(Instruction.Create(OpCodes.Newarr, objType));
+            instructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
+
+            #region Handle paramters
+            //loop thru the parameters, extract the values and 
+            //store them in MethodArgs.ParameterArray
+            TypeSpecification typeSpec = null;
+            for (int i = 0; i < method.Parameters.Count; ++i )
+            {
+                var metaType = method.Parameters[i].ParameterType.MetadataType;
+                if (metaType == MetadataType.UIntPtr
+                    || metaType == MetadataType.FunctionPointer
+                    || metaType == MetadataType.IntPtr
+                    || metaType == MetadataType.Pointer)
+                    continue;
+
+                instructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
+                instructions.Add(Instruction.Create(OpCodes.Ldc_I4, i));
+                if (method.IsStatic)
+                    instructions.Add(il.Create(OpCodes.Ldarg, i));
+                else
+                    instructions.Add(il.Create(OpCodes.Ldarg, i + 1));
+
+                isValueType = false;
+                var pType = method.Parameters[i].ParameterType;
+                if (pType.IsByReference)
+                {
+                    typeSpec = pType as TypeSpecification;
+                    if (typeSpec != null)
+                    {
+                        switch (typeSpec.ElementType.MetadataType)
+                        {
+                            case MetadataType.Boolean:
+                            case MetadataType.SByte:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I1)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Int16:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I2)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Int32:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I4)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Int64:
+                            case MetadataType.UInt64:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I8)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Byte:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_U1)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.UInt16:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_U2)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.UInt32:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_U4)); 
+                                isValueType = true;
+                                break;
+                            case MetadataType.Single:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_R4));
+                                isValueType = true;
+                                break;
+                            case MetadataType.Double:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_R8));
+                                isValueType = true;
+                                break;
+                            case MetadataType.IntPtr:
+                            case MetadataType.UIntPtr:
+                                instructions.Add(Instruction.Create(OpCodes.Ldind_I));
+                                isValueType = true;
+                                break;
+                            default:
+                                if (typeSpec.ElementType.IsValueType)
+                                {
+                                    instructions.Add(Instruction.Create(OpCodes.Ldobj, typeSpec.ElementType));
+                                    isValueType = true;
+                                }
+                                else
+                                {
+                                    instructions.Add(Instruction.Create(OpCodes.Ldind_Ref));
+                                    isValueType = false;
+                                }
+                                break;
+                        }
+                    }
+                }
+
+                if (pType.IsValueType || isValueType)
+                {
+                    if(isValueType)
+                        instructions.Add(Instruction.Create(OpCodes.Box, typeSpec.ElementType));
+                    else
+                        instructions.Add(Instruction.Create(OpCodes.Box, pType));
+                }
+
+                instructions.Add(Instruction.Create(OpCodes.Stelem_Ref));
+            }
+            #endregion
+
+            StringBuilder sb = new StringBuilder();
+            method.Parameters.ToList()
+                .ForEach(x =>
+                {
+                    sb.Append(string.Format("{0}:{1}|", x.Name, x.ParameterType.FullName));
+                });
+
+            var maType = typeof(MethodArgs);
+            var maName = "ma" + DateTime.Now.Ticks;
+            var maSetProperties = maType.GetMethod("SetProperties");
+            var varMa = new VariableDefinition(maName, assemblyDef.MainModule.Import(maType));
+            method.Body.Variables.Add(varMa);
+            var vaMaIdx = method.Body.Variables.Count - 1;
+            var maCtr = maType.GetConstructor(new Type[] { });
+            MethodReference maCtrRef = assemblyDef.MainModule.Import(maCtr);
+            instructions.Add(Instruction.Create(OpCodes.Newobj, maCtrRef));
+            instructions.Add(Instruction.Create(OpCodes.Stloc, varMa));
+            instructions.Add(Instruction.Create(OpCodes.Ldloc, varMa));
+            instructions.Add(Instruction.Create(OpCodes.Ldstr, method.Name));
+            instructions.Add(Instruction.Create(OpCodes.Ldstr, method.FullName));
+            instructions.Add(Instruction.Create(OpCodes.Ldstr, method.ReturnType.FullName));
+            instructions.Add(Instruction.Create(OpCodes.Ldstr, sb.ToString()));
+            instructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
+            if (method.IsStatic)
+                instructions.Add(Instruction.Create(OpCodes.Ldnull));
+            else
+                instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+
+            var maSetPropertiesRef = assemblyDef.MainModule.Import(maSetProperties, method);
+            instructions.Add(Instruction.Create(OpCodes.Callvirt, maSetPropertiesRef));
+
+            int idx = 0;
+            instructions.ForEach(x => method.Body.Instructions.Insert(idx++, x));
+
+            var.Var = varMa;
+            var.ParamArray = varArray;
+            var.VarIdx = idx;
+            return var;
+        }
+    }
+
+    internal class VariableResult
+    {
+        public VariableDefinition Var { get; set; }
+        public VariableDefinition ParamArray { get; set; }
+        public int VarIdx { get; set; }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Interfaces/IMethodAroundAspect.cs}, label=../buffalo/Interfaces/IMethodAroundAspect.cs, frame=tb, basicstyle=\scriptsize]﻿namespace Buffalo.Interfaces
+{
+    internal interface IMethodAroundAspect : IAspect
+    {
+        object Invoke(MethodArgs args);
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Interfaces/IInjectable.cs}, label=../buffalo/Interfaces/IInjectable.cs, frame=tb, basicstyle=\scriptsize]﻿using System.Collections.Generic;
+using Mono.Cecil;
+
+namespace Buffalo.Interfaces
+{
+    internal interface IInjectable
+    {
+        void Inject(AssemblyDefinition assemblyDefinition, Dictionary<MethodDefinition, List<Aspect>> eligibleMethods);
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Interfaces/IMethodBoundaryAspect.cs}, label=../buffalo/Interfaces/IMethodBoundaryAspect.cs, frame=tb, basicstyle=\scriptsize]﻿namespace Buffalo.Interfaces
+{
+    internal interface IMethodBoundaryAspect : IAspect
+    {
+        void OnBefore(MethodArgs args);
+        void OnAfter(MethodArgs args);
+        void OnSuccess(MethodArgs args);
+        void OnException(MethodArgs args);
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/Interfaces/IAspect.cs}, label=../buffalo/Interfaces/IAspect.cs, frame=tb, basicstyle=\scriptsize]﻿namespace Buffalo
+{
+    /// <summary>
+    /// This is the base aspect interface
+    /// </summary>
+    internal interface IAspect
+    {
+    }
+}
+\end{lstlisting}
+

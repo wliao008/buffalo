@@ -1,12 +1,32 @@
 \chapter{Analysis}
 
-%% Obviously you need to delete these lines when you have written up your text
+We hypothesized that by using Buffalo, programmers can separate the cross-cutting concerns from their applications quickly and easily. Since the concerns are encapsulated in a distinct unit of code, it also enable programmers to easily maintain the aspects and modify them as needed.
 
-\begin{itemize}
-\item{}  How did you analyze your hyptothesis? Experiments, what did you think were worth measuring, etc.
-\item{}  Based on your measurements and qualititative analyses, how well did your approach work out?
-\item{}  Use graphs, tables, and other diagrams to illustrate your analyses.
-\item{}  Based on your analyses, how well does your implementation or approach match your hypothesis?
-\item{}  What do you deduce from this effort? How would you change or tweak your hypothesis? 
+One of the analysis I performed is to write an aspect to catch unhandled exceptions in test programs. The size of the test programs varies from comprising of 50 methods to 10,000 methods. Suppose that to manually implement the exception handling, a programmer will have to write on average 5 lines of code to catch the exception.
 
-\end{itemize}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+Programs & Lines (Traditions) & Lines (Buffal)\\
+\hline
+50 & 250 & 0-1\\
+1,000 & 5,000 & 0-1\\
+10,000 & 50,000 & 0-1\\
+\hline
+\end{tabular}
+\caption{Line counts}
+\label{tab:lines_tbl}
+\end{table}
+
+If we implement exception handling for every method by hand, we would have to write more line of the same try-catch block of code as the application adds more methods. The number of line of repetitive code would increase linearly.
+
+Lines of code have a direct correlation to the cost of the development as it will take programmers more time. And this will also have a direct impact on application release schedule.
+
+By using a framework like Buffalo, we can centralize the unhandled exception in one aspect, and then simply apply it to every method. As a result the source code is free from the repetitive try..catch.. blocks. The line of code we have to write is one line at most, and will stay fixed even as we add more types and methods to the application.
+
+Buffalo allows me to quickly create aspects have a complete profiler of the application. This is especially useful in case of debugging. If I encounter a problem with the application, it would be helpful if I know where in the method it went wrong, and have a look at the internal state of the method at the time of failure.
+
+From Buffalo I can easily access all those information to show the state of each annotated method. Information such as the method signature, and what parameters are being passed in, what their types are, and even record their respective values when they were passed in. This information will be very helpful to aid in bug fixing.
+
+I think Buffalo has performed well in isolating cross-cutting concerns into single unit of code, that is easily maintained and modified.

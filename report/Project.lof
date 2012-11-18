@@ -1,8 +1,15 @@
 \select@language {american}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {1.1}{\ignorespaces The CS Logo is Above}}{2}
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces AOP framework using proxy}}{2}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces AOP framework using proxy}}{3}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Method Around Aspect}}{6}
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Logical inclusion}}{8}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Logical inclusion}}{9}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Logical inclusion}}{11}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces MSIL before}}{12}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces MSIL interception points}}{13}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
