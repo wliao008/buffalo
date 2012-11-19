@@ -23,3 +23,5 @@
 \contentsline {chapter}{\numberline {A}UML Diagrams}{21}
 \contentsline {chapter}{\numberline {B}Code Listing}{22}
 \contentsline {chapter}{\numberline {C}User Manual}{47}
+\contentsline {section}{\numberline {C.1}Compiling}{47}
+\contentsline {section}{\numberline {C.2}Profiler Example}{47}

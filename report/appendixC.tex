@@ -1,5 +1,110 @@
 \chapter{User Manual}
 
-This is an optional appendix and can be eliminated if you don't have anything 
-to share here.
+It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of the solution structures. I also assume you know how to compile a solution and where to find the compiled assembly. Since Buffalo is developed in VS2012, it is recommended you have similiar IDE installed.
 
+\section{Compiling}
+To begin, first download the full source code from https://github.com/wliao008/buffalo. Open buffalo.sln and compile the source code. This will produce the buffalo.dll and BuffaloAOP.exe in their respective bin/debug folder. We are ready to begin using it.
+
+\section{Profiler Example}
+In this example we will create a profiler for our application. Suppose we have the following simple program.
+
+\begin{lstlisting}[caption={Hello program}, label=helloprogram, frame=tb, basicstyle=\scriptsize]
+using System;
+
+namespace Hello
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Hello h = new Hello();
+            h.SayHello();
+            h.Say("Hey Buffalo how's it going!");
+
+            //pause the console
+            Console.Read();
+        }
+    }
+
+    public class Hello
+    {
+        public void SayHello()
+        {
+            Console.WriteLine("Hello World!");
+        }
+
+        public void Say(string msg)
+        {
+            Console.WriteLine(msg);
+        }
+    }
+}
+\end{lstlisting}
+
+When ran, it will display the following:
+\begin{lstlisting}[caption={Hello program output}, label=helloout, frame=tb, basicstyle=\scriptsize]
+Hello World!
+Hey Buffalo how's it going!
+\end{lstlisting}
+
+If we want to monitor the program, we can easily create a aspect to do the work.
+
+\begin{lstlisting}[caption={TraceAspect}, label=traceaspect, frame=tb, basicstyle=\scriptsize]
+using Buffalo;
+using System;
+
+public class TraceAspect : MethodBoundaryAspect
+{
+    public override void Before(MethodArgs args)
+    {
+        Display("ENTERING", args);
+    }
+
+    public override void After(MethodArgs args)
+    {
+        Display("EXITING", args);
+    }
+
+    public override void Success(MethodArgs args)
+    {
+        Display("SUCCESSFULLY EXECUTED", args);
+    }
+
+    public override void Exception(MethodArgs args)
+    {
+        Display("EXCEPTION ON", args);
+    }
+
+    void Display(string title, MethodArgs args)
+    {
+        Console.WriteLine("{0} {1}", title, args.FullName);
+        foreach (var p in args.Parameters)
+        {
+            Console.WriteLine("\t{0} ({1}) = {2}", p.Name, p.Type, p.Value);
+        }
+    }
+}
+\end{lstlisting}
+
+When ran, it will display the following output:
+
+\begin{lstlisting}[caption={TraceAspect output}, label=traceaspectout, frame=tb, basicstyle=\scriptsize]
+ENTERING System.Void Hello.Program::Main(System.String[])
+        args (System.String[]) = System.String[]
+ENTERING System.Void Hello.Hello::.ctor()
+SUCCESSFULLY EXECUTED System.Void Hello.Hello::.ctor()
+EXITING System.Void Hello.Hello::.ctor()
+ENTERING System.Void Hello.Hello::SayHello()
+Hello World!
+SUCCESSFULLY EXECUTED System.Void Hello.Hello::SayHello()
+EXITING System.Void Hello.Hello::SayHello()
+ENTERING System.Void Hello.Hello::Say(System.String)
+        msg (System.String) = Hey Buffalo how's it going!
+Hey Buffalo how's it going!
+SUCCESSFULLY EXECUTED System.Void Hello.Hello::Say(System.String)
+        msg (System.String) = Hey Buffalo how's it going!
+EXITING System.Void Hello.Hello::Say(System.String)
+        msg (System.String) = Hey Buffalo how's it going!
+\end{lstlisting}
+
+Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 11 also capture the parameter value passed into each method and is available in the aspect.
