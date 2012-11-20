@@ -16,10 +16,10 @@ The Buffalo aspects can also be excluded on any given level, if so the target me
 
 To get the list of the eligible methods for MSIL modification, Buffalo attempts various checking according to figure~\ref{logical_inclusion} to see if it should include a given method.
 
-\begin{figure}[here]
+\begin{figure}[H]
   \includegraphics[scale=1.0]{AspectLogicalInclusion.PNG}
   \centering
-  \caption{Logical inclusion\label{logical_inclusion}}
+  \caption{Logical Inclusion\label{logical_inclusion}}
 \end{figure}
 
 The above logic diagram checks if an aspect is applied, if yes then check if the it is set to be excluded. If the aspect is applied on the assembly level, then Buffalo simply apply the aspect to every public methods in every class within the same assembly.
@@ -32,10 +32,10 @@ If aspect is not on assembly or the class level, Buffalo checks each method to d
 
 Figure~\ref{uml01} depicts part of the system, where it shows how we can use it to find aspects during reflection.
 
-\begin{figure}[here]
+\begin{figure}[H]
   \includegraphics[scale=1.0]{Uml01.PNG}
   \centering
-  \caption{Aspect inheritance\label{uml01}}
+  \caption{Aspect Inheritance\label{uml01}}
 \end{figure}
 
 All aspects ultimately implements the IAspect interface, therefore we can conclude that for all the types in an assembly, if it implements IAspect, then it must be an aspect itself.
@@ -48,14 +48,26 @@ Furthermore, by default, all the aspects themselves will be ignored. This is to 
 
 Another point worth mentioning is that when developing an aspect, the developer can access some information about the annotated method, such as the method signature, return type, list of parameters passed into the method and their respective values. We will look at some example later on.
 
+\section{Solution Structure}
+
+Originally Buffalo was in one executable, that includes the various aspects and the program that initiate the weaving. It was later on splitted into two assembly. One is the actual implementation as a DLL, another is just a command line executable that calls into the DLL to perform the weaving, as shown in figure~\ref{solutionexplorer}. This separation is necessary so developer can perform weaving from the command line or hook into MSBuild if necessary. To actually write the aspect, developer only need to reference the DLL which is much cleaner than referencing an executable.
+
+\begin{figure}[H]
+  \includegraphics[scale=1.0]{SolutionExplorer.PNG}
+  \centering
+  \caption{Solution Structure\label{solutionexplorer}}
+\end{figure}
+
+The client project is just a test client included in the solution for testing. The full source code is included in Appendix B.
+
 \section{Implementation Overview}
 
 The overall implementation process can be illustrated as figure~\ref{implementation_overview}, where the first step of finding all eligible methods using the logical diagram mentioned in figure~\ref{logical_inclusion}.
 
-\begin{figure}[here]
+\begin{figure}[H]
   \includegraphics[scale=1.0]{ImplementationOverview3.PNG}
   \centering
-  \caption{Implementation overview\label{implementation_overview}}
+  \caption{Implementation Overview\label{implementation_overview}}
 \end{figure}
 
 The actual injection phrase will be depending on the type of aspect, as we mentioned above currently Buffalo supports the Boundary aspects where various point of execution can be intercepted, and the Around aspect where a method can be completely replaced.
@@ -77,20 +89,37 @@ public void SayHello()
 }
 \end{lstlisting}
 
-If we look at the generated MSIL shown in figure~\ref{methodboundary01}(Note that I have cleaned up the MSIL a bit for easy display):
+If we look at the generated MSIL shown in figure~\ref{methodboundaryB4}. For ease of display I have cleaned up the MSIL a bit:
 
-\begin{figure}[here]
-  \includegraphics[scale=1.0]{MethodBoundaryOverviewB4.PNG}
-  \centering
-  \caption{MSIL generated for sample C\# function\label{methodboundary01}}
-\end{figure}
+\begin{lstlisting}[caption={MSIL generated for sample C\# function}, label=methodboundaryB4]
+.try
+{
+   .try
+   {
+      IL_0002: Ldstr "Hello World!"
+      IL_0007: call void [mscorlib]System.Console::WriteLine(string)
+      IL_000e: leave.s IL0015
+   }
+   catch [mscorlib]System.Exception
+   {
+      IL_0010: stloc.0
+      IL_0013: leave.s IL_0015
+   }
+   IL_0015: leave.s IL_001c
+}
+finally
+{
+   IL_001a: endfinally
+}
+IL_001c: ret
+\end{lstlisting}
 
-This is the standard emission of the CLR. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here we can easily figure out where to inject our aspect, as shown in the following figure~\ref{methodboundary02}
+This is the standard emission of the CLR when it encounters the try-catch-finaly statement. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here we can easily figure out where to inject our varous boundary aspects, as shown in the following figure~\ref{methodboundary02}
 
-\begin{figure}[here]
+\begin{figure}[H]
   \includegraphics[scale=1.0]{MethodBoundaryOverview.PNG}
   \centering
-  \caption{MSIL interception points\label{methodboundary02}}
+  \caption{MSIL Interception Points\label{methodboundary02}}
 \end{figure}
 
 \section{MethodAroundAspect Implementation Detail}
@@ -130,10 +159,6 @@ To achieve the above MethodArgs is used. This is the object passed into each asp
 At first each OnBefore, OnSuccess, OnException and OnAfter has its own distinct MethodArgs object passed into them. Later on as an optimization only one instance is instantiated at the beginning of the method body and that instance is used in all the MethodBoundaryAspect.
 
 [Example?]
-
-\section{Solution Structure}
-
-Originally Buffalo was in one executable, that includes the various aspects and the program that initiate the weaving. It was later on splitted into two assembly, one is the actual implementation as a DLL, another is just a command line executable that calls into the DLL to perform the weaving. This separation is necessary so developer can perform weaving from the command line or hook into MSBuild if necessary. To actually write the aspect, developer only need to reference the DLL which is much cleaner than referencing an executable.
 %
 %\begin{itemize}
 %\item{} Software details (use as many section as needed for class design, 

@@ -1,15 +1,15 @@
 \select@language {american}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces AOP framework using proxy}}{2}
-\contentsline {figure}{\numberline {2.2}{\ignorespaces AOP framework using proxy}}{3}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces AOP Framework Using Proxy Pattern}}{3}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Buffalo Model}}{4}
 \contentsline {figure}{\numberline {2.3}{\ignorespaces Method Around Aspect}}{6}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Logical inclusion}}{8}
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Aspect inheritance}}{9}
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Implementation overview}}{11}
-\contentsline {figure}{\numberline {3.4}{\ignorespaces MSIL generated for sample C\# function}}{12}
-\contentsline {figure}{\numberline {3.5}{\ignorespaces MSIL interception points}}{13}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Logical Inclusion}}{8}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Aspect Inheritance}}{9}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Solution Structure}}{11}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Implementation Overview}}{12}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces MSIL Interception Points}}{14}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
