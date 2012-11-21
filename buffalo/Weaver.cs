@@ -93,7 +93,7 @@ namespace Buffalo
             //var aspectclass = classdll.MainModule.GetType(Aspects[0].Name);
             //var aspector = aspectclass.Methods.First(m => m.IsConstructor);
             //var ctoref = this.AssemblyDefinition.MainModule.Import(aspector);
-            //this.AssemblyDefinition.MainModule.Types.Add(new TypeDefinition("", Aspects[0].Name, aspectclass.Attributes));
+            //this.AssemblyDefinition.MainModule.Types.Add(new TypeDefinition("ClassLibrary1", aspectclass.Name, aspectclass.Attributes));
 
             //finally, get the eligible methods
             Aspects
