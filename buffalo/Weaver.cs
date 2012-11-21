@@ -73,6 +73,8 @@ namespace Buffalo
             foreach (var m in this.AssemblyDefinition.Modules)
                 m.Types
                     .ToList().ForEach(x => this.TypeDefinitions.Add(x));
+            //What if aspects are defined in a different assembly?
+            this.TypeDefinitions.AddRange(this.FindAspectTypeDefinition());
             //extract aspects from the type definitions
             this.TypeDefinitions
                 .Where(x => x.BaseType != null 
@@ -81,11 +83,18 @@ namespace Buffalo
                 .ToList()
                 .ForEach(x => Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
             //set the original types
-            SetUnderlyingAspectTypes();
+            SetUnderlyingAspectTypes(AssemblyPath);
             Aspects.ForEach(x =>
             {
                 x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
             });
+
+            //var classdll = AssemblyDefinition.ReadAssembly(Aspects[0].TypeDefinition.BaseType.Module.FullyQualifiedName);
+            //var aspectclass = classdll.MainModule.GetType(Aspects[0].Name);
+            //var aspector = aspectclass.Methods.First(m => m.IsConstructor);
+            //var ctoref = this.AssemblyDefinition.MainModule.Import(aspector);
+            //this.AssemblyDefinition.MainModule.Types.Add(new TypeDefinition("", Aspects[0].Name, aspectclass.Attributes));
+
             //finally, get the eligible methods
             Aspects
                 .Where(x => x.AssemblyLevelStatus != Enums.Status.Excluded)
@@ -101,158 +110,40 @@ namespace Buffalo
                 });
         }
 
-        private void InjectAroundAspect()
+        private List<TypeDefinition> FindAspectTypeDefinition()
         {
-            var once = false;
-            var ems = this.EligibleMethods.ToList();
-            var eligibleAroundMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
-            foreach (var d in eligibleAroundMethods)
+            //look for aspect in this assembly, if aspect is defined in a different
+            //assembly, import it here.
+            var types = this.AssemblyDefinition.MainModule.Types;
+            var tdefs = new List<TypeDefinition>();
+            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
             {
-                var method = d.Key;
-                var aspects = d.Value;
-
-                if (!method.ReturnType.FullName.Equals("System.Void"))
+                var car = ca.AttributeType.Resolve();
+                if (car.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
+                    || car.BaseType.FullName == typeof(MethodAroundAspect).FullName)
                 {
-#if DEBUG
-                    Console.WriteLine("Around aspect cannot be applied to: \n{0}\nit only applies to void return type.", method.FullName);
-#endif
-                    continue;
+                    tdefs.Add(car);
                 }
+            }
 
-                var il = method.Body.GetILProcessor();
-
-                //create a replacement function
-                var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
-                var aroundAspect = aspects.SingleOrDefault(x => x.Type.BaseType == typeof(MethodAroundAspect));
-                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(
-                    x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
-                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(
-                    x => x.ToString().Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"));
-                //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
-                MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
-                //newmethod.Body.SimplifyMacros();
-
-                if (!once)
+            //loop thru the custom attributes of each type, resolve them to find aspects
+            foreach (var type in types)
+            {
+                if (type.CustomAttributes.Count == 0) continue;
+                var cas = type.CustomAttributes;
+                foreach (var ca in cas)
                 {
-                    //copy the variables in aspect to the target type, this should happen only once?
-                    aroundAspect.TypeDefinition.Fields.ToList()
-                        .ForEach(x =>
-                        {
-                            var fd = new FieldDefinition(x.Name, x.Attributes, x.FieldType);                            
-                            method.DeclaringType.Fields.Add(fd);
-                        });
-
-                    once = true;
-                }
-
-
-                method.Parameters.ToList().ForEach(x => newmethod.Parameters.Add(new ParameterDefinition(x.ParameterType)));
-                aroundMethod.Body.Variables.ToList().ForEach(x => newmethod.Body.Variables.Add(new VariableDefinition(x.VariableType)));
-                
-                aroundMethod.Body.Instructions.ToList().ForEach(instruction =>
-                {
-                    var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, 
-                        null, new[] { typeof(OpCode), typeof(object) }, null);
-                    var newInstruction = (Instruction)constructorInfo.Invoke(new[] { instruction.OpCode, instruction.Operand});
-                    var fieldDefinition = newInstruction.Operand as FieldDefinition;
-                    if (fieldDefinition != null)
+                    var car = ca.AttributeType.Resolve();
+                    if (car.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
+                        || car.BaseType.FullName == typeof(MethodAroundAspect).FullName)
                     {
-                        this.AssemblyDefinition.MainModule.Import(fieldDefinition.FieldType);
-                        newInstruction.Operand = method.DeclaringType.Fields.First(x => x.Name == fieldDefinition.Name);
-                    }
-
-                    if (newInstruction.Operand is MethodReference)
-                    {
-                        //Try really hard to import type
-                        var methodReference = (MethodReference)newInstruction.Operand;
-
-                        this.AssemblyDefinition.MainModule.Import(methodReference.MethodReturnType.ReturnType);
-                        this.AssemblyDefinition.MainModule.Import(methodReference.DeclaringType);
-                        this.AssemblyDefinition.MainModule.Import(methodReference);
-                    }
-                    if (newInstruction.Operand is TypeReference)
-                    {
-                        this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
-                    }
-                    newmethod.Body.Instructions.Add(newInstruction);
-                });
-                NewMethodNames.Add(methodName);
-                method.DeclaringType.Methods.Add(newmethod);
-
-                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
-                int i = 0;
-                bool found = false;
-                for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
-                {
-                    if (invokeMethod.Body.Instructions[i].ToString()
-                        .Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (found)
-                {
-                    //make a call to the original method
-                    var ldarg0 = Instruction.Create(OpCodes.Ldarg_0);
-                    newmethod.Body.Instructions[i - 1] = ldarg0;
-                    newmethod.Body.Instructions[i] = Instruction.Create(OpCodes.Call, method);
-                    int count = i;
-                    if (method.Parameters.Count > 0)
-                    {
-                        for (int j = 0; j < method.Parameters.Count; ++j)
-                        {
-                            var ins = Instruction.Create(OpCodes.Ldarg, method.Parameters[j]);
-                            newmethod.Body.Instructions.Insert(count++, ins);
-                        }
-                    }
-                    //newmethod.Body.OptimizeMacros();
-                }
-
-                //finally, all calls to the original methods should be changed to the newly
-                //generated method
-                foreach (var type in this.AssemblyDefinition.MainModule.Types)
-                {
-                    foreach (var m in type.Methods.Where(x => !NewMethodNames.Contains(x.Name)))
-                    {
-                        for (int j = 0; j < m.Body.Instructions.Count; ++j)
-                        {
-                            if (m.Body.Instructions[j].ToString().Contains(method.FullName))
-                            {
-                                //m.Body.Instructions[j].OpCode = OpCodes.Call;
-                                m.Body.Instructions[j].Operand = newmethod;
-                            }
-                        }
+                        if(!tdefs.Contains(car))
+                            tdefs.Add(car);
                     }
                 }
             }
-        }
-        
-        private static void SetUnderlyingAspectTypes()
-        {
-            ///TODO: This block would not be needed if I can get the underlying types
-            ///directly from cecil
-            AppDomain domain = AppDomain.CreateDomain("domain");
-            BoundaryObject boundary = (BoundaryObject)
-                domain.CreateInstanceAndUnwrap(
-                typeof(BoundaryObject).Assembly.FullName,
-                typeof(BoundaryObject).FullName);
-            AppDomainArgs ada = new AppDomainArgs();
-            ada.AssemblyPath = AssemblyPath;
-            ada.Aspects = Aspects;
-            ada.UnderlyingAspectTypes = UnderlyingAspectTypes;
-            //domain.DoCallBack(new CrossAppDomainDelegate(LoadAssembly));
-            BoundaryObject.DoSomething(ada, AssemblyPath);
-            domain.DomainUnload += new EventHandler(domain_DomainUnload);
-            AppDomain.Unload(domain);
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
 
-        private static void domain_DomainUnload(object sender, EventArgs e)
-        {
-            Console.WriteLine("Unloading domain...");
+            return tdefs;
         }
 
         private void PrintEligibleMethods()
@@ -265,12 +156,6 @@ namespace Buffalo
                     Console.WriteLine("\t" + a.Name);
                 }
             }
-        }
-
-        [Obsolete]
-        private void CheckEligibleMethods()
-        {
-            Aspects.ForEach(x => this.CheckEligibleMethods(x));
         }
 
         private void CheckEligibleMethods(Aspect aspect)
@@ -394,11 +279,36 @@ namespace Buffalo
 
             return status;
         }
+
+        internal static void SetUnderlyingAspectTypes(string assemblyPath)
+        {
+            ///TODO: This block would not be needed if I can get the underlying types
+            ///directly from cecil
+            AppDomain domain = AppDomain.CreateDomain("domain" + DateTime.Now.Ticks);
+            BoundaryObject boundary = (BoundaryObject)
+                domain.CreateInstanceAndUnwrap(
+                typeof(BoundaryObject).Assembly.FullName,
+                typeof(BoundaryObject).FullName);
+            AppDomainArgs ada = new AppDomainArgs();
+            ada.AssemblyPath = assemblyPath;
+            ada.Aspects = Aspects;
+            ada.UnderlyingAspectTypes = UnderlyingAspectTypes;
+            BoundaryObject.SetTypes(ada, assemblyPath);
+            domain.DomainUnload += new EventHandler(domain_DomainUnload);
+            AppDomain.Unload(domain);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        private static void domain_DomainUnload(object sender, EventArgs e)
+        {
+            Console.WriteLine("Unloading domain...");
+        }
     }
 
     class BoundaryObject : MarshalByRefObject
     {
-        public static void DoSomething(AppDomainArgs ada, string path)
+        public static void SetTypes(AppDomainArgs ada, string path)
         {
             ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
             var _assemblyPath = path;
@@ -411,6 +321,11 @@ namespace Buffalo
                 if (type != null)
                 {
                     aspect.Type = type;
+                }
+                else
+                {
+                    //aspect.Type = dll2.FirstOrDefault(x => x.FullName.Equals(aspect.TypeDefinition.FullName));
+                    Weaver.SetUnderlyingAspectTypes(aspect.TypeDefinition.BaseType.Module.FullyQualifiedName);
                 }
             }
         }
