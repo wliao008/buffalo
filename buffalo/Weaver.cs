@@ -68,7 +68,13 @@ namespace Buffalo
             NewMethodNames = new StringCollection();
             this.TypeDefinitions = new List<TypeDefinition>();
             this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
-            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
+            var resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(new FileInfo(AssemblyPath).Directory.FullName);
+            var parameters = new ReaderParameters
+            {
+                AssemblyResolver = resolver,
+            };
+            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath, parameters);
             //populate the type definition first
             foreach (var m in this.AssemblyDefinition.Modules)
                 m.Types
