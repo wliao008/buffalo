@@ -2,20 +2,8 @@
 
 namespace Buffalo
 {
-    public abstract class MethodBoundaryAspect : System.Attribute, IMethodBoundaryAspect
+    public abstract class MethodBoundaryAspect : AspectBase, IMethodBoundaryAspect
     {
-        public MethodBoundaryAspect()
-        {
-            this.AttributeExclude = false;
-        }
-
-        public MethodBoundaryAspect(bool attributeExclude = false)
-        {
-            this.AttributeExclude = attributeExclude;
-        }
-
-        public bool AttributeExclude { get; set; }
-
         public virtual void OnBefore(MethodArgs args) { }
 
         public virtual void OnAfter(MethodArgs args) { }

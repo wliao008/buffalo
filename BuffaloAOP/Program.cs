@@ -19,7 +19,7 @@ namespace BuffaloAOP
             }
 
             path = args[0];
-            path = @"C:\Users\Wei.Liao\Documents\Visual Studio 2012\Projects\Test\Hello\Hello\bin\Debug\Hello.exe";
+            path = @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\Tests\BuffaloTest\BuffaloTest\bin\Debug\Shared.dll";
             string outpath = path.Replace(".exe", "_modified.exe").Replace(".dll", "_modified.dll");
             new Weaver(path).Inject(outpath);
             //Console.Read();
