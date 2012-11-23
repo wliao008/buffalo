@@ -80,14 +80,18 @@ namespace Buffalo
                 m.Types
                     .ToList().ForEach(x => this.TypeDefinitions.Add(x));
             //What if aspects are defined in a different assembly?
-            this.TypeDefinitions.AddRange(this.FindAspectTypeDefinition());
+            var typedefs = this.FindAspectTypeDefinition();
+            this.TypeDefinitions = this.TypeDefinitions.Union(typedefs).ToList();
             //extract aspects from the type definitions
             this.TypeDefinitions
-                .Where(x => x.BaseType != null 
-                    && (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName 
+                .Where(x => x.BaseType != null
+                    && (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
                     || x.BaseType.FullName == typeof(MethodAroundAspect).FullName))
                 .ToList()
-                .ForEach(x => Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
+                .ForEach(x =>
+                {
+                    Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x });
+                });
             //set the original types
             SetUnderlyingAspectTypes(AssemblyPath);
             Aspects.ForEach(x =>
@@ -158,9 +162,7 @@ namespace Buffalo
             {
                 Console.WriteLine(de.Key.FullName);
                 foreach (var a in de.Value)
-                {
                     Console.WriteLine("\t" + a.Name);
-                }
             }
         }
 
@@ -195,19 +197,10 @@ namespace Buffalo
 
         private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Enums.Status typeStatus, Aspect aspect)
         {
-            if (typeDef.Name.Contains("Test"))
-            {
-                System.Diagnostics.Debug.WriteLine("Test");
-            }
-
             var list = new List<MethodDefinition>();
             foreach (var method in typeDef.Methods)
             {
                 var status = this.CheckAspectStatus(method, aspect);
-                //only add methods that are not excluded
-                //if (status != Status.Applied && typeStatus != Status.Applied)
-                //    continue;
-
                 if (status == Enums.Status.Applied)
                 {
                     list.Add(method);

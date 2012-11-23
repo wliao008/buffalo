@@ -60,9 +60,11 @@ namespace Buffalo.Injectors
                     method.Body.Variables.Add(varAspect);
                     var varAspectIdx = method.Body.Variables.Count - 1;
                     //call ctor
-                    Type t = aspects[i].Type;
-                    var constructorInfo = t.GetConstructor(new Type[] { });
-                    MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                    var ctor = aspects[i].TypeDefinition.Methods.First(x => x.IsConstructor);
+                    var myClassConstructor = this.AssemblyDefinition.MainModule.Import(ctor);
+                    //Type t = aspects[i].Type;
+                    //var constructorInfo = t.GetConstructor(new Type[] { });
+                    //MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
                     aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
                     aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                     #endregion
