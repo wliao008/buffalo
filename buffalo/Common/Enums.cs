@@ -17,5 +17,11 @@
             OnException,
             Invoke
         }
+
+        internal enum BuffaloAspect
+        {
+            MethodBoundaryAspect,
+            MethodAroundAspect
+        }
     }
 }

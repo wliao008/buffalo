@@ -18,6 +18,8 @@ namespace Buffalo
 
         public System.Type Type { get; set; }
 
+        public Buffalo.Common.Enums.BuffaloAspect BuffaloAspect { get; set; }
+
         public override string ToString()
         {
             return this.Name;

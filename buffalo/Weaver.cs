@@ -70,29 +70,31 @@ namespace Buffalo
             NewMethodNames = new StringCollection();
             this.TypeDefinitions = new List<TypeDefinition>();
             this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
+            //set the resolver in case assembly is in different directory
             var resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory(new FileInfo(AssemblyPath).Directory.FullName);
-            var parameters = new ReaderParameters
-            {
-                AssemblyResolver = resolver,
-            };
+            var parameters = new ReaderParameters { AssemblyResolver = resolver };
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath, parameters);
             //populate the type definition first
             foreach (var m in this.AssemblyDefinition.Modules)
                 m.Types
                     .ToList().ForEach(x => this.TypeDefinitions.Add(x));
-            //What if aspects are defined in a different assembly?
+            //if aspects are defined in a different assembly?
             var typedefs = this.FindAspectTypeDefinition();
             this.TypeDefinitions = this.TypeDefinitions.Union(typedefs).ToList();
             //extract aspects from the type definitions
             this.TypeDefinitions
-                .Where(x => x.BaseType != null
-                    && (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
-                    || x.BaseType.FullName == typeof(MethodAroundAspect).FullName))
+                .Where(x => x.BaseType != null)
                 .ToList()
                 .ForEach(x =>
                 {
-                    Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x });
+                    Buffalo.Common.Enums.BuffaloAspect? ba = null;
+                    if (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName)
+                        ba = Enums.BuffaloAspect.MethodBoundaryAspect;
+                    else if (x.BaseType.FullName == typeof(MethodAroundAspect).FullName)
+                        ba = Enums.BuffaloAspect.MethodAroundAspect;
+                    if(ba.HasValue)
+                        Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x, BuffaloAspect = ba.Value });
                 });
             //set the original types
             //SetUnderlyingAspectTypes(AssemblyPath);
@@ -102,13 +104,7 @@ namespace Buffalo
                 x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
             });
 
-            //var classdll = AssemblyDefinition.ReadAssembly(Aspects[0].TypeDefinition.BaseType.Module.FullyQualifiedName);
-            //var aspectclass = classdll.MainModule.GetType(Aspects[0].Name);
-            //var aspector = aspectclass.Methods.First(m => m.IsConstructor);
-            //var ctoref = this.AssemblyDefinition.MainModule.Import(aspector);
-            //this.AssemblyDefinition.MainModule.Types.Add(new TypeDefinition("", Aspects[0].Name, aspectclass.Attributes));
-
-            //finally, get the eligible methods
+            //finally, get all the eligible methods for each aspect
             Aspects
                 .Where(x => x.AssemblyLevelStatus != Enums.Status.Excluded)
                 .ToList()
