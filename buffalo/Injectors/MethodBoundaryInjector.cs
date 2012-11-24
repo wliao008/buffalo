@@ -21,8 +21,8 @@ namespace Buffalo.Injectors
             this.EligibleMethods = eligibleMethods;
 
             var ems = this.EligibleMethods.ToList();
-            var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y => 
-                y.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodBoundaryAspect")));
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y =>
+                y.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect));
             foreach (var d in eligibleBoundaryMethods)
             {
                 var method = d.Key;

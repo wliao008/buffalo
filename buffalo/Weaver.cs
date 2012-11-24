@@ -45,13 +45,13 @@ namespace Buffalo
 
             //apply the around aspect if necessary
             var aroundAspectExist = this.EligibleMethods.Values.Any(x => 
-                x.Any(y => y.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodAroundAspect")));
+                x.Any(y => y.BuffaloAspect == Enums.BuffaloAspect.MethodAroundAspect));
             if (aroundAspectExist)
                 injectors.Add(new MethodAroundInjector());
 
             //apply the boundary aspect if necessary
-            var boundaryAspectExist = this.EligibleMethods.Values.Any(x => 
-                x.Any(y => y.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodBoundaryAspect")));
+            var boundaryAspectExist = this.EligibleMethods.Values.Any(x =>
+                x.Any(y => y.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect));
             if (boundaryAspectExist)
                 injectors.Add(new MethodBoundaryInjector());
 
@@ -77,8 +77,7 @@ namespace Buffalo
             this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath, parameters);
             //populate the type definition first
             foreach (var m in this.AssemblyDefinition.Modules)
-                m.Types
-                    .ToList().ForEach(x => this.TypeDefinitions.Add(x));
+                m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
             //if aspects are defined in a different assembly?
             var typedefs = this.FindAspectTypeDefinition();
             this.TypeDefinitions = this.TypeDefinitions.Union(typedefs).ToList();
@@ -96,14 +95,7 @@ namespace Buffalo
                     if(ba.HasValue)
                         Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x, BuffaloAspect = ba.Value });
                 });
-            //set the original types
-            //SetUnderlyingAspectTypes(AssemblyPath);
-
-            Aspects.ForEach(x =>
-            {
-                x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
-            });
-
+            Aspects.ForEach(x => x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x));
             //finally, get all the eligible methods for each aspect
             Aspects
                 .Where(x => x.AssemblyLevelStatus != Enums.Status.Excluded)
@@ -239,9 +231,8 @@ namespace Buffalo
                 }
 
                 if (aspect.TypeDefinition != null
-                    && (aspect.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodBoundaryAspect")
-                    || aspect.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodAroundAspect")
-                    ))
+                    && (aspect.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect
+                    || aspect.BuffaloAspect == Enums.BuffaloAspect.MethodAroundAspect))
                 {
                     attrFound = true;
                     if (def.CustomAttributes[i].Properties.Count == 0)
@@ -258,28 +249,6 @@ namespace Buffalo
                         }
                     }
                 }
-
-                /*
-                if (aspect.Type != null 
-                    && (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
-                    || aspect.Type.BaseType == typeof(MethodAroundAspect))
-                    && def.CustomAttributes[i].AttributeType.FullName.Equals(aspect.Name))
-                {
-                    attrFound = true;
-                    if (def.CustomAttributes[i].Properties.Count == 0)
-                    {
-                        status = Enums.Status.Applied;
-                    }
-                    else
-                    {
-                        var exclude = def.CustomAttributes[i].Properties.First(x => x.Name == "AttributeExclude");
-                        if ((bool)exclude.Argument.Value == true)
-                        {
-                            status = Enums.Status.Excluded;
-                            def.CustomAttributes.RemoveAt(i);
-                        }
-                    }
-                }*/
             }
 
             if (!attrFound && aspect.AssemblyLevelStatus == Enums.Status.Applied)

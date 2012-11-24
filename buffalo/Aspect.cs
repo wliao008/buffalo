@@ -1,4 +1,5 @@
-﻿using Buffalo.Common;
+﻿using System;
+using Buffalo.Common;
 using Mono.Cecil;
 
 namespace Buffalo
@@ -16,6 +17,7 @@ namespace Buffalo
 
         public TypeDefinition TypeDefinition { get; set; }
 
+        [Obsolete]
         public System.Type Type { get; set; }
 
         public Buffalo.Common.Enums.BuffaloAspect BuffaloAspect { get; set; }
