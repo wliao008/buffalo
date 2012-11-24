@@ -232,7 +232,8 @@ namespace Buffalo
 
                 if (aspect.TypeDefinition != null
                     && (aspect.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect
-                    || aspect.BuffaloAspect == Enums.BuffaloAspect.MethodAroundAspect))
+                    || aspect.BuffaloAspect == Enums.BuffaloAspect.MethodAroundAspect)
+                    && def.CustomAttributes[i].AttributeType.FullName.Equals(aspect.Name))
                 {
                     attrFound = true;
                     if (def.CustomAttributes[i].Properties.Count == 0)

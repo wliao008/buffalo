@@ -25,8 +25,8 @@ namespace Buffalo.Injectors
             this.AssemblyDefinition = assemblyDefinition;
             this.EligibleMethods = eligibleMethods;
             var NewMethodNames = new StringCollection();
-            var eligibleAroundMethods = this.EligibleMethods
-                .Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            var eligibleAroundMethods = this.EligibleMethods.Where(x => x.Value.Any(y => 
+                    y.BuffaloAspect == Common.Enums.BuffaloAspect.MethodAroundAspect));
             foreach (var d in eligibleAroundMethods)
             {
                 var method = d.Key;
@@ -37,7 +37,8 @@ namespace Buffalo.Injectors
                 var aspectVarInstructions = new List<Instruction>();
                 var aroundInstructions = new List<Instruction>();
 
-                foreach (var aspect in aspects.Where(x => x.Type.BaseType == typeof(MethodAroundAspect)))
+                foreach (var aspect in aspects.Where(x => 
+                    x.BuffaloAspect == Common.Enums.BuffaloAspect.MethodAroundAspect))
                 {
                     var varTicks = System.DateTime.Now.Ticks;
 
@@ -55,7 +56,7 @@ namespace Buffalo.Injectors
                     var varAspect = new VariableDefinition(varAspectName, aspect.TypeDefinition);
                     newmethod.Body.Variables.Add(varAspect);
                     var varAspectIdx = newmethod.Body.Variables.Count - 1;
-                    var constructorInfo = aspect.Type.GetConstructor(new Type[] { });
+                    var constructorInfo = aspect.TypeDefinition.Methods.First(x => x.IsConstructor);
                     MethodReference myClassConstructor =
                         this.AssemblyDefinition.MainModule.Import(constructorInfo);
                     //store the newly created aspect variable
@@ -70,7 +71,7 @@ namespace Buffalo.Injectors
                     #region Calling MethodArgs.Invoke
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                    var aspectInvoke = aspect.Type.GetMethod("Invoke");
+                    var aspectInvoke = aspect.TypeDefinition.Methods.First(x => x.Name.Equals("Invoke"));
                     var aspectInvokeRef = 
                         this.AssemblyDefinition.MainModule.Import(aspectInvoke, newmethod);
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, aspectInvokeRef));
