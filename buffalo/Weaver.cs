@@ -10,6 +10,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using Reflection = System.Reflection;
+using Mono.Collections.Generic;
 
 namespace Buffalo
 {
@@ -116,34 +117,36 @@ namespace Buffalo
             //look for aspect in this assembly, if aspect is defined in a different
             //assembly, import it here.
             var types = this.AssemblyDefinition.MainModule.Types;
+            var tdefs = this.FindAspectsFromAttributes(this.AssemblyDefinition.CustomAttributes);
+
+            //loop thru the custom attributes of each type, resolve them to find aspects
+            foreach (var type in types)
+            {
+                //if (type.CustomAttributes.Count == 0) continue;
+                var tmp = this.FindAspectsFromAttributes(type.CustomAttributes);
+                tdefs.AddRange(tmp);
+                foreach (var m in type.Methods)
+                {
+                    tdefs.AddRange(this.FindAspectsFromAttributes(m.CustomAttributes));
+                }
+            }
+
+            return tdefs;
+        }
+
+        private List<TypeDefinition> FindAspectsFromAttributes(Collection<CustomAttribute> customAttributes)
+        {
             var tdefs = new List<TypeDefinition>();
-            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
+            foreach (var ca in customAttributes)
             {
                 var car = ca.AttributeType.Resolve();
                 if (car.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
                     || car.BaseType.FullName == typeof(MethodAroundAspect).FullName)
                 {
-                    tdefs.Add(car);
+                    if (!tdefs.Contains(car))
+                        tdefs.Add(car);
                 }
             }
-
-            //loop thru the custom attributes of each type, resolve them to find aspects
-            foreach (var type in types)
-            {
-                if (type.CustomAttributes.Count == 0) continue;
-                var cas = type.CustomAttributes;
-                foreach (var ca in cas)
-                {
-                    var car = ca.AttributeType.Resolve();
-                    if (car.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
-                        || car.BaseType.FullName == typeof(MethodAroundAspect).FullName)
-                    {
-                        if(!tdefs.Contains(car))
-                            tdefs.Add(car);
-                    }
-                }
-            }
-
             return tdefs;
         }
 
