@@ -44,12 +44,14 @@ namespace Buffalo
             var injectors = new List<IInjectable>();
 
             //apply the around aspect if necessary
-            var aroundAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            var aroundAspectExist = this.EligibleMethods.Values.Any(x => 
+                x.Any(y => y.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodAroundAspect")));
             if (aroundAspectExist)
                 injectors.Add(new MethodAroundInjector());
 
             //apply the boundary aspect if necessary
-            var boundaryAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            var boundaryAspectExist = this.EligibleMethods.Values.Any(x => 
+                x.Any(y => y.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodBoundaryAspect")));
             if (boundaryAspectExist)
                 injectors.Add(new MethodBoundaryInjector());
 
@@ -93,7 +95,8 @@ namespace Buffalo
                     Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x });
                 });
             //set the original types
-            SetUnderlyingAspectTypes(AssemblyPath);
+            //SetUnderlyingAspectTypes(AssemblyPath);
+
             Aspects.ForEach(x =>
             {
                 x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
@@ -239,6 +242,28 @@ namespace Buffalo
                     break;
                 }
 
+                if (aspect.TypeDefinition != null
+                    && (aspect.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodBoundaryAspect")
+                    || aspect.TypeDefinition.BaseType.FullName.Equals("Buffalo.MethodAroundAspect")
+                    ))
+                {
+                    attrFound = true;
+                    if (def.CustomAttributes[i].Properties.Count == 0)
+                    {
+                        status = Enums.Status.Applied;
+                    }
+                    else
+                    {
+                        var exclude = def.CustomAttributes[i].Properties.FirstOrDefault(x => x.Name == "AttributeExclude");
+                        if (exclude.Argument.Value != null && (bool)exclude.Argument.Value == true)
+                        {
+                            status = Enums.Status.Excluded;
+                            def.CustomAttributes.RemoveAt(i);
+                        }
+                    }
+                }
+
+                /*
                 if (aspect.Type != null 
                     && (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
                     || aspect.Type.BaseType == typeof(MethodAroundAspect))
@@ -255,11 +280,10 @@ namespace Buffalo
                         if ((bool)exclude.Argument.Value == true)
                         {
                             status = Enums.Status.Excluded;
-                            //Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
                             def.CustomAttributes.RemoveAt(i);
                         }
                     }
-                }
+                }*/
             }
 
             if (!attrFound && aspect.AssemblyLevelStatus == Enums.Status.Applied)
@@ -268,12 +292,9 @@ namespace Buffalo
                 //as a result the type and method might not have the
                 //attributed annotated, this is to programmatically add
                 //in the annotation so IL can be generated correctly.
-                MethodReference attrCtor = this.AssemblyDefinition.MainModule.Import(
-                    aspect.Type.GetConstructor(Type.EmptyTypes));
-                //var methodRef = this.AssemblyDefinition.MainModule.Import(aspect.Type);
-                
-                def.CustomAttributes.Add(new CustomAttribute(attrCtor));
-                //Console.WriteLine("Injecting custome attr for: " + def.ToString());
+                var ctor = aspect.TypeDefinition.Methods.First(x => x.IsConstructor);
+                var ctoref = this.AssemblyDefinition.MainModule.Import(ctor);
+                def.CustomAttributes.Add(new CustomAttribute(ctoref));
             }
 
             return status;
