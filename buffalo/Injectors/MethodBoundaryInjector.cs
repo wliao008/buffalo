@@ -57,12 +57,13 @@ namespace Buffalo.Injectors
                 {
                     #region Create an aspect variable
                     var varAspectName = "asp" + System.DateTime.Now.Ticks;
-                    var varAspect = new VariableDefinition(varAspectName, aspects[i].TypeDefinition);
+                    var varAspectRef = this.AssemblyDefinition.MainModule.Import(aspects[i].TypeDefinition);
+                    var varAspect = new VariableDefinition(varAspectName, varAspectRef);
                     method.Body.Variables.Add(varAspect);
                     var varAspectIdx = method.Body.Variables.Count - 1;
-                    //call ctor
                     var ctor = aspects[i].TypeDefinition.Methods.First(x => x.IsConstructor);
-                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, ctor));
+                    var ctoref = this.AssemblyDefinition.MainModule.Import(ctor);
+                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, ctoref));
                     aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                     #endregion
 
@@ -75,7 +76,9 @@ namespace Buffalo.Injectors
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectBefore = aspects[i].TypeDefinition.Methods.FirstOrDefault(
                             x => x.Name == Enums.AspectType.OnBefore.ToString());
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBefore));
+                        //this import is needed in case this aspect is defined in different assembly?
+                        var aspectBeforeRef = this.AssemblyDefinition.MainModule.Import(aspectBefore);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
                     }
 
                     var success = method.FindMethodReference(aspects[i], Enums.AspectType.OnSuccess);
@@ -85,7 +88,8 @@ namespace Buffalo.Injectors
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectSuccess = aspects[i].TypeDefinition.Methods.FirstOrDefault(
                             x => x.Name == Enums.AspectType.OnSuccess.ToString());
-                        successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccess));
+                        var aspectSuccessRef = this.AssemblyDefinition.MainModule.Import(aspectSuccess);
+                        successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
                     }
 
                     var exception = method.FindMethodReference(aspects[i], Enums.AspectType.OnException);
@@ -105,7 +109,8 @@ namespace Buffalo.Injectors
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectException = aspects[i].TypeDefinition.Methods.FirstOrDefault(
                             x => x.Name == Enums.AspectType.OnException.ToString());
-                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectException));
+                        var aspectExceptionRef = this.AssemblyDefinition.MainModule.Import(aspectException);
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectExceptionRef));
                     }
 
                     var after = method.FindMethodReference(aspects[i], Enums.AspectType.OnAfter);
@@ -115,7 +120,8 @@ namespace Buffalo.Injectors
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
                         var aspectAfter = aspects[i].TypeDefinition.Methods.FirstOrDefault(
                             x => x.Name == Enums.AspectType.OnAfter.ToString());
-                        afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectAfter));
+                        var aspectAfterRef = this.AssemblyDefinition.MainModule.Import(aspectAfter);
+                        afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectAfterRef));
                     }
                     #endregion
                 }
