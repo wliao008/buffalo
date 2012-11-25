@@ -1,4 +1,5 @@
 ﻿using Buffalo.Common;
+using Buffalo.Extensions;
 using Buffalo.Injectors;
 using Buffalo.Interfaces;
 using Mono.Cecil;
@@ -40,7 +41,7 @@ namespace Buffalo
 
         internal StringCollection NewMethodNames { get; set; }
 
-        internal void Inject(string outPath)
+        internal void Inject_BAK(string outPath)
         {
             var injectors = new List<IInjectable>();
 
@@ -62,6 +63,59 @@ namespace Buffalo
             //write out the modified assembly
             this.AssemblyDefinition.Write(outPath);
             Console.WriteLine("DONE");
+        }
+
+        internal void Inject(string outPath)
+        {
+            var ems = this.EligibleMethods.ToList();
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y =>
+                y.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect));
+
+            foreach (var d in eligibleBoundaryMethods)
+            {
+                var method = d.Key;
+                var aspects = d.Value;
+                var il = method.Body.GetILProcessor();
+                //var maInstructions = new List<Instruction>();
+                var aspectVarInstructions = new List<Instruction>();
+                var beforeInstructions = new List<Instruction>();
+                var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
+                for (int i = 0; i < aspects.Count; ++i)
+                {
+                    var varAspectName = "asp" + System.DateTime.Now.Ticks;
+                    var varAspectRef = this.AssemblyDefinition.MainModule.Import(aspects[i].TypeDefinition);
+                    var varAspect = new VariableDefinition(varAspectName, varAspectRef);
+                    method.Body.Variables.Add(varAspect);
+                    var varAspectIdx = method.Body.Variables.Count - 1;
+                    var ctor = aspects[i].TypeDefinition.Methods.First(x => x.IsConstructor);
+                    var ctoref = this.AssemblyDefinition.MainModule.Import(ctor);
+                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, ctoref));
+                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
+                    var before = method.FindMethodReference(aspects[i], Enums.AspectType.OnBefore);
+                    if (before != null)
+                    {
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
+                        var aspectBefore = aspects[i].TypeDefinition.Methods.FirstOrDefault(
+                            x => x.Name == Enums.AspectType.OnBefore.ToString());
+                        var aspectBeforeRef = this.AssemblyDefinition.MainModule.Import(aspectBefore);
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
+                    }
+                }
+
+                int varIdx = var.VarIdx;
+                //maInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
+                aspectVarInstructions.ForEach(x => method.Body.Instructions.Insert(varIdx++, x));
+
+                int beforeIdx = varIdx;
+                //perform this only if user overrides Before() in the aspect
+                if (beforeInstructions.Count > 0)
+                {
+                    beforeInstructions.ForEach(x => method.Body.Instructions.Insert(beforeIdx++, x));
+                }
+            }
+
+            this.AssemblyDefinition.Write(outPath);
         }
 
         private void Init()
