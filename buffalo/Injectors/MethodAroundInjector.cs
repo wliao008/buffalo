@@ -53,14 +53,14 @@ namespace Buffalo.Injectors
 
                     //create aspect variable
                     var varAspectName = "asp" + varTicks;
-                    var varAspect = new VariableDefinition(varAspectName, aspect.TypeDefinition);
+                    var varAspectRef = this.AssemblyDefinition.MainModule.Import(aspect.TypeDefinition);
+                    var varAspect = new VariableDefinition(varAspectName, varAspectRef);
                     newmethod.Body.Variables.Add(varAspect);
                     var varAspectIdx = newmethod.Body.Variables.Count - 1;
-                    var constructorInfo = aspect.TypeDefinition.Methods.First(x => x.IsConstructor);
-                    MethodReference myClassConstructor =
-                        this.AssemblyDefinition.MainModule.Import(constructorInfo);
+                    var ctor = aspect.TypeDefinition.Methods.First(x => x.IsConstructor);
+                    var ctoref = this.AssemblyDefinition.MainModule.Import(ctor);
                     //store the newly created aspect variable
-                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                    newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Newobj, ctoref));
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                     //copy all the paramters
                     method.Parameters.ToList().ForEach(x =>
