@@ -26,10 +26,10 @@ namespace Buffalo.Extensions
             method.Body.InitLocals = true;
             var il = method.Body.GetILProcessor();
             var isValueType = false;
-            
+
             //create var to hold parameter count
             var pcVar = new VariableDefinition("pc" + DateTime.Now.Ticks,
-                assemblyDef.MainModule.Import(typeof(int)));
+                    assemblyDef.MainModule.Import(typeof(int)));
             method.Body.Variables.Add(pcVar);
             instructions.Add(Instruction.Create(OpCodes.Ldc_I4, method.Parameters.Count));
             instructions.Add(Instruction.Create(OpCodes.Stloc, pcVar));

@@ -37,9 +37,19 @@ namespace Buffalo.Injectors
                 var aspectVarInstructions = new List<Instruction>();
                 var aroundInstructions = new List<Instruction>();
 
-                foreach (var aspect in aspects.Where(x => 
+                foreach (var aspec in aspects.Where(x => 
                     x.BuffaloAspect == Common.Enums.BuffaloAspect.MethodAroundAspect))
                 {
+                    ///TODO: if aspect is from a different assembly, need to work from that context
+                    var aspect = aspec;
+                    var ass = AssemblyDefinition.ReadAssembly(aspect.TypeDefinition.Module.FullyQualifiedName);
+                    var asp = ass.MainModule.Types.FirstOrDefault(x => x.FullName == aspect.Name);
+                    if (asp != null)
+                    {
+                        var newaspect = new Aspect { Name = asp.FullName, TypeDefinition = asp, BuffaloAspect = Common.Enums.BuffaloAspect.MethodAroundAspect };
+                        aspect = newaspect;
+                    }
+
                     var varTicks = System.DateTime.Now.Ticks;
 
                     //create a replacement for the annotated function
@@ -134,7 +144,8 @@ namespace Buffalo.Injectors
                             //get the instance obj from MethodArgs
                             var getInstance = typeof(MethodArgs).GetMethod("get_Instance");
                             var getInstanceRef = this.AssemblyDefinition.MainModule.Import(getInstance);
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getInstanceRef));
+                            var getInstanceRef2 = aspect.TypeDefinition.Module.Import(getInstance);
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getInstanceRef2));
                             invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, instance));
 
                             //create object array to hold ParameterArray
@@ -145,26 +156,30 @@ namespace Buffalo.Injectors
                             invoke.Body.Variables.Add(varArray);
                             var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
                             var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
+                            var getParameterArrayRef2 = aspect.TypeDefinition.Module.Import(getParameterArray);
                             invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1));
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef));
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef2));
                             invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
 
                             //modify the Invoke() instruction to make a call to the original method
                             invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.DeclaringType));
+                            var classref = aspect.TypeDefinition.Module.Import(method.DeclaringType);
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, classref));
                             if (method.Parameters.Count > 0)
                             {
                                 for (int i = 0; i < method.Parameters.Count; ++i)
                                 {
+                                    var ptype = aspect.TypeDefinition.Module.Import(method.Parameters[i].ParameterType);
                                     invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
                                     invokeInstructions.Add(il.Create(OpCodes.Ldc_I4, i));
                                     invokeInstructions.Add(il.Create(OpCodes.Ldelem_Ref));
-                                    invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, method.Parameters[i].ParameterType));
+                                    invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, ptype));
                                 }
                             }
 
                             //make the call
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, method));
+                            var methodRef = aspect.TypeDefinition.Module.Import(method);
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, methodRef));
 
                             #region Handling return value
                             if (!method.ReturnType.FullName.Equals("System.Void"))
@@ -172,9 +187,10 @@ namespace Buffalo.Injectors
                                 //create an object variable to hold the return value
                                 var varObj = new VariableDefinition("obj" + DateTime.Now.Ticks,
                                     this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                                var retype = aspect.TypeDefinition.Module.Import(method.ReturnType);
                                 invoke.Body.Variables.Add(varObj);
                                 invokeInstructions.Add(
-                                    Instruction.Create(OpCodes.Box, method.ReturnType));
+                                    Instruction.Create(OpCodes.Box, retype));
                             }
                             else
                             {
@@ -226,6 +242,9 @@ namespace Buffalo.Injectors
 
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
                     //newmethod.Body.OptimizeMacros();
+                    //var ass = AssemblyDefinition.ReadAssembly(aspect.TypeDefinition.Module.FullyQualifiedName);
+                    ass.Write(
+                        @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\Tests\BuffaloTest\BuffaloTest\bin\Debug\Shared_modified2.dll");
                 }
             }
         }
