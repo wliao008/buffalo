@@ -19,9 +19,8 @@ namespace BuffaloAOP
             }
 
             path = args[0];
-            path = @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\Tests\BuffaloTest\BuffaloTest\bin\Debug\BuffaloTest.exe";
-            string outpath = path.Replace(".exe", "_modified.exe").Replace(".dll", "_modified.dll");
-            new Weaver(path).Inject(outpath);
+            path = @"C:\Users\Wei.Liao\Documents\Visual Studio 2012\Projects\buffalo\client\bin\Debug\client.exe";
+            new Weaver(path).Inject();
             //Console.Read();
         }
     }

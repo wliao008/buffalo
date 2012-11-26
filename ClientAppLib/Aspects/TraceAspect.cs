@@ -1,23 +1,9 @@
 ﻿using Buffalo;
 using System;
 
-namespace client
+namespace ClientAppLib.Aspects
 {
-    /*
-    public class DoubleAspect : MethodAroundAspect
-    {
-        public override object Invoke(MethodArgs args)
-        {
-            Console.WriteLine("Enter a num: ");
-            int num = int.Parse(Console.ReadLine());
-            if (num % 2 == 0)
-                return args.Proceed();
-            else
-                return new decimal(-1);
-        }
-    }
-
-    public class Trace : MethodBoundaryAspect
+    public class TraceAspect : MethodBoundaryAspect
     {
         public override void OnBefore(MethodArgs args)
         {
@@ -34,5 +20,4 @@ namespace client
             }
         }
     }
-    */
 }

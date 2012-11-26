@@ -20,6 +20,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buffalo", "Buffalo\Buffalo.csproj", "{3AC28ABB-BF81-432D-92FB-C580BA901985}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ClientApp", "ClientApp", "{D207E3E3-2993-44DF-9601-A58DF621B44D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientAppLib", "ClientAppLib\ClientAppLib.csproj", "{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = buffalo.vsmdi
@@ -64,8 +68,22 @@ Global
 		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{3AC28ABB-BF81-432D-92FB-C580BA901985}.Release|x86.ActiveCfg = Release|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{629C03E2-E565-42D1-9DAB-F9ACA30B0E41} = {D207E3E3-2993-44DF-9601-A58DF621B44D}
+		{89C25DF8-C1DA-4A4F-B28E-6A558EDFF851} = {D207E3E3-2993-44DF-9601-A58DF621B44D}
 	EndGlobalSection
 EndGlobal

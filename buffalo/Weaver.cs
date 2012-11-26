@@ -41,7 +41,7 @@ namespace Buffalo
 
         internal StringCollection NewMethodNames { get; set; }
 
-        internal void Inject(string outPath)
+        internal void Inject()
         {
             var injectors = new List<IInjectable>();
 
@@ -61,7 +61,7 @@ namespace Buffalo
             injectors.ForEach(x => x.Inject(this.AssemblyDefinition, this.EligibleMethods));
 
             //write out the modified assembly
-            this.AssemblyDefinition.Write(outPath);
+            this.AssemblyDefinition.Write2(AssemblyPath);
             Console.WriteLine("DONE");
         }
 

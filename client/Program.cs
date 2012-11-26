@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Buffalo;
 using System.Threading;
+using ClientAppLib.Aspects;
 
 namespace client
 {
@@ -12,14 +13,9 @@ namespace client
     /// </summary>
     class Program
     {
-        static TraceAspectTester test = new TraceAspectTester();
+        static AspectTester test = new AspectTester();
         static void Main(string[] args)
         {
-            //Int16 i = 1;
-            //object o = i;
-            //double d = (double)(Int16)o;
-            //Console.WriteLine("d: " + d);
-
             var result = test.divide(6, 3);
             Console.WriteLine("result: " + result);
 
@@ -30,13 +26,11 @@ namespace client
         }
     }
 
-    public class TraceAspectTester
+    public class AspectTester
     {
-        [DoubleAspect]
+        [AroundAspect]
         public decimal divide(int a, int b)
         {
-            //Console.WriteLine(a);
-            //Console.WriteLine(b);
             return a / b;
         }
 

@@ -40,14 +40,21 @@ namespace Buffalo.Injectors
                 foreach (var aspec in aspects.Where(x => 
                     x.BuffaloAspect == Common.Enums.BuffaloAspect.MethodAroundAspect))
                 {
-                    ///TODO: if aspect is from a different assembly, need to work from that context
+                    //if aspect is from a different assembly, need to work from that context
                     var aspect = aspec;
-                    var ass = AssemblyDefinition.ReadAssembly(aspect.TypeDefinition.Module.FullyQualifiedName);
-                    var asp = ass.MainModule.Types.FirstOrDefault(x => x.FullName == aspect.Name);
-                    if (asp != null)
+                    var writedll = false;
+                    AssemblyDefinition ass = null;
+                    if (!aspect.TypeDefinition.Module.FullyQualifiedName.Equals(
+                        this.AssemblyDefinition.MainModule.FullyQualifiedName))
                     {
-                        var newaspect = new Aspect { Name = asp.FullName, TypeDefinition = asp, BuffaloAspect = Common.Enums.BuffaloAspect.MethodAroundAspect };
-                        aspect = newaspect;
+                        ass = AssemblyDefinition.ReadAssembly(aspect.TypeDefinition.Module.FullyQualifiedName);
+                        var asp = ass.MainModule.Types.FirstOrDefault(x => x.FullName == aspect.Name);
+                        if (asp != null)
+                        {
+                            var newaspect = new Aspect { Name = asp.FullName, TypeDefinition = asp, BuffaloAspect = Common.Enums.BuffaloAspect.MethodAroundAspect };
+                            aspect = newaspect;
+                            writedll = true;
+                        }
                     }
 
                     var varTicks = System.DateTime.Now.Ticks;
@@ -241,10 +248,10 @@ namespace Buffalo.Injectors
                     #endregion
 
                     newmethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
-                    //newmethod.Body.OptimizeMacros();
-                    //var ass = AssemblyDefinition.ReadAssembly(aspect.TypeDefinition.Module.FullyQualifiedName);
-                    ass.Write(
-                        @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\Tests\BuffaloTest\BuffaloTest\bin\Debug\Shared_modified2.dll");
+                    if (writedll)
+                    {
+                        ass.Write2(ass.MainModule.FullyQualifiedName);
+                    }
                 }
             }
         }

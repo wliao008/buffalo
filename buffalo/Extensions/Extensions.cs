@@ -3,6 +3,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -182,6 +183,17 @@ namespace Buffalo.Extensions
             var.ParamArray = varArray;
             var.VarIdx = idx;
             return var;
+        }
+
+        internal static void Write2(this AssemblyDefinition assembly, string outpath)
+        {
+            //write out the modified assembly
+            var fi = new FileInfo(outpath);
+            var folderpath = string.Format(@"{0}\modified", fi.Directory.FullName);
+            var fn = fi.Name;
+            if (!Directory.Exists(folderpath)) Directory.CreateDirectory(folderpath);
+            var n = Path.Combine(folderpath, fn);
+            assembly.Write(n);
         }
     }
 
