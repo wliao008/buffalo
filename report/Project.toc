@@ -25,6 +25,7 @@
 \contentsline {chapter}{Bibliography}{21}
 \contentsline {chapter}{\numberline {A}UML Diagrams}{22}
 \contentsline {chapter}{\numberline {B}Code Listing}{23}
-\contentsline {chapter}{\numberline {C}User Manual}{46}
-\contentsline {section}{\numberline {C.1}Compiling}{46}
-\contentsline {section}{\numberline {C.2}Profiler Example}{46}
+\contentsline {chapter}{\numberline {C}User Manual}{47}
+\contentsline {section}{\numberline {C.1}Compiling}{47}
+\contentsline {section}{\numberline {C.2}Profiler Example}{47}
+\contentsline {section}{\numberline {C.3}Hooking Up With Microsoft Build System}{49}

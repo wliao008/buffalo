@@ -5,6 +5,7 @@ PDFLATEX=pdflatex
 BIBTEX=bibtex
 
 project:
+	python codelisting.py
 	$(PDFLATEX) Project
 	$(BIBTEX) Project
 	$(PDFLATEX) Project
