@@ -2,15 +2,8 @@
 
 namespace Buffalo
 {
-    public abstract class MethodAroundAspect : System.Attribute, IMethodAroundAspect
+    public abstract class MethodAroundAspect : AspectBase, IMethodAroundAspect
     {
-        public MethodAroundAspect(bool attributeExclude = false)
-        {
-            this.AttributeExclude = attributeExclude;
-        }
-
-        public bool AttributeExclude { get; set; }
-
         public virtual object Invoke(MethodArgs args) { return null; }
     }
 }
@@ -121,7 +114,8 @@ namespace Buffalo
 }
 \end{lstlisting}
 
-\begin{lstlisting}[caption={../buffalo/Aspect.cs}, label=../buffalo/Aspect.cs, frame=tb, basicstyle=\scriptsize]﻿using Buffalo.Common;
+\begin{lstlisting}[caption={../buffalo/Aspect.cs}, label=../buffalo/Aspect.cs, frame=tb, basicstyle=\scriptsize]﻿using System;
+using Buffalo.Common;
 using Mono.Cecil;
 
 namespace Buffalo
@@ -139,7 +133,10 @@ namespace Buffalo
 
         public TypeDefinition TypeDefinition { get; set; }
 
+        [Obsolete]
         public System.Type Type { get; set; }
+
+        public Buffalo.Common.Enums.BuffaloAspect BuffaloAspect { get; set; }
 
         public override string ToString()
         {
@@ -153,20 +150,8 @@ namespace Buffalo
 
 namespace Buffalo
 {
-    public abstract class MethodBoundaryAspect : System.Attribute, IMethodBoundaryAspect
+    public abstract class MethodBoundaryAspect : AspectBase, IMethodBoundaryAspect
     {
-        public MethodBoundaryAspect()
-        {
-            this.AttributeExclude = false;
-        }
-
-        public MethodBoundaryAspect(bool attributeExclude = false)
-        {
-            this.AttributeExclude = attributeExclude;
-        }
-
-        public bool AttributeExclude { get; set; }
-
         public virtual void OnBefore(MethodArgs args) { }
 
         public virtual void OnAfter(MethodArgs args) { }
@@ -174,6 +159,22 @@ namespace Buffalo
         public virtual void OnSuccess(MethodArgs args) { }
 
         public virtual void OnException(MethodArgs args) { }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={../buffalo/AspectBase.cs}, label=../buffalo/AspectBase.cs, frame=tb, basicstyle=\scriptsize]﻿namespace Buffalo
+{
+    [System.AttributeUsage(System.AttributeTargets.All,
+        AllowMultiple = false)]
+    public abstract class AspectBase : System.Attribute
+    {
+        public AspectBase(bool attributeExclude = false)
+        {
+            this.AttributeExclude = attributeExclude;
+        }
+
+        public bool AttributeExclude { get; set; }
     }
 }
 \end{lstlisting}
@@ -224,12 +225,14 @@ namespace Buffalo
             var injectors = new List<IInjectable>();
 
             //apply the around aspect if necessary
-            var aroundAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
+            var aroundAspectExist = this.EligibleMethods.Values.Any(x => 
+                x.Any(y => y.BuffaloAspect == Enums.BuffaloAspect.MethodAroundAspect));
             if (aroundAspectExist)
                 injectors.Add(new MethodAroundInjector());
 
             //apply the boundary aspect if necessary
-            var boundaryAspectExist = this.EligibleMethods.Values.Any(x => x.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            var boundaryAspectExist = this.EligibleMethods.Values.Any(x =>
+                x.Any(y => y.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect));
             if (boundaryAspectExist)
                 injectors.Add(new MethodBoundaryInjector());
 
@@ -248,25 +251,33 @@ namespace Buffalo
             NewMethodNames = new StringCollection();
             this.TypeDefinitions = new List<TypeDefinition>();
             this.EligibleMethods = new Dictionary<MethodDefinition, List<Aspect>>();
-            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath);
+            //set the resolver in case assembly is in different directory
+            var resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(new FileInfo(AssemblyPath).Directory.FullName);
+            var parameters = new ReaderParameters { AssemblyResolver = resolver };
+            this.AssemblyDefinition = AssemblyDefinition.ReadAssembly(AssemblyPath, parameters);
             //populate the type definition first
             foreach (var m in this.AssemblyDefinition.Modules)
-                m.Types
-                    .ToList().ForEach(x => this.TypeDefinitions.Add(x));
+                m.Types.ToList().ForEach(x => this.TypeDefinitions.Add(x));
+            //if aspects are defined in a different assembly?
+            var typedefs = this.FindAspectTypeDefinition();
+            this.TypeDefinitions = this.TypeDefinitions.Union(typedefs).ToList();
             //extract aspects from the type definitions
             this.TypeDefinitions
-                .Where(x => x.BaseType != null 
-                    && (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName 
-                    || x.BaseType.FullName == typeof(MethodAroundAspect).FullName))
+                .Where(x => x.BaseType != null)
                 .ToList()
-                .ForEach(x => Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x }));
-            //set the original types
-            SetUnderlyingAspectTypes();
-            Aspects.ForEach(x =>
-            {
-                x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x);
-            });
-            //finally, get the eligible methods
+                .ForEach(x =>
+                {
+                    Buffalo.Common.Enums.BuffaloAspect? ba = null;
+                    if (x.BaseType.FullName == typeof(MethodBoundaryAspect).FullName)
+                        ba = Enums.BuffaloAspect.MethodBoundaryAspect;
+                    else if (x.BaseType.FullName == typeof(MethodAroundAspect).FullName)
+                        ba = Enums.BuffaloAspect.MethodAroundAspect;
+                    if(ba.HasValue)
+                        Aspects.Add(new Aspect { Name = x.FullName, TypeDefinition = x, BuffaloAspect = ba.Value });
+                });
+            Aspects.ForEach(x => x.AssemblyLevelStatus = this.CheckAspectStatus(this.AssemblyDefinition, x));
+            //finally, get all the eligible methods for each aspect
             Aspects
                 .Where(x => x.AssemblyLevelStatus != Enums.Status.Excluded)
                 .ToList()
@@ -281,158 +292,40 @@ namespace Buffalo
                 });
         }
 
-        private void InjectAroundAspect()
+        private List<TypeDefinition> FindAspectTypeDefinition()
         {
-            var once = false;
-            var ems = this.EligibleMethods.ToList();
-            var eligibleAroundMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodAroundAspect)));
-            foreach (var d in eligibleAroundMethods)
+            //look for aspect in this assembly, if aspect is defined in a different
+            //assembly, import it here.
+            var types = this.AssemblyDefinition.MainModule.Types;
+            var tdefs = new List<TypeDefinition>();
+            foreach (var ca in this.AssemblyDefinition.CustomAttributes)
             {
-                var method = d.Key;
-                var aspects = d.Value;
-
-                if (!method.ReturnType.FullName.Equals("System.Void"))
+                var car = ca.AttributeType.Resolve();
+                if (car.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
+                    || car.BaseType.FullName == typeof(MethodAroundAspect).FullName)
                 {
-#if DEBUG
-                    Console.WriteLine("Around aspect cannot be applied to: \n{0}\nit only applies to void return type.", method.FullName);
-#endif
-                    continue;
+                    tdefs.Add(car);
                 }
+            }
 
-                var il = method.Body.GetILProcessor();
-
-                //create a replacement function
-                var methodName = string.Format("{0}{1}", method.Name, DateTime.Now.Ticks);
-                var aroundAspect = aspects.SingleOrDefault(x => x.Type.BaseType == typeof(MethodAroundAspect));
-                var aroundMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(
-                    x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
-                var instProceed = aroundMethod.Body.Instructions.FirstOrDefault(
-                    x => x.ToString().Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"));
-                //TypeReference voidref = this.AssemblyDefinition.MainModule.Import(typeof(void));
-                MethodDefinition newmethod = new MethodDefinition(methodName, method.Attributes, method.ReturnType);
-                //newmethod.Body.SimplifyMacros();
-
-                if (!once)
+            //loop thru the custom attributes of each type, resolve them to find aspects
+            foreach (var type in types)
+            {
+                if (type.CustomAttributes.Count == 0) continue;
+                var cas = type.CustomAttributes;
+                foreach (var ca in cas)
                 {
-                    //copy the variables in aspect to the target type, this should happen only once?
-                    aroundAspect.TypeDefinition.Fields.ToList()
-                        .ForEach(x =>
-                        {
-                            var fd = new FieldDefinition(x.Name, x.Attributes, x.FieldType);                            
-                            method.DeclaringType.Fields.Add(fd);
-                        });
-
-                    once = true;
-                }
-
-
-                method.Parameters.ToList().ForEach(x => newmethod.Parameters.Add(new ParameterDefinition(x.ParameterType)));
-                aroundMethod.Body.Variables.ToList().ForEach(x => newmethod.Body.Variables.Add(new VariableDefinition(x.VariableType)));
-                
-                aroundMethod.Body.Instructions.ToList().ForEach(instruction =>
-                {
-                    var constructorInfo = typeof(Instruction).GetConstructor(Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Instance, 
-                        null, new[] { typeof(OpCode), typeof(object) }, null);
-                    var newInstruction = (Instruction)constructorInfo.Invoke(new[] { instruction.OpCode, instruction.Operand});
-                    var fieldDefinition = newInstruction.Operand as FieldDefinition;
-                    if (fieldDefinition != null)
+                    var car = ca.AttributeType.Resolve();
+                    if (car.BaseType.FullName == typeof(MethodBoundaryAspect).FullName
+                        || car.BaseType.FullName == typeof(MethodAroundAspect).FullName)
                     {
-                        this.AssemblyDefinition.MainModule.Import(fieldDefinition.FieldType);
-                        newInstruction.Operand = method.DeclaringType.Fields.First(x => x.Name == fieldDefinition.Name);
-                    }
-
-                    if (newInstruction.Operand is MethodReference)
-                    {
-                        //Try really hard to import type
-                        var methodReference = (MethodReference)newInstruction.Operand;
-
-                        this.AssemblyDefinition.MainModule.Import(methodReference.MethodReturnType.ReturnType);
-                        this.AssemblyDefinition.MainModule.Import(methodReference.DeclaringType);
-                        this.AssemblyDefinition.MainModule.Import(methodReference);
-                    }
-                    if (newInstruction.Operand is TypeReference)
-                    {
-                        this.AssemblyDefinition.MainModule.Import(newInstruction.Operand as TypeReference);
-                    }
-                    newmethod.Body.Instructions.Add(newInstruction);
-                });
-                NewMethodNames.Add(methodName);
-                method.DeclaringType.Methods.Add(newmethod);
-
-                var invokeMethod = aroundAspect.TypeDefinition.Methods.SingleOrDefault(x => x.FullName.Contains("Invoke(Buffalo.MethodArgs)"));
-                int i = 0;
-                bool found = false;
-                for (i = 0; i < invokeMethod.Body.Instructions.Count; ++i)
-                {
-                    if (invokeMethod.Body.Instructions[i].ToString()
-                        .Contains("callvirt System.Void Buffalo.MethodArgs::Proceed()"))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (found)
-                {
-                    //make a call to the original method
-                    var ldarg0 = Instruction.Create(OpCodes.Ldarg_0);
-                    newmethod.Body.Instructions[i - 1] = ldarg0;
-                    newmethod.Body.Instructions[i] = Instruction.Create(OpCodes.Call, method);
-                    int count = i;
-                    if (method.Parameters.Count > 0)
-                    {
-                        for (int j = 0; j < method.Parameters.Count; ++j)
-                        {
-                            var ins = Instruction.Create(OpCodes.Ldarg, method.Parameters[j]);
-                            newmethod.Body.Instructions.Insert(count++, ins);
-                        }
-                    }
-                    //newmethod.Body.OptimizeMacros();
-                }
-
-                //finally, all calls to the original methods should be changed to the newly
-                //generated method
-                foreach (var type in this.AssemblyDefinition.MainModule.Types)
-                {
-                    foreach (var m in type.Methods.Where(x => !NewMethodNames.Contains(x.Name)))
-                    {
-                        for (int j = 0; j < m.Body.Instructions.Count; ++j)
-                        {
-                            if (m.Body.Instructions[j].ToString().Contains(method.FullName))
-                            {
-                                //m.Body.Instructions[j].OpCode = OpCodes.Call;
-                                m.Body.Instructions[j].Operand = newmethod;
-                            }
-                        }
+                        if(!tdefs.Contains(car))
+                            tdefs.Add(car);
                     }
                 }
             }
-        }
-        
-        private static void SetUnderlyingAspectTypes()
-        {
-            ///TODO: This block would not be needed if I can get the underlying types
-            ///directly from cecil
-            AppDomain domain = AppDomain.CreateDomain("domain");
-            BoundaryObject boundary = (BoundaryObject)
-                domain.CreateInstanceAndUnwrap(
-                typeof(BoundaryObject).Assembly.FullName,
-                typeof(BoundaryObject).FullName);
-            AppDomainArgs ada = new AppDomainArgs();
-            ada.AssemblyPath = AssemblyPath;
-            ada.Aspects = Aspects;
-            ada.UnderlyingAspectTypes = UnderlyingAspectTypes;
-            //domain.DoCallBack(new CrossAppDomainDelegate(LoadAssembly));
-            BoundaryObject.DoSomething(ada, AssemblyPath);
-            domain.DomainUnload += new EventHandler(domain_DomainUnload);
-            AppDomain.Unload(domain);
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
 
-        private static void domain_DomainUnload(object sender, EventArgs e)
-        {
-            Console.WriteLine("Unloading domain...");
+            return tdefs;
         }
 
         private void PrintEligibleMethods()
@@ -441,16 +334,8 @@ namespace Buffalo
             {
                 Console.WriteLine(de.Key.FullName);
                 foreach (var a in de.Value)
-                {
                     Console.WriteLine("\t" + a.Name);
-                }
             }
-        }
-
-        [Obsolete]
-        private void CheckEligibleMethods()
-        {
-            Aspects.ForEach(x => this.CheckEligibleMethods(x));
         }
 
         private void CheckEligibleMethods(Aspect aspect)
@@ -484,19 +369,10 @@ namespace Buffalo
 
         private List<MethodDefinition> GetMethodDefinitions(TypeDefinition typeDef, Enums.Status typeStatus, Aspect aspect)
         {
-            if (typeDef.Name.Contains("Test"))
-            {
-                System.Diagnostics.Debug.WriteLine("Test");
-            }
-
             var list = new List<MethodDefinition>();
             foreach (var method in typeDef.Methods)
             {
                 var status = this.CheckAspectStatus(method, aspect);
-                //only add methods that are not excluded
-                //if (status != Status.Applied && typeStatus != Status.Applied)
-                //    continue;
-
                 if (status == Enums.Status.Applied)
                 {
                     list.Add(method);
@@ -535,10 +411,9 @@ namespace Buffalo
                     break;
                 }
 
-                if (aspect.Type != null 
-                    && (aspect.Type.BaseType == typeof(MethodBoundaryAspect)
-                    || aspect.Type.BaseType == typeof(MethodAroundAspect))
-                    && def.CustomAttributes[i].AttributeType.FullName.Equals(aspect.Name))
+                if (aspect.TypeDefinition != null
+                    && (aspect.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect
+                    || aspect.BuffaloAspect == Enums.BuffaloAspect.MethodAroundAspect))
                 {
                     attrFound = true;
                     if (def.CustomAttributes[i].Properties.Count == 0)
@@ -547,11 +422,10 @@ namespace Buffalo
                     }
                     else
                     {
-                        var exclude = def.CustomAttributes[i].Properties.First(x => x.Name == "AttributeExclude");
-                        if ((bool)exclude.Argument.Value == true)
+                        var exclude = def.CustomAttributes[i].Properties.FirstOrDefault(x => x.Name == "AttributeExclude");
+                        if (exclude.Argument.Value != null && (bool)exclude.Argument.Value == true)
                         {
                             status = Enums.Status.Excluded;
-                            //Console.WriteLine(def.CustomAttributes[i].AttributeType.Name + " removed");
                             def.CustomAttributes.RemoveAt(i);
                         }
                     }
@@ -564,45 +438,13 @@ namespace Buffalo
                 //as a result the type and method might not have the
                 //attributed annotated, this is to programmatically add
                 //in the annotation so IL can be generated correctly.
-                MethodReference attrCtor = this.AssemblyDefinition.MainModule.Import(
-                    aspect.Type.GetConstructor(Type.EmptyTypes));
-                //var methodRef = this.AssemblyDefinition.MainModule.Import(aspect.Type);
-                
-                def.CustomAttributes.Add(new CustomAttribute(attrCtor));
-                //Console.WriteLine("Injecting custome attr for: " + def.ToString());
+                var ctor = aspect.TypeDefinition.Methods.First(x => x.IsConstructor);
+                var ctoref = this.AssemblyDefinition.MainModule.Import(ctor);
+                def.CustomAttributes.Add(new CustomAttribute(ctoref));
             }
 
             return status;
         }
-    }
-
-    class BoundaryObject : MarshalByRefObject
-    {
-        public static void DoSomething(AppDomainArgs ada, string path)
-        {
-            ///TODO: need to pass vars to and from appdomains: http://stackoverflow.com/a/1250847/150607
-            var _assemblyPath = path;
-            var assembly = System.Reflection.Assembly.LoadFrom(_assemblyPath);
-            var types = assembly.GetTypes().ToList();
-
-            foreach (var aspect in ada.Aspects)
-            {
-                var type = types.FirstOrDefault(x => x.FullName.Equals(aspect.TypeDefinition.FullName));
-                if (type != null)
-                {
-                    aspect.Type = type;
-                }
-            }
-        }
-    }
-
-    class AppDomainArgs : MarshalByRefObject
-    {
-        internal string AssemblyPath { get; set; }
-
-        internal List<Aspect> Aspects { get; set; }
-
-        internal Dictionary<string, Type> UnderlyingAspectTypes { get; set; }
     }
 }\end{lstlisting}
 
@@ -871,7 +713,8 @@ namespace Buffalo.Injectors
             this.EligibleMethods = eligibleMethods;
 
             var ems = this.EligibleMethods.ToList();
-            var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y => y.Type.BaseType == typeof(MethodBoundaryAspect)));
+            var eligibleBoundaryMethods = ems.Where(x => x.Value.Any(y =>
+                y.BuffaloAspect == Enums.BuffaloAspect.MethodBoundaryAspect));
             foreach (var d in eligibleBoundaryMethods)
             {
                 var method = d.Key;
@@ -901,19 +744,17 @@ namespace Buffalo.Injectors
                 #endregion
 
                 #region Before, Success, Exception, After
+                var varExpTypeRef = this.AssemblyDefinition.MainModule.Import(typeof(System.Exception));
                 for (int i = 0; i < aspects.Count; ++i)
                 {
                     #region Create an aspect variable
-                    //var varAspectType = this.AssemblyDefinition.MainModule.Import(typeof(MethodBoundaryAspect));
                     var varAspectName = "asp" + System.DateTime.Now.Ticks;
                     var varAspect = new VariableDefinition(varAspectName, aspects[i].TypeDefinition);
                     method.Body.Variables.Add(varAspect);
                     var varAspectIdx = method.Body.Variables.Count - 1;
                     //call ctor
-                    Type t = aspects[i].Type;
-                    var constructorInfo = t.GetConstructor(new Type[] { });
-                    MethodReference myClassConstructor = this.AssemblyDefinition.MainModule.Import(constructorInfo);
-                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, myClassConstructor));
+                    var ctor = aspects[i].TypeDefinition.Methods.First(x => x.IsConstructor);
+                    aspectVarInstructions.Add(Instruction.Create(OpCodes.Newobj, ctor));
                     aspectVarInstructions.Add(Instruction.Create(OpCodes.Stloc, varAspect));
                     #endregion
 
@@ -924,9 +765,9 @@ namespace Buffalo.Injectors
 
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         beforeInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectBefore = aspects[i].Type.GetMethod("OnBefore");
-                        var aspectBeforeRef = this.AssemblyDefinition.MainModule.Import(aspectBefore, method);
-                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBeforeRef));
+                        var aspectBefore = aspects[i].TypeDefinition.Methods.FirstOrDefault(
+                            x => x.Name == Enums.AspectType.OnBefore.ToString());
+                        beforeInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectBefore));
                     }
 
                     var success = method.FindMethodReference(aspects[i], Enums.AspectType.OnSuccess);
@@ -934,17 +775,16 @@ namespace Buffalo.Injectors
                     {
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         successInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectSuccess = aspects[i].Type.GetMethod("OnSuccess");
-                        var aspectSuccessRef = this.AssemblyDefinition.MainModule.Import(aspectSuccess, method);
-                        successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccessRef));
+                        var aspectSuccess = aspects[i].TypeDefinition.Methods.FirstOrDefault(
+                            x => x.Name == Enums.AspectType.OnSuccess.ToString());
+                        successInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectSuccess));
                     }
 
                     var exception = method.FindMethodReference(aspects[i], Enums.AspectType.OnException);
                     if (exception != null)
                     {
-                        var varExpType = typeof(System.Exception);
                         var expName = "exp" + System.DateTime.Now.Ticks;
-                        var varExp = new VariableDefinition(expName, this.AssemblyDefinition.MainModule.Import(varExpType));
+                        var varExp = new VariableDefinition(expName, varExpTypeRef);
                         method.Body.Variables.Add(varExp);
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Stloc, varExp));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
@@ -955,10 +795,9 @@ namespace Buffalo.Injectors
 
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         exceptionInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectException = aspects[i].Type.GetMethod("OnException");
-                        //var aspectBefore = varAspectType.Resolve().Methods.FirstOrDefault(x => x.Name.Equals("Before"));
-                        var aspectExceptionRef = this.AssemblyDefinition.MainModule.Import(aspectException, method);
-                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectExceptionRef));
+                        var aspectException = aspects[i].TypeDefinition.Methods.FirstOrDefault(
+                            x => x.Name == Enums.AspectType.OnException.ToString());
+                        exceptionInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectException));
                     }
 
                     var after = method.FindMethodReference(aspects[i], Enums.AspectType.OnAfter);
@@ -966,9 +805,9 @@ namespace Buffalo.Injectors
                     {
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, varAspect));
                         afterInstructions.Add(Instruction.Create(OpCodes.Ldloc, var.Var));
-                        var aspectAfter = aspects[i].Type.GetMethod("OnAfter");
-                        var aspectAfterRef = this.AssemblyDefinition.MainModule.Import(aspectAfter, method);
-                        afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectAfterRef));
+                        var aspectAfter = aspects[i].TypeDefinition.Methods.FirstOrDefault(
+                            x => x.Name == Enums.AspectType.OnAfter.ToString());
+                        afterInstructions.Add(Instruction.Create(OpCodes.Callvirt, aspectAfter));
                     }
                     #endregion
                 }
@@ -1037,7 +876,7 @@ namespace Buffalo.Injectors
                         TryEnd = successLeave.Next,
                         HandlerStart = method.Body.Instructions[exceptionIdxConst],
                         HandlerEnd = exceptionLeave.Next,
-                        CatchType = this.AssemblyDefinition.MainModule.Import(typeof(Exception)),
+                        CatchType = varExpTypeRef,
                     };
                     method.Body.ExceptionHandlers.Add(catchHandler);
                 }
@@ -1131,6 +970,12 @@ namespace Buffalo.Common
             OnSuccess,
             OnException,
             Invoke
+        }
+
+        internal enum BuffaloAspect
+        {
+            MethodBoundaryAspect,
+            MethodAroundAspect
         }
     }
 }
@@ -1397,6 +1242,7 @@ namespace BuffaloAOP
             }
 
             path = args[0];
+            path = @"C:\Users\wliao\Documents\Visual Studio 2012\Projects\Tests\BuffaloTest\BuffaloTest\bin\Debug\Shared.dll";
             string outpath = path.Replace(".exe", "_modified.exe").Replace(".dll", "_modified.dll");
             new Weaver(path).Inject(outpath);
             //Console.Read();

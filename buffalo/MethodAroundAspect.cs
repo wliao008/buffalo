@@ -2,15 +2,10 @@
 
 namespace Buffalo
 {
-    public abstract class MethodAroundAspect : System.Attribute, IMethodAroundAspect
+    [System.AttributeUsage(System.AttributeTargets.Method,
+        AllowMultiple = false)]
+    public abstract class MethodAroundAspect : AspectBase, IMethodAroundAspect
     {
-        public MethodAroundAspect(bool attributeExclude = false)
-        {
-            this.AttributeExclude = attributeExclude;
-        }
-
-        public bool AttributeExclude { get; set; }
-
         public virtual object Invoke(MethodArgs args) { return null; }
     }
 }

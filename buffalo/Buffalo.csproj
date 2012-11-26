@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Aspect.cs" />
+    <Compile Include="AspectBase.cs" />
     <Compile Include="Common\Enums.cs" />
     <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Interfaces\IAspect.cs" />
