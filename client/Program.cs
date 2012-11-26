@@ -28,7 +28,7 @@ namespace client
 
     public class AspectTester
     {
-        [AroundAspect]
+        [AroundAspect2]
         public decimal divide(int a, int b)
         {
             return a / b;

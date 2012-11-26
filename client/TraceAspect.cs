@@ -3,8 +3,7 @@ using System;
 
 namespace client
 {
-    /*
-    public class DoubleAspect : MethodAroundAspect
+    public class AroundAspect2 : MethodAroundAspect
     {
         public override object Invoke(MethodArgs args)
         {
@@ -17,7 +16,7 @@ namespace client
         }
     }
 
-    public class Trace : MethodBoundaryAspect
+    public class TraceAspect2 : MethodBoundaryAspect
     {
         public override void OnBefore(MethodArgs args)
         {
@@ -34,5 +33,6 @@ namespace client
             }
         }
     }
+    /*
     */
 }

@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ClientAppLib.Aspects;
+using client;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -36,4 +37,4 @@ using ClientAppLib.Aspects;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 //[assembly: MyAspect()]
-[assembly: TraceAspect]
+[assembly: TraceAspect2]
