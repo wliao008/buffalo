@@ -23,9 +23,8 @@
 \contentsline {section}{\numberline {5.2}Future Work}{19}
 \contentsline {section}{\numberline {5.3}Lessons Learned}{19}
 \contentsline {chapter}{Bibliography}{21}
-\contentsline {chapter}{\numberline {A}UML Diagrams}{22}
-\contentsline {chapter}{\numberline {B}Code Listing}{23}
-\contentsline {chapter}{\numberline {C}User Manual}{47}
-\contentsline {section}{\numberline {C.1}Compiling}{47}
-\contentsline {section}{\numberline {C.2}Profiler Example}{47}
-\contentsline {section}{\numberline {C.3}Hooking Up With Microsoft Build System}{49}
+\contentsline {chapter}{\numberline {A}Code Listing}{22}
+\contentsline {chapter}{\numberline {B}User Manual}{46}
+\contentsline {section}{\numberline {B.1}Compiling}{46}
+\contentsline {section}{\numberline {B.2}Profiler Example}{46}
+\contentsline {section}{\numberline {B.3}Hooking Up With Microsoft Build System}{48}

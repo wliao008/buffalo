@@ -2,9 +2,9 @@
 
 \section{Approaches on AOP Support}
 
-There are several broad approaches to implementing an AOP framework. The ideal approach is to extend the compiler of the target language to provide built-in support, making AOP the first class citizen. Even Though the C\# compiler from Microsoft is not open source, the alternative Mono C\# compiler is, so this is a viable option. However that would have been a fairly big undertaking, and I was not sure if I can tackle and finish it in the timeframe I wanted.
+There are several broad approaches to implementing an AOP framework. The ideal approach is to extend the compiler of the target language to provide built-in support, making AOP the first class citizen, such as Delphi Prism~\cite{delphi_prism2010} and AspectJ~\cite{aspectj_faq, aspectj_text}. Even Though the C\# compiler from Microsoft is not open source, the alternative Mono C\# compiler~\cite{monocsharp} is, so this is a viable option. However that would have been a fairly big undertaking, and I was not sure if I can tackle and finish it in the timeframe I wanted.
 
-If compiler support out of the picture, that leaves framework support as another viable option. There are several approaches to implement framework to provide AOP capabilities.
+If compiler support out of the picture, that leaves framework support as another viable option. There are several approaches to implement framework to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs}.
 
 \section{Runtime Interception}
 
@@ -22,7 +22,7 @@ From the usage perspective, to set this up, a developer usually have to provide 
 
 \section{Compile Time Weaving}
 
-The approach Buffalo uses is Compile Time Weaving. The basic idea is after compilation of the assembly, the framework takes over and disassemble the assembly, and weave in the defined aspect code to all targeted methods. This approach is more difficult to implement as it involves modifying MSIL instructions. But the advantage is that no runtime performance of proxy generation will be needed. And since this happens post compilation we can hook it into the Microsoft Build System to have the weaving invoked automatically if needed, so no manual setup is required from the developer.
+The approach Buffalo uses is Compile Time Weaving. The basic idea is after compilation of the assembly, the framework takes over and disassemble the assembly, and weave in the defined aspect code to all targeted methods. This approach is more difficult to implement as it involves modifying MSIL instructions~\cite{rewrite_msil}. But the advantage is that no runtime performance of proxy generation will be needed. And since this happens post compilation we can hook it into the Microsoft Build System to have the weaving invoked automatically if needed, so no manual setup is required from the developer.
 
 Figure~\ref{buffalo_model} shows an overview of the compilation process and where Buffalo will fit in.
 
