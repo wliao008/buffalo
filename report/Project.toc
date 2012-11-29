@@ -10,21 +10,23 @@
 \contentsline {section}{\numberline {2.4}Method Boundary Aspect}{4}
 \contentsline {section}{\numberline {2.5}Method Around Aspect}{5}
 \contentsline {chapter}{\numberline {3}Implementation}{7}
-\contentsline {section}{\numberline {3.1}Applying Aspect}{7}
-\contentsline {section}{\numberline {3.2}Aspect Interface}{9}
-\contentsline {section}{\numberline {3.3}Solution Structure}{10}
-\contentsline {section}{\numberline {3.4}Implementation Overview}{12}
-\contentsline {section}{\numberline {3.5}MethodBoundaryAspect Implementation Detail}{12}
-\contentsline {section}{\numberline {3.6}MethodAroundAspect Implementation Detail}{14}
-\contentsline {section}{\numberline {3.7}MethodArgs}{15}
-\contentsline {chapter}{\numberline {4}Analysis}{17}
-\contentsline {chapter}{\numberline {5}Conclusions}{19}
-\contentsline {section}{\numberline {5.1}Current Status}{19}
-\contentsline {section}{\numberline {5.2}Future Work}{19}
-\contentsline {section}{\numberline {5.3}Lessons Learned}{19}
-\contentsline {chapter}{Bibliography}{21}
-\contentsline {chapter}{\numberline {A}Code Listing}{22}
-\contentsline {chapter}{\numberline {B}User Manual}{46}
-\contentsline {section}{\numberline {B.1}Compiling}{46}
-\contentsline {section}{\numberline {B.2}Profiler Example}{46}
-\contentsline {section}{\numberline {B.3}Hooking Up With Microsoft Build System}{48}
+\contentsline {section}{\numberline {3.1}What is a Buffalo Aspect}{7}
+\contentsline {section}{\numberline {3.2}How to Apply an Aspect}{8}
+\contentsline {section}{\numberline {3.3}Aspect Interface}{10}
+\contentsline {section}{\numberline {3.4}MethodArgs}{11}
+\contentsline {section}{\numberline {3.5}Visual Studio Solution Structure}{11}
+\contentsline {section}{\numberline {3.6}Implementation Overview}{13}
+\contentsline {section}{\numberline {3.7}MethodBoundaryAspect Implementation Detail}{13}
+\contentsline {section}{\numberline {3.8}MethodAroundAspect Implementation Detail}{15}
+\contentsline {section}{\numberline {3.9}MethodArgs}{16}
+\contentsline {chapter}{\numberline {4}Analysis}{18}
+\contentsline {chapter}{\numberline {5}Conclusions}{20}
+\contentsline {section}{\numberline {5.1}Current Status}{20}
+\contentsline {section}{\numberline {5.2}Future Work}{20}
+\contentsline {section}{\numberline {5.3}Lessons Learned}{20}
+\contentsline {chapter}{Bibliography}{22}
+\contentsline {chapter}{\numberline {A}Code Listing}{23}
+\contentsline {chapter}{\numberline {B}User Manual}{47}
+\contentsline {section}{\numberline {B.1}Compiling}{47}
+\contentsline {section}{\numberline {B.2}Profiler Example}{47}
+\contentsline {section}{\numberline {B.3}Hooking Up With Microsoft Build System}{49}
