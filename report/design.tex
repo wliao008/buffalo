@@ -2,9 +2,11 @@
 
 \section{Approaches on AOP Support}
 
-There are several broad approaches to implementing an AOP framework. The ideal approach is to extend the compiler of the target language to provide built-in support, making AOP the first class citizen, such as Delphi Prism~\cite{delphi_prism2010} and AspectJ~\cite{aspectj_faq, aspectj_text}. Even Though the C\# compiler from Microsoft is not open source, the alternative Mono C\# compiler~\cite{monocsharp} is, so this is a viable option. However that would have been a fairly big undertaking, and I was not sure if I can tackle and finish it in the timeframe I wanted.
+There are several broad approaches to implementing an AOP framework. I believe the ideal approach would be to extend the compiler of the target language to provide built-in support, making AOP the first class citizen. There are very few languages out there that take this approach, such as Delphi Prism~\cite{delphi_prism2010} and AspectJ~\cite{aspectj_faq, aspectj_text}. 
 
-If compiler support out of the picture, that leaves framework support as another viable option. There are several approaches to implement framework to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs}.
+Microsoft is in the "wait and see" mode regarding support of AOP development in the C\# compiler~\cite{hejlsberg}. Which means it is unlikely to happen anytime soon. Alternative compiler such as Mono C\#~\cite{monocsharp} is open source, so technically anyone can build AOP support into it. However that would have been a fairly big undertaking, and I was not sure if I can tackle and finish it in the timeframe I wanted.
+
+That leaves framework support as the other viable option. There are several implementation techniques to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs}.
 
 \section{Runtime Interception}
 
@@ -18,11 +20,11 @@ Early on I have narrowed them down to between Runtime Interception and Compile T
 
 New functionalities can be “added” to the target object via the proxy. The disadvantage of this approach is that it involves the generation of proxy object at runtime, which will impact the runtime performance of the application. It is also restricting in that both target object and the proxy must implement a common interface for this to work, and that only virtual methods are exposed.
 
-From the usage perspective, to set this up, a developer usually have to provide some type of mapping between the target object and the proxy via a configuration file so the actual proxy generation can occur. This approach is easier to implement, but not as easy to use.
+From the developer's perspective, to use it the developer usually have to provide some type of mapping between the target object and the proxy via a configuration file so the actual proxy generation can occur. This approach although is easier to implement, but not as easy and friendly to use.
 
 \section{Compile Time Weaving}
 
-The approach Buffalo uses is Compile Time Weaving. The basic idea is after compilation of the assembly, the framework takes over and disassemble the assembly, and weave in the defined aspect code to all targeted methods. This approach is more difficult to implement as it involves modifying MSIL instructions~\cite{rewrite_msil}. But the advantage is that no runtime performance of proxy generation will be needed. And since this happens post compilation we can hook it into the Microsoft Build System to have the weaving invoked automatically if needed, so no manual setup is required from the developer.
+The approach Buffalo takes is Compile Time Weaving. The basic idea is after compilation of the assembly, the framework takes over and disassembles the assembly. Buffalo then weaves in the defined aspect code to all targeted methods. This approach is more difficult to implement as it involves modifying the underlying assembly by changing MSIL instructions~\cite{rewrite_msil}. But the advantage is that no runtime performance of proxy generation will be needed. And since this happens post-compilation we can hook it into the Microsoft Build System to have the weaving invoked automatically if needed, so no manual setup is required from the developer.
 
 Figure~\ref{buffalo_model} shows an overview of the compilation process and where Buffalo will fit in.
 
@@ -32,10 +34,22 @@ Figure~\ref{buffalo_model} shows an overview of the compilation process and wher
   \caption{Buffalo Model\label{buffalo_model}}
 \end{figure}
 
-\section{Method Boundary Aspect}
-I also have to decide on what functionality I want to support in the framework. What kind of aspect do I want to weave into the IL instructions of the executing program? For this I took inspiration from AspectJ and PostSharp, specifically I want to intercept the various point of an executing method. Those points are namely: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception any point during the execution.
+\section{What is a Buffalo Aspect}
 
-If we think about it, these points can be nicely mapped to the try-catch-finally statements of the .NET languages. As far as the Common Language Runtime (CLR) is concern, try-catch can be used liberally without serious performance degradation. For example, we can transform the following method:
+When performing post compilation weaving, Buffalo has to be able to discover what aspect is applied to what method in an assembly. In order to achieve that the target assembly has to carry some extra infomration, so that Buffalo can make use of the information to do its job.
+
+A given .NET assembly already carries a great deal of such metadata for various purpose. .NET has the System.Attribute type that exists primiarily for the purpose of inserting metadata into the assembly during compilation. When we compile the source code, it is converted into Microsoft Intermediate Language (MSIL)~\cite{msil_text} and put inside a portable executable (PE) file, with the metadata generated by the compiler. Buffalo takes advantage of this characteristic in two areas.
+
+Firstly, an aspect defined in Buffalo will be in the form of an attribute, by subclassing System.Attribute. Since the aspect is a class type, it can contains any valid .NET code. But specifically an aspect needs to override various predefined method in order to do something useful. To see a detail relationship between various aspect type, please refer to figure~\ref{uml01}.
+
+Secondly, after compilation, the assembly will now contain the metadata about the aspect. Buffalo can inspect the assembly for the information, and perform MSIL code injection as necessary.
+
+In other word, a Buffalo aspect is a .NET attribute in disguise.
+
+\section{MethodBoundaryAspect}
+I also have to decide on what functionality I want to support in the framework. What type of aspects do I want to weave into the IL instructions of the executing program? For this I took inspiration from AspectJ and PostSharp, specifically I want to intercept the various point of an executing method. Those points are namely: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception any point during the execution.
+
+If we think about it, these points can be cleanly mapped to the try-catch-finally statements of the .NET languages. As far as the runtime is concern~\cite{ecma334, ecma335}, try-catch can be used liberally without serious performance degradation. For example, we can transform the following method:
 
 \begin{lstlisting}[caption={Sample function}, label=samplefunction]
 public void SomeFunction () {

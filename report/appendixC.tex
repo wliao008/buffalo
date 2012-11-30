@@ -111,4 +111,10 @@ Line 7 and 12 are the original method output, the rest are the output of the var
 
 \section{Hooking Up With Microsoft Build System}
 
-Buffalo can be hooked up with MSBuild, so post compilation weaving can be invoked automatically.
+Beside running from the command line, Buffalo can be hooked up with MSBuild, so post compilation weaving can be invoked automatically.
+
+MSBuild is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that reference a different configuration file: Microsoft.CSharp.targets. This file in term reference Microsoft.Common.targets.
+
+Each .NET version has a Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\\Windows\\Microsoft.NET\\Framework\v4.0.30319\\Microsoft.Common.targets.
+
+
