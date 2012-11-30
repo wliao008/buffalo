@@ -115,6 +115,18 @@ Beside running from the command line, Buffalo can be hooked up with MSBuild, so 
 
 MSBuild is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that reference a different configuration file: Microsoft.CSharp.targets. This file in term reference Microsoft.Common.targets.
 
-Each .NET version has a Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\\Windows\\Microsoft.NET\\Framework\v4.0.30319\\Microsoft.Common.targets.
+Each .NET version has a Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\textbackslash Windows\textbackslash Microsoft.NET\textbackslash Framework\textbackslash v4.0.30319\textbackslash Microsoft.Common.targets.
 
+Under the Compile section, add the line to import the Buffalo.targets file as shown in figure~\ref{buffalo_targets}
 
+\begin{figure}[H]
+  \includegraphics[scale=1.0]{CommonTarget.PNG}
+  \centering
+  \caption{Adding Buffalo.targets\label{buffalo_targets}}
+\end{figure}
+
+Create a folder and put BuffaloAOP.exe, Buffalo.dll, Mono.Cecil.dll in it, you can also put the config file Buffalo.targets here. Modify the above to point to Buffalo.targets.
+
+Open Buffalo.targets in a text editor. For the Exec Command, modify the path to point to the folder created above.
+
+This is it. Now every time a C\# project is compiled, Buffalo will be invoked automatically.
