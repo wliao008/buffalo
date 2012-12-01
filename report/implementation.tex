@@ -46,13 +46,13 @@ Furthermore, by default, an aspect will be automatically excluded from applying 
 
 \section{MethodArgs}
 
-As mentioned above, when its all said and done, an aspect ultimately gets injected into an individual method. When developing an aspect, a developer can access various information about the target method, via the MethodArgs object passed in as parameter to the aspect. Currently the full method signaure, the method name, return type and parameter list including parameter name, type and value are captured for each target method.
+As mentioned above, when its all said and done, an aspect ultimately gets injected into an individual method. When developing an aspect, a developer can access various information about the target method, via the MethodArgs object passed in as parameter to the aspect. Currently the full method signature, the method name, return type and parameter list including parameter name, type and value are captured for each target method.
 
 The parameter list capturing is especially interesting, it enables developer to peek inside of the method that is executing at various point and inspect its parameter values. This will be useful in case of exception handling, where it will be useful to actually see what the values were at the time of the exception.
 
 \section{Visual Studio Solution Structure}
 
-Originally Buffalo was in one executable, that includes the various aspects and the program that initiate the weaving. It was later on splitted into two assembly. One is the actual implementation as a DLL, another is just a command line executable that calls into the DLL to perform the weaving, as shown in figure~\ref{solutionexplorer}. This separation is necessary so developer can perform weaving from the command line or hook into MSBuild if necessary. To actually write the aspect, developer only need to reference the DLL which is much cleaner than referencing an executable.
+Originally Buffalo was in one executable, that includes the various aspects and the program that initiate the weaving. It was later on separated into two assembly. One is the actual implementation as a DLL, another is just a command line executable that calls into the DLL to perform the weaving, as shown in figure~\ref{solutionexplorer}. This separation is necessary so developer can perform weaving from the command line or hook into MS-Build if necessary. To actually write the aspect, developer only need to reference the DLL which is much cleaner than referencing an executable.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{SolutionExplorer.PNG}
@@ -116,7 +116,7 @@ finally
 IL_001c: ret
 \end{lstlisting}
 
-This is the standard emission of the CLR when it encounters the try-catch-finaly statement. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here we can easily figure out where to inject our varous boundary aspects, as shown in the following figure~\ref{methodboundary02}
+This is the standard emission of the CLR when it encounters the try-catch-finally statement. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here we can easily figure out where to inject our various boundary aspects, as shown in the following figure~\ref{methodboundary02}
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{MethodBoundaryOverview.PNG}
@@ -160,7 +160,7 @@ To achieve the above MethodArgs is used. This is the object passed into each asp
 
 At first each OnBefore, OnSuccess, OnException and OnAfter has its own distinct MethodArgs object passed into them. Later on as an optimization only one instance is instantiated at the beginning of the method body and that instance is used in all the MethodBoundaryAspect.
 
-[Example?]
+An example of how to use MethodArgs is presented in Appendix B.
 %
 %\begin{itemize}
 %\item{} Software details (use as many section as needed for class design, 

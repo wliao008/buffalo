@@ -1,6 +1,6 @@
 \chapter{User Manual}
 
-It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of the solution structures. I also assume you know how to compile a solution and where to find the compiled assembly. Since Buffalo is developed in VS2012, it is recommended you have similiar IDE installed.
+It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of the solution structures. I also assume you know how to compile a solution and where to find the compiled assembly. Since Buffalo is developed in VS2012, it is recommended you have similar IDE installed.
 
 \section{Compiling}
 To begin, first download the full source code from https://github.com/wliao008/buffalo. Open buffalo.sln and compile the source code. This will produce the buffalo.dll and BuffaloAOP.exe in their respective bin/debug folder. We are ready to begin using it.
@@ -111,9 +111,9 @@ Line 7 and 12 are the original method output, the rest are the output of the var
 
 \section{Hooking Up With Microsoft Build System}
 
-Beside running from the command line, Buffalo can be hooked up with MSBuild, so post compilation weaving can be invoked automatically.
+Beside running from the command line, Buffalo can be hooked up with MS-Build, so post compilation weaving can be invoked automatically.
 
-MSBuild is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that reference a different configuration file: Microsoft.CSharp.targets. This file in term reference Microsoft.Common.targets.
+MS-Build is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that reference a different configuration file: Microsoft.CSharp.targets. This file in term reference Microsoft.Common.targets.
 
 Each .NET version has a Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\textbackslash Windows\textbackslash Microsoft.NET\textbackslash Framework\textbackslash v4.0.30319\textbackslash Microsoft.Common.targets.
 

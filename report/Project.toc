@@ -5,7 +5,7 @@
 \contentsline {chapter}{\numberline {1}Introduction}{1}
 \contentsline {chapter}{\numberline {2}Design}{2}
 \contentsline {section}{\numberline {2.1}Approaches on AOP Support}{2}
-\contentsline {section}{\numberline {2.2}Runtime Interception}{2}
+\contentsline {section}{\numberline {2.2}Run-time Interception}{2}
 \contentsline {section}{\numberline {2.3}Compile Time Weaving}{3}
 \contentsline {section}{\numberline {2.4}What is a Buffalo Aspect}{4}
 \contentsline {section}{\numberline {2.5}MethodBoundaryAspect}{5}
@@ -23,7 +23,7 @@
 \contentsline {chapter}{\numberline {5}Conclusions}{20}
 \contentsline {section}{\numberline {5.1}Current Status}{20}
 \contentsline {section}{\numberline {5.2}Future Work}{20}
-\contentsline {section}{\numberline {5.3}Lessons Learned}{20}
+\contentsline {section}{\numberline {5.3}Lessons Learned}{21}
 \contentsline {chapter}{Bibliography}{22}
 \contentsline {chapter}{\numberline {A}Code Listing}{24}
 \contentsline {chapter}{\numberline {B}User Manual}{48}

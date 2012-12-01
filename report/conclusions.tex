@@ -1,7 +1,7 @@
 \chapter{Conclusions}
 \section{Current Status}
 
-Currently Buffalo is at version 0.1. It contains two types of aspect: MethodBoundary, where various execution points can be intercepted. And MethodAround, where a method can be completely replaced while preserving the option to call back into the original method.
+Currently Buffalo is at version 0.1. It contains two types of aspect: MethodBoundaryAspect, where various execution points can be intercepted. And MethodAroundAspect, where a method can be completely replaced while preserving the option to call back into the original method.
 
 \section{Future Work}
 
@@ -9,7 +9,7 @@ There are couple areas where Buffalo can be improved upon. Currently there is no
 
 Another idea that I am interested in is to inject new features into the assembly. Similar to the Introduction feature of AspectJ.
 
-Incremental compilation is another area I hope to get more familiar with, currently if an assembly is hooked up to the MSBuild system, the weaving happens for each post build. It would be more efficient if incremental weaving is used somehow.
+Incremental compilation is another area I hope to get more familiar with, currently if an assembly is hooked up to the MS-Build system, the weaving happens for each post build. It would be more efficient if incremental weaving is used somehow.
 
 \section{Lessons Learned}
 
