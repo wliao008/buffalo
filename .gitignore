@@ -16,7 +16,7 @@ report/*.aux
 report/*.log
 report/*.bbl
 report/*.blg
-report/*.pdf
+#report/*.pdf
 
 # ~
 *.*~
