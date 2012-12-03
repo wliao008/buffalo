@@ -14,9 +14,9 @@ An aspect can be applied in three level:
 
 An aspect can also be excluded on any given level. If excluded the target and any nested children will be skipped over. 
 
-No matter how the aspect is applied, ultimately it will result in a list of the methods that will be annotated. This simply mean if the aspect is applied to a single method, that method is the only one that will get MSIL modified. If the aspect is applied on the whole assembly, then all public methods will be MSIL modified.
+No matter how the aspect is applied, ultimately it will result in a list of the methods that will be annotated. This simply mean if the aspect is applied to a single method, that method is the only one that will get CIL modified. If the aspect is applied on the whole assembly, then all public methods will be CIL modified.
 
-To get the list of the eligible methods for MSIL modification, Buffalo attempts various checking according to figure~\ref{logical_inclusion} to see if it should include a given method.
+To get the list of the eligible methods for CIL modification, Buffalo attempts various checking according to figure~\ref{logical_inclusion} to see if it should include a given method.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{AspectLogicalInclusion.PNG}
@@ -26,7 +26,7 @@ To get the list of the eligible methods for MSIL modification, Buffalo attempts 
 
 If no aspect is applied on the assembly, that does not necessarily mean no aspect is applied anywhere, the aspect might still be applied on any given class or method.
 
-The take away from the above diagram, is that Buffalo first checks if an aspect is applied to the target, then check if it is set to be excluded. At the end it will end up with a list of methods that should be MSIL modified.
+The take away from the above diagram, is that Buffalo first checks if an aspect is applied to the target, then check if it is set to be excluded. At the end it will end up with a list of methods that should be CIL modified.
 
 \section{Aspect Interface}
 
@@ -74,7 +74,7 @@ The overall implementation process can be illustrated as figure~\ref{implementat
   \caption{Implementation Overview\label{implementation_overview}}
 \end{figure}
 
-Then it loops through each eligible method, and for each aspect associated with the eligible method do the MSIL injection.
+Then it loops through each eligible method, and for each aspect associated with the eligible method do the CIL injection.
 
 The actual injection phrase will be depending on the type of aspect, as we mentioned above currently Buffalo supports the MethodBoundaryAspect where various point of execution can be intercepted, and the MethodAroundAspect where a method can be completely replaced.
 
@@ -95,9 +95,9 @@ public void SayHello()
 }
 \end{lstlisting}
 
-If we look at the generated MSIL shown in figure~\ref{methodboundaryB4}. For ease of display I have cleaned up the MSIL a bit:
+If we look at the generated CIL shown in figure~\ref{methodboundaryB4}. For ease of display I have cleaned up the CIL a bit:
 
-\begin{lstlisting}[caption={MSIL generated for sample C\# function}, label=methodboundaryB4]
+\begin{lstlisting}[caption={CIL generated for sample C\# function}, label=methodboundaryB4]
 .try
 {
    .try
@@ -125,7 +125,7 @@ Figure~\ref{methodboundaryB4} shows the standard emission of the CLR when it enc
 \begin{figure}[H]
   \includegraphics[scale=1.0]{MethodBoundaryOverview.PNG}
   \centering
-  \caption{MSIL Interception Points\label{methodboundary02}}
+  \caption{CIL Interception Points\label{methodboundary02}}
 \end{figure}
 
 The actual implementation is in Listing~\ref{../buffalo/Injectors/MethodBoundaryInjector.cs}
@@ -143,7 +143,7 @@ internal interface IMethodAroundAspect : IAspect
 }
 \end{lstlisting}
 
-From a developer’s perspective, when writing an aspect, he can issue a Proceed() to signal a call back into the original method. The steps taken to implement MethodAroundAspect in MSIL is roughly as follow:
+From a developer’s perspective, when writing an aspect, he can issue a Proceed() to signal a call back into the original method. The steps taken to implement MethodAroundAspect in CIL is roughly as follow:
 
 \begin{enumerate}
 	\item Create a replacement for the annotated function with exactly the same method signature.
