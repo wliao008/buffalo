@@ -6,9 +6,11 @@ Since an aspect is a .NET attribute, it can be used just like any other attribut
 
 An aspect can be applied in three level:
 
-1. Method level - an individual method.
-2. Class level - if applied to a class, all public methods including the public properties automatically get applied.
-3. Assembly level - if applied to an assembly, \#2 will apply but for all the public classes within the assembly.
+\begin{enumerate}
+  \item Method level - an individual method.
+  \item Class level - if applied to a class, all public methods including the public properties automatically get applied.
+  \item Assembly level - if applied to an assembly, \#2 will apply but for all the public classes within the assembly.
+\end{enumerate}
 
 An aspect can also be excluded on any given level. If excluded the target and any nested children will be skipped over. 
 
@@ -28,7 +30,7 @@ The take away from the above diagram, is that Buffalo first checks if an aspect 
 
 \section{Aspect Interface}
 
-Figure~\ref{uml01} depicts part of the system, where it shows how we can use it to find aspects during reflection.
+Figure~\ref{uml01} shows the relationship of various aspect types in Buffalo. This is used by Buffalo to identify aspects during reflection.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{Uml01.PNG}
@@ -36,7 +38,7 @@ Figure~\ref{uml01} depicts part of the system, where it shows how we can use it 
   \caption{Aspect Inheritance\label{uml01}}
 \end{figure}
 
-All aspects ultimately implements the IAspect interface, therefore we can conclude that for all the types in an assembly, if it implements IAspect, then it must be an aspect itself.
+All aspects ultimately implements the IAspect interface, therefore we can conclude that for all the public types in an assembly, if it implements IAspect, then it must be an aspect itself.
 
 All aspects have a property named AttributeExclude, if set to true then the annotated target will not be included in the weaving.
 
@@ -46,13 +48,13 @@ Furthermore, by default, an aspect will be automatically excluded from applying 
 
 \section{MethodArgs}
 
-As mentioned above, when its all said and done, an aspect ultimately gets injected into an individual method. When developing an aspect, a developer can access various information about the target method, via the MethodArgs object passed in as parameter to the aspect. Currently the full method signature, the method name, return type and parameter list including parameter name, type and value are captured for each target method.
+As mentioned above, when its all said and done, an aspect ultimately gets injected into each \textit{individual} method. When developing an aspect, a developer can access various information about the target method, via the MethodArgs object passed in as parameter to the aspect. Currently the full method signature, the method name, return type and parameter list including parameter name, type and value are captured for each target method.
 
-The parameter list capturing is especially interesting, it enables developer to peek inside of the method that is executing at various point and inspect its parameter values. This will be useful in case of exception handling, where it will be useful to actually see what the values were at the time of the exception.
+The parameter list capturing is especially interesting, it enables developer to peek inside the method that is executing at various point and inspect its parameter values. This will be useful in case such as exception handling, where it will be useful to actually see what the values were at the time of the exception.
 
 \section{Visual Studio Solution Structure}
 
-Originally Buffalo was in one executable, that includes the various aspects and the program that initiate the weaving. It was later on separated into two assembly. One is the actual implementation as a DLL, another is just a command line executable that calls into the DLL to perform the weaving, as shown in figure~\ref{solutionexplorer}. This separation is necessary so developer can perform weaving from the command line or hook into MS-Build if necessary. To actually write the aspect, developer only need to reference the DLL which is much cleaner than referencing an executable.
+Originally Buffalo was implemented as one executable, that includes the various aspects and the program that initiate the weaving. It was later on separated into two assembly. One is a class library that contains the actual implementation. Another is a command line executable that calls into the class library to perform the weaving, as shown in figure~\ref{solutionexplorer}. This separation is necessary so developer can perform weaving from the command line or hook into MS-Build if necessary. To actually write the aspect, developer only need to reference the class library which is much cleaner than referencing an executable.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{SolutionExplorer.PNG}
@@ -71,6 +73,8 @@ The overall implementation process can be illustrated as figure~\ref{implementat
   \centering
   \caption{Implementation Overview\label{implementation_overview}}
 \end{figure}
+
+Then it loops through each eligible method, and for each aspect associated with the eligible method do the MSIL injection.
 
 The actual injection phrase will be depending on the type of aspect, as we mentioned above currently Buffalo supports the MethodBoundaryAspect where various point of execution can be intercepted, and the MethodAroundAspect where a method can be completely replaced.
 
@@ -116,7 +120,7 @@ finally
 IL_001c: ret
 \end{lstlisting}
 
-This is the standard emission of the CLR when it encounters the try-catch-finally statement. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here we can easily figure out where to inject our various boundary aspects, as shown in the following figure~\ref{methodboundary02}
+Figure~\ref{methodboundaryB4} shows the standard emission of the CLR when it encounters the try-catch-finally statement. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here we can easily figure out where to inject our various boundary aspects, as shown in the following figure~\ref{methodboundary02}
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{MethodBoundaryOverview.PNG}
@@ -124,31 +128,44 @@ This is the standard emission of the CLR when it encounters the try-catch-finall
   \caption{MSIL Interception Points\label{methodboundary02}}
 \end{figure}
 
+The actual implementation is in Listing~\ref{../buffalo/Injectors/MethodBoundaryInjector.cs}
+
 \section{MethodAroundAspect Implementation Detail}
 
 The Around aspect on the other hand is a much more complicated compared to the Boundary aspect.
 
-MethodAroundAspect implements IMethodAroundAspect that has the following contract:
+MethodAroundAspect implements IMethodAroundAspect which has the following contract:
 
-void Invoke(MethodArgs arg)
+\begin{lstlisting}[caption={IMethodAroundAspect Contract}, label=aroundcontract]
+internal interface IMethodAroundAspect : IAspect
+{
+	void Invoke(MethodArgs arg)
+}
+\end{lstlisting}
 
-From a developer’s perspective, when writing an aspect, he can issue a Proceed() to signal a call back into the original method. The steps taken to implement Around in MSIL is roughly as follow:
+From a developer’s perspective, when writing an aspect, he can issue a Proceed() to signal a call back into the original method. The steps taken to implement MethodAroundAspect in MSIL is roughly as follow:
 
-1. Create a replacement for the annotated function.
-2. Create and store a variable pointing to the aspect.
-3. Copy all parameters from original method to the newly created replacement function.
-4. Create a variable to hold MethodArgs.
-5. Issue a call to Invoke() from the replacement function, passing in the MethodArgs variable.
-6. Handle the return value appropriately.
-   6a. If original method returns non void type, store the return value appropriately.
-   6b. If original method returns void, we need to discard the return value from Invoke()
-7. Handle Proceed() that might be issued from inside the Invoke()
-   7a. Load all the parameters onto the stack.
-   7b. Call back into the original method.
-   7c. Handle the return value appropriately.
-8. Modify all calls from original method to the replacement method.
+\begin{enumerate}
+	\item Create a replacement for the annotated function with exactly the same method signature.
+	\item Create and store a variable pointing to the aspect.
+	\item Copy all parameters from original method to the newly created replacement function.
+	\item Create a variable to hold MethodArgs.
+	\item Issue a call to Invoke() from the replacement function, passing in the MethodArgs variable.
+	\item Handle the return value appropriately.
+	\begin{enumerate}
+		\item If original method returns non void type, put the return value back on the stack.
+		\item If original method returns void, we need to discard the return value from Invoke().
+	\end{enumerate}
+	\item Handle Proceed() that might be issued from inside the Invoke().
+	\begin{enumerate}
+		\item Load all the parameters onto the stack.
+		\item Call back into the original method.
+		\item Handle the return value appropriately.
+	\end{enumerate}
+	\item Modify all calls from original method to the replacement method.
+\end{enumerate}
 
-As figure~\ref{around_overview} shown, the actual calling of either the original or replacement method is abstracted away. This is also a testament of the saying in Software Engineering that “Anything can be resolved by another layer of abstraction”.
+As figure~\ref{around_overview} shown, the actual calling of either the original or replacement method is abstracted away. This is also a testament of the saying in Software Engineering that "anything can be resolved by another layer of abstraction".
 
 \section{MethodArgs}
 
@@ -156,11 +173,11 @@ Another early decision was that from a given aspect, developer must be able to a
 
 Being able to capture some information about the annotated methods will be useful. For example, if we create a trace aspect to perform profiling, we can output all those information about the method at the time it was access. Being able to look at the parameter values in case of error will also be extremely useful in case of debugging.
 
-To achieve the above MethodArgs is used. This is the object passed into each aspect. During the weaving, an instance of MethodArgs is injected into each method, with all properties assembled dynamically to capture the information of the current method.
+To achieve the above MethodArgs is used. This is the object passed into each aspect. During the weaving, an instance of MethodArgs is injected into each method, with all properties assembled dynamically to capture the information of the current executing method.
 
-At first each OnBefore, OnSuccess, OnException and OnAfter has its own distinct MethodArgs object passed into them. Later on as an optimization only one instance is instantiated at the beginning of the method body and that instance is used in all the MethodBoundaryAspect.
+An early implementation instantiated a distinct instance of MethodArgs for each OnBefore, OnSuccess, OnException and OnAfter. Later on as an optimization only one instance is instantiated at the beginning of the method body and that instance is used in all the boundary aspects.
 
-An example of how to use MethodArgs is presented in Appendix B.
+An example of how to use MethodArgs is presented in the user manual.
 %
 %\begin{itemize}
 %\item{} Software details (use as many section as needed for class design, 

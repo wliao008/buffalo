@@ -1,16 +1,16 @@
 \chapter{Conclusions}
 \section{Current Status}
 
-Currently Buffalo is at version 0.1. It contains two types of aspect: MethodBoundaryAspect, where various execution points can be intercepted. And MethodAroundAspect, where a method can be completely replaced while preserving the option to call back into the original method.
+Buffalo is currently at version 0.2. It contains two types of aspect: MethodBoundaryAspect, where various execution points can be intercepted. And MethodAroundAspect, where a method can be completely replaced while preserving the option to call back into the original method.
 
 \section{Future Work}
 
-There are couple areas where Buffalo can be improved upon. Currently there is no automatic setup program that install Buffalo onto user’s computer, and modify the various Microsoft.common.target file to hook into Microsoft Build System. To use Buffalo some manual steps needed in order to provide a more seamless experience.
+There are couple areas where Buffalo can be improved upon. Usability wise, currently there is no automatic setup program that install Buffalo onto user’s computer and integrate into MS-Build System. Some manual steps are needed in order to provide a more seamless experience.
 
-Another idea that I am interested in is to inject new features into the assembly. Similar to the Introduction feature of AspectJ.
+Functionality wise, another idea that I am interested in is to inject new features into the assembly. Similar to the Introduction feature of AspectJ. 
 
-Incremental compilation is another area I hope to get more familiar with, currently if an assembly is hooked up to the MS-Build system, the weaving happens for each post build. It would be more efficient if incremental weaving is used somehow.
+Incremental compilation is another area I hope to get more familiar with. When Buffalo does post compilation weaving it starts fresh each time. I am interested if incremental weaving can be used here and if so, how.
 
 \section{Lessons Learned}
 
-While working on Buffalo I learned a lot about designing API. I tried to follow the best practice on what to expose and what to hide from the user, making the API usage more simplified and consistent. I also have a better understanding of the overall Aspect Oriented Programming concepts and various implementations, and how I can make use of it to eliminate some of the cross-cutting concerns in my applications.
+While working on Buffalo I learned a lot about designing API in general. I tried to follow the best practice on what to expose and what to hide from the user, making the API usage more simplified and consistent. I also have a better understanding of the overall Aspect Oriented Programming concepts and various implementations, and how I can make use of it to eliminate some of the cross-cutting concerns in my applications.

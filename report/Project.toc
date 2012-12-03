@@ -4,12 +4,12 @@
 \contentsline {chapter}{Abstract}{v}
 \contentsline {chapter}{\numberline {1}Introduction}{1}
 \contentsline {chapter}{\numberline {2}Design}{2}
-\contentsline {section}{\numberline {2.1}Approaches on AOP Support}{2}
+\contentsline {section}{\numberline {2.1}Compiler Support}{2}
 \contentsline {section}{\numberline {2.2}Run-time Interception}{2}
 \contentsline {section}{\numberline {2.3}Compile Time Weaving}{3}
 \contentsline {section}{\numberline {2.4}What is a Buffalo Aspect}{4}
 \contentsline {section}{\numberline {2.5}MethodBoundaryAspect}{5}
-\contentsline {section}{\numberline {2.6}Method Around Aspect}{6}
+\contentsline {section}{\numberline {2.6}MethodAroundAspect}{6}
 \contentsline {chapter}{\numberline {3}Implementation}{8}
 \contentsline {section}{\numberline {3.1}How to Apply an Aspect}{8}
 \contentsline {section}{\numberline {3.2}Aspect Interface}{10}
@@ -18,7 +18,7 @@
 \contentsline {section}{\numberline {3.5}Implementation Overview}{13}
 \contentsline {section}{\numberline {3.6}MethodBoundaryAspect Implementation Detail}{13}
 \contentsline {section}{\numberline {3.7}MethodAroundAspect Implementation Detail}{15}
-\contentsline {section}{\numberline {3.8}MethodArgs}{16}
+\contentsline {section}{\numberline {3.8}MethodArgs}{17}
 \contentsline {chapter}{\numberline {4}Analysis}{18}
 \contentsline {chapter}{\numberline {5}Conclusions}{20}
 \contentsline {section}{\numberline {5.1}Current Status}{20}
