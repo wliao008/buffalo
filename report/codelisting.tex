@@ -34,26 +34,17 @@ namespace Buffalo
 
         public string Name
         {
-            get
-            {
-                return this.name;
-            }
+            get { return this.name; }
         }
 
         public string FullName
         {
-            get
-            {
-                return this.fullName;
-            }
+            get { return this.fullName; }
         }
 
         public Type ReturnType
         {
-            get
-            {
-                return Type.GetType(this.returnTypeStr);
-            }
+            get { return Type.GetType(this.returnTypeStr); }
         }
 
         public List<Parameter> Parameters
@@ -186,7 +177,6 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
-//using Mono.Cecil.Rocks;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -475,7 +465,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-//using Mono.Cecil.Rocks;
 
 namespace Buffalo.Injectors
 {
@@ -736,7 +725,6 @@ using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-//using Mono.Cecil.Rocks;
 
 namespace Buffalo.Injectors
 {
@@ -775,7 +763,6 @@ namespace Buffalo.Injectors
                 var exceptionInstructions = new List<Instruction>();
                 var afterInstructions = new List<Instruction>();
 
-                //method.Body.SimplifyMacros();
                 #region Method detail
                 //create a MethodArgs
                 var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
@@ -939,7 +926,6 @@ namespace Buffalo.Injectors
                     method.Body.ExceptionHandlers.Add(finallyHandler);
                 }
                 #endregion
-                //method.Body.OptimizeMacros();
             }
         }
     }
@@ -1298,9 +1284,7 @@ namespace BuffaloAOP
             }
 
             path = args[0];
-            //path = @"C:\Users\Wei.Liao\Documents\Visual Studio 2012\Projects\buffalo\client\bin\Debug\client.exe";
             new Weaver(path).Inject();
-            //Console.Read();
         }
     }
 }
