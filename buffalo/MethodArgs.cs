@@ -21,26 +21,17 @@ namespace Buffalo
 
         public string Name
         {
-            get
-            {
-                return this.name;
-            }
+            get { return this.name; }
         }
 
         public string FullName
         {
-            get
-            {
-                return this.fullName;
-            }
+            get { return this.fullName; }
         }
 
         public Type ReturnType
         {
-            get
-            {
-                return Type.GetType(this.returnTypeStr);
-            }
+            get { return Type.GetType(this.returnTypeStr); }
         }
 
         public List<Parameter> Parameters

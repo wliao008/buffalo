@@ -6,7 +6,6 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
-//using Mono.Cecil.Rocks;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;

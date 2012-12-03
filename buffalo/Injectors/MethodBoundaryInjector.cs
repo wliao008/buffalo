@@ -6,7 +6,6 @@ using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-//using Mono.Cecil.Rocks;
 
 namespace Buffalo.Injectors
 {
@@ -45,7 +44,6 @@ namespace Buffalo.Injectors
                 var exceptionInstructions = new List<Instruction>();
                 var afterInstructions = new List<Instruction>();
 
-                //method.Body.SimplifyMacros();
                 #region Method detail
                 //create a MethodArgs
                 var var = method.AddMethodArgsVariable(this.AssemblyDefinition);
@@ -209,7 +207,6 @@ namespace Buffalo.Injectors
                     method.Body.ExceptionHandlers.Add(finallyHandler);
                 }
                 #endregion
-                //method.Body.OptimizeMacros();
             }
         }
     }
