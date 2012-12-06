@@ -1,8 +1,8 @@
 \chapter{Analysis}
 
-We hypothesized that by using Buffalo, programmers can separate the cross-cutting concerns from their applications quickly and easily. Since the concerns are encapsulated in a distinct unit of code, it also enable programmers to easily maintain the aspects and modify them as needed.
+The project hypothesized that by using Buffalo, programmers can separate the cross-cutting concerns from their applications quickly and easily. Since the concerns are encapsulated in a distinct unit of code, it also enable programmers to easily maintain the aspects and modify them as needed.
 
-One of the analysis I performed is to write an aspect to catch unhandled exceptions in test programs. The size of the test programs varies from comprising of 50 methods to 1,000 methods. Suppose that to manually implement the exception handling, a programmer will have to write on average 5 lines of code to catch the exception.
+One of the analysis performed is to write an aspect to catch unhandled exceptions in test programs. The size of the test programs varies from comprising of 50 methods to 1,000 methods. Suppose that to manually implement the exception handling, a programmer will have to write on average 5 lines of code to catch the exception.
 
 \begin{table}[H]
 \centering
@@ -19,14 +19,16 @@ Programs & Lines (Traditions) & Lines (Buffalo)\\
 \label{tab:lines_tbl}
 \end{table}
 
-If we implement exception handling for every method by hand, we would have to write more line of the same try-catch block of code as the application adds more methods. The number of line of repetitive code would increase linearly.
+If exception handling is implemented for every method by hand, more line of the same try-catch block of code will have to be written as the application adds more methods. The number of line of repetitive code would increase linearly.
 
 Lines of code have a direct correlation to the cost of the development as it will take programmers more time. And this will also have a direct impact on application release schedule.
 
-By using a framework like Buffalo, we can centralize the unhandled exception in one aspect, and then simply apply it to every method. As a result the source code is free from the repetitive try..catch.. blocks. The line of code we have to write is one line at most, and will stay fixed even as we add more types and methods to the application. This will also give developer a peace of mind that every method will be handled.
+By using a framework like Buffalo, unhandled exception can be centralized in one aspect, and then simply apply it to every method by applying it on the assembly level. 
 
-Buffalo allows me to quickly create aspects that act as a complete profiler of the application. This is especially useful in case of debugging. If I encounter a problem with the application, it would be helpful if I know where in the method it went wrong, and have a look at the internal state of the method at the time of failure.
+As a result the source code is free from the repetitive try-catch-finally blocks. The line of code we have to write is one line at most, and will stay constant even as more types and methods are added to the application. This will also give developer a peace of mind that every method will be handled automatically.
 
-From Buffalo I can easily access all those information to show the state of each annotated method. Information such as the method signature, and what parameters are being passed in, what their types are, and even record their respective values when they were passed in. This information will be very helpful to aid in bug fixing.
+Buffalo allows developer to quickly create aspects that act as a complete profiler of the application. This is especially useful in case of debugging. If a problem is encountered with the application, it would be helpful if developer knows where in the method it goes wrong, and have a look at the internal state of the method at the time of failure.
 
-I think Buffalo has performed well in isolating cross-cutting concerns into single unit of code, that is easily maintained and modified.
+A developer can easily access all those information to show the state of each annotated method. Information such as the method signature, and what parameters are being passed in, what their types are, and even record their respective values when they were passed in. This information will be very helpful to aid in bug fixing.
+
+Buffalo has performed well in isolating cross-cutting concerns into single unit of code, that is easily maintained and modified.s

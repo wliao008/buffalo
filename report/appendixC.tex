@@ -1,9 +1,13 @@
 \chapter{User Manual}
 
-It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of the solution structures. I also assume you know how to compile a solution and where to find the compiled assembly. Since Buffalo is developed in VS2012, it is recommended you have similar IDE installed.
+It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of a VS solution. I also assume you know how to compile a solution and where to find the compiled assembly. Buffalo is developed in VS2012, it is recommended you have the same version of the IDE installed.
 
 \section{Compiling}
-To begin, first download the full source code from https://github.com/wliao008/buffalo. Open buffalo.sln in VS2012 and compile the source code. This will produce the Buffalo.dll and BuffaloAOP.exe in their respective bin/debug folder. We are ready to begin using it.
+To begin, first download the full source code from https://github.com/wliao008/buffalo. Open buffalo.sln in VS2012 and compile the source code. This will produce the Buffalo.dll and BuffaloAOP.exe in their respective bin/debug folder.
+
+For this example we will perform the weaving from a command prompt. So create a folder name under the C drive, here I will call it "Buffalo". Ccopy Buffalo.dll, BuffaloAOP.exe and Mono.Cecil.dll to C:\textbackslash{Buffalo}. Note this folder can be located anywhere in your system, I am just putting it on the C drive for simplicity.
+
+Now let us create an aspect.
 
 \section{Simple Profiler}
 In this example we will create a profiler for our application. Suppose we have the following simple program.
@@ -41,13 +45,13 @@ namespace Hello
 }
 \end{lstlisting}
 
-When the program runs, it will display the following:
+When the program runs, it will display the following output:
 \begin{lstlisting}[caption={Hello program output}, label=helloout, frame=tb, basicstyle=\scriptsize]
 Hello World!
 Hey Buffalo how's it going!
 \end{lstlisting}
 
-If we want to monitor the program, we can easily create a aspect to do the work.
+And suppose that we want to monitor the program, we want to know when a method was accessed and exited. We can easily create a aspect to do such work.
 
 \begin{lstlisting}[caption={TraceAspect}, label=traceaspect, frame=tb, basicstyle=\scriptsize]
 using Buffalo;
@@ -86,7 +90,7 @@ public class TraceAspect : MethodBoundaryAspect
 }
 \end{lstlisting}
 
-We can apply this aspect in three different level, lets apply it to the Hello class for example.
+With the aspect defined, now we can apply this aspect on any of the three different levels. Lets apply it to the Hello class for example.
 \begin{lstlisting}[caption={Apply Aspect to the Hello Class}, label=helloaspect, frame=tb, basicstyle=\scriptsize]
 [TraceAspect]
 public class Hello
@@ -95,14 +99,19 @@ public class Hello
 }
 \end{lstlisting}
 
-With the aspect in place we can now invoke the BuffaloAOP.exe to perform the weaving. First, copy Buffalo.dll, BuffaloAOP.exe and Mono.Cecil.dll to a separate folder, lets call it the Buffalo folder.
+Now everything is in place. We can now invoke the BuffaloAOP.exe to perform the weaving. Open a command prompt and navigate to C:\textbackslash{Buffalo}. And issue this command:
 
-Open a command prompt, navigate to the above Buffalo folder. And issue this command:
 \begin{lstlisting}[caption={Invoking BuffaloAOP.exe}, label=buffalocmd, frame=tb, basicstyle=\scriptsize]
-C:\Buffalo>BuffaloAOP.exe <path to the hello program exe>
+C:\Buffalo>BuffaloAOP.exe <path_to_the_hello_program_exe>
 \end{lstlisting}
 
-Where you will supply the complete path to the hello program's assembly. If everything goes well BuffaloAOP.exe will perform the injection and put the final assembly in the Modified folder inside the folder of the target assembly. Now when the program runs, it will display the following output:
+Replace path to the hello program exe with the actual complete path to the program assembly. Suppose the program assembly is located at C:\textbackslash{Projects}\textbackslash{Hello}\textbackslash{bin}\textbackslash{Hello.exe}, we would issue the command as follow:
+
+\begin{lstlisting}[caption={Invoking BuffaloAOP.exe Example}, label=buffalocmd2, frame=tb, basicstyle=\scriptsize]
+C:\Buffalo>BuffaloAOP.exe C:\Projects\Hello\bin\Hello.exe
+\end{lstlisting}
+
+If everything goes well BuffaloAOP.exe will perform the injection and put the final assembly in the Modified folder inside the folder of the target assembly. In this case it will be at C:\textbackslash{Projects}\textbackslash{Hello}\textbackslash{bin}\textbackslash{Modified}\textbackslash{Hello.exe}. Now when the program runs, it will display the following output:
 
 \begin{lstlisting}[caption={TraceAspect output}, label=traceaspectout, frame=tb, basicstyle=\scriptsize]
 ENTERING System.Void Hello.Program::Main(System.String[])
@@ -125,15 +134,15 @@ EXITING System.Void Hello.Hello::Say(System.String)
 
 Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 11 also capture the parameter value passed into each method and is available from the aspect.
 
-\section{Hooking Up With Microsoft Build System}
+\section{Integrate With MS-Build System}
 
-Beside running from the command line, Buffalo can be hooked up with MS-Build, so post compilation weaving can be invoked automatically. Note that the instruction provided here are just the bare bond to get Buffalo going, a lot of bell and whistle are omitted here.
+Buffalo can be integrated with MS-Build, so weaving can be invoked automatically when a project is compiled from the Visual Studio IDE. Note that the following instructions are just the bare minimum to get this working, a lot of bell and whistle are omitted.
 
 MS-Build is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that reference a different configuration file: Microsoft.CSharp.targets. This file in term reference Microsoft.Common.targets.
 
 Each .NET version has a Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\textbackslash Windows\textbackslash Microsoft.NET\textbackslash Framework\textbackslash v4.0.30319\textbackslash Microsoft.Common.targets.
 
-Under the Compile section, add the line to import the Buffalo.targets file as shown in figure~\ref{buffalo_targets}
+Under the Compile section, around line 2013, add the line to import the Buffalo.targets file as shown in figure~\ref{buffalo_targets}
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{CommonTarget.PNG}
@@ -141,8 +150,26 @@ Under the Compile section, add the line to import the Buffalo.targets file as sh
   \caption{Adding Buffalo.targets\label{buffalo_targets}}
 \end{figure}
 
-Create a folder and put BuffaloAOP.exe, Buffalo.dll, Mono.Cecil.dll in it, you can also put the config file Buffalo.targets (found in the client project) here. Modify the above to point to Buffalo.targets.
+If you open Buffalo.targets in a text editor, it contains the following context:
 
-Open Buffalo.targets in a text editor. For the Exec Command, modify the path to point to the folder created above.
+\begin{lstlisting}[caption={Buffalo.targets}, label=buffalotargets, frame=tb, basicstyle=\scriptsize]
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CompileDependsOn>
+      $(CompileDependsOn);
+      Buffalo
+    </CompileDependsOn>
+  </PropertyGroup>
 
-This is it. Now every time a C\# project is compiled, Buffalo will be invoked automatically.
+  <Target Name="Buffalo">
+    <Message Text="Hello Buffalo! @(IntermediateAssembly)"/>
+    <Exec Command="&quot;C:\Buffalo\BuffaloAOP.exe&quot; &quot;@(IntermediateAssembly)&quot;"/>
+  </Target>
+</Project>
+\end{lstlisting}
+
+This is how Buffalo get hooked into MS-Build, what this mean is that when user compiles a project, everything defined in the CompileDependsOn property group will be performed first, then a new target named "Buffalo" will be called immediately, which will invoke the BuffaloAOP via the Exec Command. Note that for the Exec Command, a complete path to BuffaloAOP.exe must be provided, including the decoded quotation marks as shown.
+
+Make sure to save all the changes. 
+
+Now every time a C\# project is compiled, Buffalo will be invoked automatically to perform the weaving.

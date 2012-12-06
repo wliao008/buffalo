@@ -7,10 +7,12 @@ Buffalo is currently at version 0.2. It contains two types of aspect: MethodBoun
 
 There are couple areas where Buffalo can be improved upon. Usability wise, currently there is no automatic setup program that install Buffalo onto user’s computer and integrate into MS-Build System. Some manual steps are needed in order to provide a more seamless experience.
 
-Functionality wise, another idea that I am interested in is to inject new features into the assembly. Similar to the Introduction feature of AspectJ. 
-
-Incremental compilation is another area I hope to get more familiar with. When Buffalo does post compilation weaving it starts fresh each time. I am interested if incremental weaving can be used here and if so, how.
+Functionality wise, when Buffalo does post compilation weaving it starts fresh each time, it would be interesting to see how incremental weaving can be used here.
 
 \section{Lessons Learned}
 
-While working on Buffalo I learned a lot about designing API in general. I tried to follow the best practice on what to expose and what to hide from the user, making the API usage more simplified and consistent. I also have a better understanding of the overall Aspect Oriented Programming concepts and various implementations, and how I can make use of it to eliminate some of the cross-cutting concerns in my applications.
+While framework such as Buffalo mitigates the problem of cross-cutting concerns. Still, to efficiently tackle the root of the problem, compiler vendors have to actively embrace the AOP concept and support it in the their languages natively. 
+
+Developers also have to understand the existant of such problems and solutions available to better educate themselves.
+
+Only when the concept is widely understood and supported by both developers and vendors can there hope to begin eliminating such problems.
