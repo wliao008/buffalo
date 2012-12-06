@@ -171,6 +171,8 @@ As figure~\ref{around_overview} shown, the actual calling of either the original
 
 Another important distinction is that MethodAroundAspect currently can be applied only on the method level, and that it should be applied to one method only. This is by design because a replacement method might not be appropriate to replace more than one method. Especially if it is applied on the assembly level, all the public methods will be replaced by a single replacement method!
 
+The actual implementation of MethodAroundAspect is in provided in Listing~\ref{../buffalo/Injectors/MethodAroundInjector.cs}
+
 \section{MethodArgs}
 
 When developing an aspect, a developer can access information about the annotated method. Details such as the name of the method; its signature and return type. Also the list of parameters that are being passed into the method including type, name and value.
