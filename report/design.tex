@@ -4,7 +4,7 @@
 
 There are several broad approaches to implementing an AOP framework. The ideal approach would be to extend the compiler of the target language to provide built-in support, thus making AOP the first class citizen. However there are very few languages out there that take this approach, among the few are Delphi Prism~\cite{delphi_prism2010} and AspectJ~\cite{aspectj_faq, aspectj_text}. 
 
-Microsoft is currently in the "wait and see" mode regarding support of AOP development in the C\# compiler~\cite{hejlsberg}. Alternative compiler such as Mono C\#~\cite{monocsharp} is open source, so technically anyone can build AOP support into it. While that would have been a fun challenge, however that would have been a fairly big undertaking, and there is concern that the project might not be fnished in the time frame wanted.
+Microsoft is currently in the "wait and see" mode regarding support of AOP development in the C\# compiler~\cite{hejlsberg}. Alternative compiler such as Mono C\#~\cite{monocsharp} is open source, so technically anyone can build AOP support into it. While that would have been a fun challenge, however that would have been a fairly big undertaking, and there is concern that the project might not be finished in the time frame wanted.
 
 That leaves framework support as the other viable option. There are several implementation techniques to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs} via framework.
 
@@ -51,7 +51,7 @@ Buffalo takes advantage of this characteristic in two areas.
 In other word, a Buffalo aspect is a .NET attribute in disguise.
 
 \section{MethodBoundaryAspect}
-What functionality does Buffalo support exactly? What type of weaving does it do? These were the intial questions that needs a definitive anwsers. For this inspiration were obtained from AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp}, specifically Buffalo will intercept the various point of an executing method. Those points are namely: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception any point during the execution. These various point of interception is group into the MethodBoundaryAspect.
+What functionality does Buffalo support exactly? What type of weaving does it do? These were the initial questions that needs a definitive answers. For this inspiration were obtained from AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp}, specifically Buffalo will intercept the various point of an executing method. Those points are namely: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception any point during the execution. These various point of interception is group into the MethodBoundaryAspect.
 
 MethodBoundaryAspect can be cleanly mapped to the try-catch-finally statements of the .NET languages. As far as the run-time is concern~\cite{ecma334, ecma335}, try-catch can be used liberally without serious performance degradation. For example, a simple method shown in Figure~\ref{samplefunction}:
 
