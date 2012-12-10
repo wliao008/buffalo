@@ -51,7 +51,7 @@ Buffalo takes advantage of this characteristic in two phases.
 In other word, a Buffalo aspect is a .NET attribute in disguise.
 
 \section{MethodBoundaryAspect}
-What functionality does Buffalo support exactly? What type of weaving does it do? These were the initial questions that needs a definitive answers. For this inspiration were obtained from AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp}, specifically Buffalo will intercept the various point of an executing method. Those points are namely: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception any point during the execution. These various point of interception is group into the MethodBoundaryAspect.
+What functionality does Buffalo support? What type of weaving does it do? For inspiration existing works such as AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp} were studied. Specifically Buffalo will intercept the various point of an executing method. Those points are namely: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception any point during the execution. These various points of interception are grouped into the MethodBoundaryAspect.
 
 MethodBoundaryAspect can be cleanly mapped to the try-catch-finally statements of the .NET languages. As far as the run-time is concern~\cite{ecma334, ecma335}, try-catch can be used liberally without serious performance degradation. For example, a simple method shown in Figure~\ref{samplefunction}:
 
@@ -61,7 +61,7 @@ public void SomeFunction () {
 }
 \end{lstlisting}
 
-Can be transformed into something shown in Figure~\ref{sampletcf}. That clearly captures the spirit of the MethodBoundaryAspect.
+Can be transformed into something shown in Figure~\ref{sampletcf}. This clearly captures the spirit of the MethodBoundaryAspect.
 
 \begin{lstlisting}[caption={Sample try-catch-finally}, label=sampletcf]
 public void SomeFunction () {
@@ -90,14 +90,14 @@ Since the option to call back into the original method is preserved, it is criti
 
 To get around this obstacle, whenever Buffalo encounters the MethodAroundAspect applied to a method, it dynamically generates a replacement method in CIL with the same method signature as the original.
 
-The body of this replacement method is also completely different than the original. It simply instantiate the aspect and makes call to the aspect’s Invoke() method, which is the actual aspect code that will be ran. 
+The body of this replacement method is also completely different than the original. It instantiates the aspect and makes call to the its Invoke() method, which is the actual code that will be ran as a replacement. 
 
 Inside the Invoke method, developer can make a call back to the original method via a call to the Proceed() method. Then throughout the program, for any calls made to the original method, Buffalo would change them to call the replacement method instead. This is illustrated in figure~\ref{around_overview}.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{AroundOverview.PNG}
   \centering
-  \caption{Method Around Aspect\label{around_overview}}
+  \caption{Overview of MethodAroundAspect\label{around_overview}}
 \end{figure}
 
 The dotted line from Program to the Original method indicates that once the MethodAroundAspect is applied to it, from the perspective of CIL the program cannot directly access that method any more. Access to the original method now has to come from inside the aspect. Also note that the original method is not changed at any given time.

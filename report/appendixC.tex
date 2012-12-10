@@ -132,17 +132,17 @@ EXITING System.Void Hello.Hello::Say(System.String)
         msg (System.String) = Hey Buffalo how's it going!
 \end{lstlisting}
 
-Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 11 also capture the parameter value passed into each method and is available from the aspect.
+Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 2, 11, 14 and 16 show the parameter value passed into each method.
 
 \section{Integrate With MS-Build System}
 
 Buffalo can be integrated with MS-Build, so weaving can be invoked automatically when a project is compiled from the Visual Studio IDE. Note that the following instructions are just the bare minimum to get this working, a lot of bell and whistle are omitted.
 
-MS-Build is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that reference a different configuration file: Microsoft.CSharp.targets. This file in term reference Microsoft.Common.targets.
+MS-Build is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that references a different configuration file: Microsoft.CSharp.targets. This file in term references Microsoft.Common.targets.
 
-Each .NET version has a Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\textbackslash Windows\textbackslash Microsoft.NET\textbackslash Framework\textbackslash v4.0.30319\textbackslash Microsoft.Common.targets.
+Each .NET version has its own Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\textbackslash Windows\textbackslash Microsoft.NET\textbackslash Framework\textbackslash v4.0.30319\textbackslash Microsoft.Common.targets.
 
-Under the Compile section, around line 2013, add the line to import the Buffalo.targets file as shown in figure~\ref{buffalo_targets}
+Under the Compile section, around line \#2013, add the line to import the Buffalo.targets file as shown in figure~\ref{buffalo_targets}
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{CommonTarget.PNG}
@@ -168,7 +168,7 @@ If you open Buffalo.targets in a text editor, it contains the following context:
 </Project>
 \end{lstlisting}
 
-This is how Buffalo get hooked into MS-Build, what this mean is that when user compiles a project, everything defined in the CompileDependsOn property group will be performed first, then a new target named "Buffalo" will be called immediately, which will invoke the BuffaloAOP via the Exec Command. Note that for the Exec Command, a complete path to BuffaloAOP.exe must be provided, including the decoded quotation marks as shown.
+This is how Buffalo get hooked into MS-Build, what this mean is that when user compiles a project, everything defined in the CompileDependsOn property group will be performed first, then a new target named "Buffalo" will be called immediately, which will invoke the BuffaloAOP via the Exec Command. Note that for the Exec Command, a complete path to BuffaloAOP.exe must be provided, including the encoded quotation marks as shown.
 
 Make sure to save all the changes. 
 

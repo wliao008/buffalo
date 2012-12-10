@@ -2,14 +2,14 @@
 
 \section{How to Apply an Aspect}
 
-Since an aspect is a .NET attribute, it can be used just like any other attribute. But code annotated with an aspect is special in that it can be understood only by Buffalo.
+Since an aspect is really a .NET attribute, it can be used just like any other attribute. But code annotated with an aspect is special in that it can be understood only by Buffalo.
 
-Normally an aspect can be applied in three level:
+Normally an aspect can be applied on three levels:
 
 \begin{enumerate}
-  \item Method level - an individual method.
-  \item Class level - if applied to a class, all public methods including the public properties automatically get applied.
-  \item Assembly level - if applied to an assembly, \#2 will apply but for all the public classes within the assembly.
+  \item Method - apply the aspect to an individual method.
+  \item Class - if aspect is applied to a class, all public methods including the public properties automatically get applied.
+  \item Assembly - if aspect is applied to an assembly, \#2 will apply but for all the public classes within the assembly.
 \end{enumerate}
 
 An exception to the above rule is the MethodAroundAspect, where it can only be applied on a method level, as will be shown later on.
@@ -50,7 +50,7 @@ Furthermore, by default, an aspect will be automatically excluded from applying 
 
 \section{MethodArgs}
 
-As mentioned above, when its all said and done, an aspect ultimately gets injected into each \textit{individual} method. When developing an aspect, a developer can access various information about the target method, via the MethodArgs object passed in as parameter to the aspect. Currently the full method signature, the method name, return type and parameter list including parameter name, type and value are captured for each target method.
+As mentioned above, when all is said and done, an aspect ultimately gets injected into each \textit{individual} method. When developing an aspect, a developer can access various information about the target method, via the MethodArgs object passed in as parameter to the aspect. Currently the full method signature, the method name, return type and parameter list including parameter name, type and value are captured for each target method.
 
 The parameter list capturing is especially of interest, it enables developer to peek inside the method that is executing at various point and inspect its parameter values. This will be useful in case such as exception handling, where it will be useful to actually see what the values were at the time of the exception.
 
@@ -66,7 +66,7 @@ To actually write the aspect, developer only need to reference the class library
   \caption{Solution Structure\label{solutionexplorer}}
 \end{figure}
 
-The client project shown above is just a simple program included in the solution for testing. The full source code is included in Appendix A.
+The client project shown above is a simple program included in the solution for testing. The full source code is included in Appendix A.
 
 \section{Implementation Overview}
 
@@ -97,7 +97,7 @@ public void SayHello()
 }
 \end{lstlisting}
 
-The generated CIL shown in figure~\ref{methodboundaryB4}. For ease of display it has been cleaned up a bit:
+The generated CIL is shown in figure~\ref{methodboundaryB4}. For ease of display the CIL has been cleaned up a bit:
 
 \begin{lstlisting}[caption={CIL generated for sample C\# function}, label=methodboundaryB4]
 .try
@@ -122,7 +122,7 @@ finally
 IL_001c: ret
 \end{lstlisting}
 
-Figure~\ref{methodboundaryB4} shows the standard emission of the CLR when it encounters the try-catch-finally statement. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here it can be easily figured out where to inject the various boundary aspects, as shown in the following figure~\ref{methodboundary02}
+Figure~\ref{methodboundaryB4} shows the standard emission of the CLR when it encounters the try-catch-finally statement. In CLR there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here it can be easily figured out where to inject the various boundary aspects, as shown in figure~\ref{methodboundary02}.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{MethodBoundaryOverview.PNG}
@@ -145,7 +145,7 @@ internal interface IMethodAroundAspect : IAspect
 }
 \end{lstlisting}
 
-From a developer’s perspective, when writing an aspect he can issue a Proceed() to signal a call back into the original method. The steps taken to implement MethodAroundAspect in CIL is roughly as follow:
+When developing an aspect a Proceed() can be issued to signal a call back into the original method. The steps taken to implement MethodAroundAspect in CIL is roughly as follow:
 
 \begin{enumerate}
 	\item Create a replacement for the annotated function with exactly the same method signature.
@@ -173,11 +173,9 @@ Another important distinction is that MethodAroundAspect currently can be applie
 
 The actual implementation of MethodAroundAspect is in provided in Listing~\ref{../buffalo/Injectors/MethodAroundInjector.cs}
 
-\section{MethodArgs}
+\section{MethodArgs Implementation Detail}
 
-When developing an aspect, a developer can access information about the annotated method. Details such as the name of the method; its signature and return type. Also the list of parameters that are being passed into the method including type, name and value.
-
-To achieve the above MethodArgs is used. This is the object passed into each aspect. During the weaving, an instance of MethodArgs is injected into each method, with all properties assembled dynamically to capture the information of the current executing method.
+When developing an aspect, information about the target method can be accessed. To achieve that MethodArgs is used. This is the object passed into each aspect. During the weaving, an instance of MethodArgs is created, with all properties assembled dynamically to capture the information of the current executing method. MethodArgs is then passed as parameter into each of the aspect.
 
 Being able to capture some information about the annotated methods will be useful. For example, in case of a profiling aspect, those information about the method at the time it was access will be helpful. Being able to look at the parameter values in case of error will also be extremely useful in case of debugging.
 
