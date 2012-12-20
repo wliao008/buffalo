@@ -18,7 +18,7 @@ Let us create create an aspect that will log various point of method execution, 
 ```csharp
 public class TraceAspect : MethodBoundaryAspect
 {
-    public override void Before(MethodArgs args)
+    public override void OnBefore(MethodArgs args)
     {
         //do something before the execution of a method
         Console.WriteLine(args.Name + " is about to execute");
