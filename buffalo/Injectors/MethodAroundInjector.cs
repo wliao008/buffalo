@@ -318,7 +318,7 @@ namespace Buffalo.Injectors
                         var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
                         var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
                         var getParameterArrayRef2 = typedef.Module.Import(getParameterArray);
-                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1)); //change to ldarg_0 if coming from anonynmous func
                         invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef2));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
 
