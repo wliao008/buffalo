@@ -6,8 +6,8 @@
 \contentsline {chapter}{\numberline {2}Design}{2}
 \contentsline {section}{\numberline {2.1}Compiler Support}{2}
 \contentsline {section}{\numberline {2.2}Run-time Interception}{2}
-\contentsline {section}{\numberline {2.3}Compile Time Weaving}{3}
-\contentsline {section}{\numberline {2.4}What is a Buffalo Aspect}{4}
+\contentsline {section}{\numberline {2.3}Post Compilation Weaving}{3}
+\contentsline {section}{\numberline {2.4}A Buffalo Aspect}{4}
 \contentsline {section}{\numberline {2.5}MethodBoundaryAspect}{5}
 \contentsline {section}{\numberline {2.6}MethodAroundAspect}{6}
 \contentsline {chapter}{\numberline {3}Implementation}{8}
@@ -23,10 +23,9 @@
 \contentsline {chapter}{\numberline {5}Conclusions}{20}
 \contentsline {section}{\numberline {5.1}Current Status}{20}
 \contentsline {section}{\numberline {5.2}Future Work}{20}
-\contentsline {section}{\numberline {5.3}Lessons Learned}{20}
+\contentsline {section}{\numberline {5.3}Lessons Learned}{21}
 \contentsline {chapter}{Bibliography}{22}
-\contentsline {chapter}{\numberline {A}Code Listing}{24}
-\contentsline {chapter}{\numberline {B}User Manual}{47}
-\contentsline {section}{\numberline {B.1}Compiling}{47}
-\contentsline {section}{\numberline {B.2}Simple Profiler}{47}
-\contentsline {section}{\numberline {B.3}Integrate With MS-Build System}{50}
+\contentsline {chapter}{\numberline {A}User Manual}{24}
+\contentsline {section}{\numberline {A.1}Compiling}{24}
+\contentsline {section}{\numberline {A.2}Simple Profiler}{24}
+\contentsline {section}{\numberline {A.3}Integrate With MS-Build System}{27}
