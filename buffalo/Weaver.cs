@@ -251,6 +251,10 @@ namespace Buffalo
                             status = Enums.Status.Excluded;
                             def.CustomAttributes.RemoveAt(i);
                         }
+                        else
+                        {
+                            status = Enums.Status.Applied;
+                        }
                     }
                 }
             }
