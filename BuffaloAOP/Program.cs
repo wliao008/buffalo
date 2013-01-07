@@ -19,6 +19,7 @@ namespace BuffaloAOP
             }
 
             path = args[0];
+            path = @"C:\Users\Wei Liao\Documents\Visual Studio 2012\Projects\Tests\TransactionalDb\TransactionalDb\TransactionalDb\bin\Debug\TransactionalDb.exe";
             new Weaver(path).Inject();
         }
     }
