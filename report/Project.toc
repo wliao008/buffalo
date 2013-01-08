@@ -10,22 +10,22 @@
 \contentsline {section}{\numberline {2.4}A Buffalo Aspect}{4}
 \contentsline {section}{\numberline {2.5}MethodBoundaryAspect}{5}
 \contentsline {section}{\numberline {2.6}MethodAroundAspect}{6}
-\contentsline {chapter}{\numberline {3}Implementation}{8}
-\contentsline {section}{\numberline {3.1}How to Apply an Aspect}{8}
-\contentsline {section}{\numberline {3.2}Aspect Interface}{10}
-\contentsline {section}{\numberline {3.3}MethodArgs}{11}
-\contentsline {section}{\numberline {3.4}Visual Studio Solution Structure}{11}
-\contentsline {section}{\numberline {3.5}Implementation Overview}{13}
-\contentsline {section}{\numberline {3.6}MethodBoundaryAspect Implementation Detail}{13}
-\contentsline {section}{\numberline {3.7}MethodAroundAspect Implementation Detail}{15}
-\contentsline {section}{\numberline {3.8}MethodArgs Implementation Detail}{17}
-\contentsline {chapter}{\numberline {4}Analysis}{18}
-\contentsline {chapter}{\numberline {5}Conclusions}{20}
-\contentsline {section}{\numberline {5.1}Current Status}{20}
-\contentsline {section}{\numberline {5.2}Future Work}{20}
-\contentsline {section}{\numberline {5.3}Lessons Learned}{21}
-\contentsline {chapter}{Bibliography}{22}
-\contentsline {chapter}{\numberline {A}User Manual}{24}
-\contentsline {section}{\numberline {A.1}Compiling}{24}
-\contentsline {section}{\numberline {A.2}Simple Profiler}{24}
-\contentsline {section}{\numberline {A.3}Integrate With MS-Build System}{27}
+\contentsline {chapter}{\numberline {3}Implementation}{9}
+\contentsline {section}{\numberline {3.1}How to Apply an Aspect}{9}
+\contentsline {section}{\numberline {3.2}Aspect Interface}{11}
+\contentsline {section}{\numberline {3.3}MethodArgs}{12}
+\contentsline {section}{\numberline {3.4}Visual Studio Solution Structure}{12}
+\contentsline {section}{\numberline {3.5}Implementation Overview}{14}
+\contentsline {section}{\numberline {3.6}MethodBoundaryAspect Implementation Detail}{14}
+\contentsline {section}{\numberline {3.7}MethodAroundAspect Implementation Detail}{16}
+\contentsline {section}{\numberline {3.8}MethodArgs Implementation Detail}{18}
+\contentsline {chapter}{\numberline {4}Analysis}{19}
+\contentsline {chapter}{\numberline {5}Conclusions}{21}
+\contentsline {section}{\numberline {5.1}Current Status}{21}
+\contentsline {section}{\numberline {5.2}Future Work}{21}
+\contentsline {section}{\numberline {5.3}Lessons Learned}{22}
+\contentsline {chapter}{Bibliography}{23}
+\contentsline {chapter}{\numberline {A}User Manual}{25}
+\contentsline {section}{\numberline {A.1}Compiling}{25}
+\contentsline {section}{\numberline {A.2}Simple Profiler}{25}
+\contentsline {section}{\numberline {A.3}Integrate With MS-Build System}{28}

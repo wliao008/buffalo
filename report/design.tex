@@ -31,7 +31,7 @@ Since injection happens post-compilation, the whole process can be integrated in
 Figure~\ref{buffalo_model} shows an overview of the compilation process and where Buffalo will fit in.
 
 \begin{figure}[H]
-  \includegraphics[scale=1.0]{BuffaloOverview.PNG}
+  \includegraphics[scale=1.0]{BuffaloOverview2.PNG}
   \centering
   \caption{Buffalo Model\label{buffalo_model}}
 \end{figure}
@@ -95,7 +95,7 @@ The body of this replacement method is also completely different than the origin
 Inside the Invoke method, developer can make a call back to the original method via a call to the Proceed() method. Then throughout the program, for any calls made to the original method, Buffalo would change them to call the replacement method instead. This is illustrated in figure~\ref{around_overview}.
 
 \begin{figure}[H]
-  \includegraphics[scale=1.0]{AroundOverview.PNG}
+  \includegraphics[scale=1.0]{AroundOverview2.PNG}
   \centering
   \caption{Overview of MethodAroundAspect\label{around_overview}}
 \end{figure}
