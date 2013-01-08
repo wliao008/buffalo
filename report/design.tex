@@ -13,7 +13,7 @@ That leaves framework support as the other viable option. There are several impl
 Early on the implementation approaches were narrowed down to between Run-time Interception and Compile Time Weaving. As its name suggested, run-time interception operates while the program is in execution. It uses the proxy pattern where client communicate with the target object via a proxy, and aspects are injected to the proxy. This enables run-time behavior of the program to be modified. Figure~\ref{proxy_model} illustrates this process.
 
 \begin{figure}[H]
-  \includegraphics[scale=1.0]{Proxy2.PNG}
+  \includegraphics[scale=1.0]{Proxy3.PNG}
   \centering
   \caption{AOP Framework Using Proxy Pattern\label{proxy_model}}
 \end{figure}
@@ -95,7 +95,7 @@ The body of this replacement method is also completely different than the origin
 Inside the Invoke method, developer can make a call back to the original method via a call to the Proceed() method. Then throughout the program, for any calls made to the original method, Buffalo would change them to call the replacement method instead. This is illustrated in figure~\ref{around_overview}.
 
 \begin{figure}[H]
-  \includegraphics[scale=1.0]{AroundOverview2.PNG}
+  \includegraphics[scale=1.0]{AroundOverview3.PNG}
   \centering
   \caption{Overview of MethodAroundAspect\label{around_overview}}
 \end{figure}

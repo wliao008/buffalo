@@ -21,7 +21,7 @@ No matter how the aspect is applied, ultimately it will result in a list of the 
 To get the list of the eligible methods for CIL modification, Buffalo attempts various checking according to figure~\ref{logical_inclusion} to see if it should include a given method.
 
 \begin{figure}[H]
-  \includegraphics[scale=1.0]{AspectLogicalInclusion.PNG}
+  \includegraphics[scale=1.0]{AspectLogicalInclusion2.PNG}
   \centering
   \caption{Logical Inclusion\label{logical_inclusion}}
 \end{figure}
@@ -35,7 +35,7 @@ The take away from the above diagram, is that Buffalo first checks if an aspect 
 Figure~\ref{uml01} shows the relationship of various aspect types in Buffalo. This is used by Buffalo to identify aspects during reflection.
 
 \begin{figure}[H]
-  \includegraphics[scale=1.0]{Uml01.PNG}
+  \includegraphics[scale=1.0]{Uml02.PNG}
   \centering
   \caption{Aspect Inheritance\label{uml01}}
 \end{figure}
@@ -96,7 +96,7 @@ The parameter list capturing is especially of interest, it enables developer to 
 
 Originally Buffalo was implemented as one executable; that includes the various aspects and the program that initiates the weaving. It was later on separated into two assemblies. One is a class library that contains the actual implementation. Another is a command line executable that calls into the class library to perform the weaving. This separation is necessary so developer can perform weaving from the command line or hook into MS-Build if necessary. 
 
-To actually write the aspect, one only needs to reference the class library as underlined in red in figure~\ref{solutionexplorer}, which is much cleaner than referencing an executable.
+To actually write the aspect, one only needs to reference the class library as underlined in figure~\ref{solutionexplorer}, which is much cleaner than referencing an executable.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{SolutionExplorer2.PNG}
