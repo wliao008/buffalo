@@ -5,12 +5,17 @@ Buffalo is currently at version 0.2. It contains two types of aspect:  MethodBou
 
 Originally MSBuild integration was planned, that when the Buffalo program was installed via the setup executable, it will modify the relevant .NET configuration files to hook BuffaloAOP.exe into MSBuild. That would trigger the weaving process from within the Visual Studio IDE when the solution is compiled. It was later found that in the latest version of Visual Studio 2012, Microsoft has dropped support for the setup project type. As a work around, instruction is provided in appendix A to manually hook into MSBuild.
 
+Originally MethodAroundAspect was intended to be used similar to MethodBoundaryAspect, where it can be applied on three levels. However it was later determined that since the CIL instruction of the actual aspect will also have to be modified, it really does not make sense for it to be applied to more than one method, as it would introduce conflicting changes.
+
+A possible solution to MethodAroundAspect would be to clone the aspect if it is applied to more than one method. However the cloning process is not as easy to do since everything would have to be copied, including references to whatever objects used in the aspect.
+
 \section{Future Work}
 
 There are couple areas where Buffalo can be improved upon. Usability wise, currently there is no automatic setup program that installs Buffalo onto user’s computer. There is also no automatic integration into MS-Build System. Some manual steps are still needed in order to provide a more seamless experience.
 
 Functionality wise, when Buffalo performs post compilation weaving it starts fresh each time; it would be interesting to see how incremental weaving can be done here. Another useful functionality is to be able to apply aspects by matching a set of methods.
 
+MethodAroundAspect can be improved to be applied on three levels by possibly cloning the aspect.
 \section{Lessons Learned}
 
 A framework such as Buffalo mitigates the problem of cross-cutting concerns. Still, to efficiently tackle the root of the problem, compiler vendors have to actively embrace the AOP concept and provide native support in their languages.

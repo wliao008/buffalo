@@ -13,19 +13,19 @@
 \contentsline {chapter}{\numberline {3}Implementation}{9}
 \contentsline {section}{\numberline {3.1}How to Apply an Aspect}{9}
 \contentsline {section}{\numberline {3.2}Aspect Interface}{11}
-\contentsline {section}{\numberline {3.3}MethodArgs}{12}
-\contentsline {section}{\numberline {3.4}Visual Studio Solution Structure}{12}
-\contentsline {section}{\numberline {3.5}Implementation Overview}{14}
-\contentsline {section}{\numberline {3.6}MethodBoundaryAspect Implementation Detail}{14}
-\contentsline {section}{\numberline {3.7}MethodAroundAspect Implementation Detail}{16}
-\contentsline {section}{\numberline {3.8}MethodArgs Implementation Detail}{18}
-\contentsline {chapter}{\numberline {4}Analysis}{19}
-\contentsline {chapter}{\numberline {5}Conclusions}{21}
-\contentsline {section}{\numberline {5.1}Current Status}{21}
-\contentsline {section}{\numberline {5.2}Future Work}{21}
-\contentsline {section}{\numberline {5.3}Lessons Learned}{22}
-\contentsline {chapter}{Bibliography}{23}
-\contentsline {chapter}{\numberline {A}User Manual}{25}
-\contentsline {section}{\numberline {A.1}Compiling}{25}
-\contentsline {section}{\numberline {A.2}Simple Profiler}{25}
-\contentsline {section}{\numberline {A.3}Integrate With MS-Build System}{28}
+\contentsline {section}{\numberline {3.3}MethodArgs}{13}
+\contentsline {section}{\numberline {3.4}Visual Studio Solution Structure}{13}
+\contentsline {section}{\numberline {3.5}Implementation Overview}{15}
+\contentsline {section}{\numberline {3.6}MethodBoundaryAspect Implementation Detail}{15}
+\contentsline {section}{\numberline {3.7}MethodAroundAspect Implementation Detail}{17}
+\contentsline {section}{\numberline {3.8}MethodArgs Implementation Detail}{19}
+\contentsline {chapter}{\numberline {4}Analysis}{20}
+\contentsline {chapter}{\numberline {5}Conclusions}{22}
+\contentsline {section}{\numberline {5.1}Current Status}{22}
+\contentsline {section}{\numberline {5.2}Future Work}{23}
+\contentsline {section}{\numberline {5.3}Lessons Learned}{23}
+\contentsline {chapter}{Bibliography}{24}
+\contentsline {chapter}{\numberline {A}User Manual}{26}
+\contentsline {section}{\numberline {A.1}Compiling}{26}
+\contentsline {section}{\numberline {A.2}Simple Profiler}{26}
+\contentsline {section}{\numberline {A.3}Integrate With MS-Build System}{29}

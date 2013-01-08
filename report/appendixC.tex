@@ -59,22 +59,22 @@ using System;
 
 public class TraceAspect : MethodBoundaryAspect
 {
-    public override void Before(MethodArgs args)
+    public override void OnBefore(MethodArgs args)
     {
         Display("ENTERING", args);
     }
 
-    public override void After(MethodArgs args)
+    public override void OnAfter(MethodArgs args)
     {
         Display("EXITING", args);
     }
 
-    public override void Success(MethodArgs args)
+    public override void OnSuccess(MethodArgs args)
     {
         Display("SUCCESSFULLY EXECUTED", args);
     }
 
-    public override void Exception(MethodArgs args)
+    public override void OnException(MethodArgs args)
     {
         Display("EXCEPTION ON", args);
     }
