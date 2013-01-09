@@ -318,7 +318,12 @@ namespace Buffalo.Injectors
                         var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
                         var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
                         var getParameterArrayRef2 = typedef.Module.Import(getParameterArray);
-                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1)); //change to ldarg_0 if coming from anonynmous func
+                        //simple way (probably not enough) to check if this is a nested type, anonymous function, etc
+                        //change to ldarg_0 if coming from anonynmous func
+                        if(invoke.HasParameters)
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1)); 
+                        else
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0)); 
                         invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef2));
                         invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
 
