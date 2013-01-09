@@ -28,4 +28,5 @@
 \contentsline {chapter}{\numberline {A}User Manual}{26}
 \contentsline {section}{\numberline {A.1}Compiling}{26}
 \contentsline {section}{\numberline {A.2}Simple Profiler}{26}
-\contentsline {section}{\numberline {A.3}Integrate With MS-Build System}{29}
+\contentsline {section}{\numberline {A.3}Transaction Database Example}{29}
+\contentsline {section}{\numberline {A.4}Integrate With MS-Build System}{31}

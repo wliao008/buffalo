@@ -134,6 +134,97 @@ EXITING System.Void Hello.Hello::Say(System.String)
 
 Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 2, 11, 14 and 16 show the parameter value passed into each method.
 
+\section{Transaction Database Example}
+
+It is common to work with code that saves information to a database. And it is typical that the data might have to go into different tables. For example, let us look at an online ordering system. When a customer clicks the buy button during checkout, an order has to be created, and each order item has to be created as well. Order and order items usually go into different tables since they have the logical parent-child relationship. So we might have the following code to save the data:
+
+\begin{lstlisting}[caption={SaveOrder Example}, label=transactionex, frame=tb, basicstyle=\scriptsize]
+public void SaveOrder(string customerName, string item1, string item2)
+{
+	//create the linq-to-entity context
+	ModelContainer db = new ModelContainer();
+	//create an order obj
+	Order o = new Order();
+	o.CustomerName = customerName;
+	db.Orders.Add(o);
+	db.SaveChanges(); // <-save the order!
+
+	List<string> items = new List<string>();
+	if (!string.IsNullOrEmpty(item1)) items.Add(item1);
+	if (!string.IsNullOrEmpty(item2)) items.Add(item2);
+	items.ForEach(x =>
+	{
+		//create the order item
+		OrderItem item = new OrderItem();
+		item.ItemName = x;
+		item.OrderId = -1; //<- intentionally failing the save since there is no such order id
+		db.OrderItems.Add(item);
+	});
+
+	db.SaveChanges(); //<- saving the order items
+}
+\end{lstlisting}
+
+The above first saves an order, and then saves each individual order items. The data goes into different tables. Note that we are using the Linq to Entity ORM here, technically it handles transaction if db.SaveChanges() at line 9 is removed and is calls at the end with one call. This code is for illustration purpose only. If you are not using Linq to Entity ORM, or sometime is not uncommon to issue multiple db.SaveChanges() throughout the source.
+
+Also note that at line 19 we are intentionally failing the OrderItem save. At that point the Order itself has been saved. When OrderItem fails, we ended up with incomplete data in the database.
+
+This case such as this, it is important that the atomicity rule is enforced. The save operation should either be completely saved or nothing should be saved at all. 
+
+Atomicity rule is usually enforced by using transaction. So we can modify the above code like this:
+
+\begin{lstlisting}[caption={SaveOrderManualTransaction Example}, label=manualtrans, frame=tb, basicstyle=\scriptsize]
+public void SaveOrderManualTransaction(string customerName, string item1, string item2)
+{
+	using (TransactionScope scope = new TransactionScope())
+	{
+		//same body of code to save..
+	}
+}
+\end{lstlisting}
+
+The save operations are now wrapped in a TransactionScope object. If anything bad happens on any of the db.SaveChanges() calls the whole operation is aborted, so we won’t ended up with incomplete data in the database.
+
+Scenario like this is a suitable candidate for using aspect. If we need to enforce atomicity elsewhere, we would have to do something repetitive with TransactionScope. We can refactor and extract out the aspect using Buffalo.
+
+\begin{lstlisting}[caption={RunInTransactionAspect}, label=transaspect, frame=tb, basicstyle=\scriptsize]
+public class RunInTransactionAspect : MethodBoundaryAspect
+{
+	private TransactionScope scope;
+
+	public override void OnBefore(MethodArgs args)
+	{
+		this.scope = new TransactionScope(TransactionScopeOption.RequiresNew);
+	}
+
+	public override void OnSuccess(MethodArgs args)
+	{
+		this.scope.Complete();
+	}
+
+	public override void OnException(MethodArgs args)
+	{
+		Transaction.Current.Rollback();
+	}
+
+	public override void OnAfter(MethodArgs args)
+	{
+		this.scope.Dispose();
+	}
+}
+\end{lstlisting}
+
+Then apply this aspect to the original code:
+\begin{lstlisting}[caption={SaveOrder with Aspect}, label=saveorderwithaspect, frame=tb, basicstyle=\scriptsize]
+[RunInTransactionAspect]
+public void SaveOrder(string customerName, string item1, string item2)
+{
+	//same body of code to save..
+}
+\end{lstlisting}
+
+This will ensure the method will operate in the transaction safe manner. We can apply the reusable aspect to other operations that need to be transaction scoped.
+
 \section{Integrate With MS-Build System}
 
 Buffalo can be integrated with MS-Build, so weaving can be invoked automatically when a project is compiled from the Visual Studio IDE. Note that the following instructions are just the bare minimum to get this working, a lot of bell and whistle are omitted.
