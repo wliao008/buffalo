@@ -115,109 +115,7 @@ namespace Buffalo.Injectors
                     }
                     #endregion
 
-                    #region Handling Proceed()
-                    var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
-                        x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
-                    var containProceed = invoke.Body.Instructions.Any(x => x.ToString().Contains("System.Object Buffalo.MethodArgs::Proceed"));
-
-                    while (containProceed)
-                    {
-                        bool found = false;
-                        int instIdx = 0;
-                        for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
-                        {
-                            if (invoke.Body.Instructions[instIdx].ToString()
-                                .Contains("System.Object Buffalo.MethodArgs::Proceed"))
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (found)
-                        {
-                            #region Modified the call
-                            var invokeInstructions = new List<Instruction>();
-                            invoke.Body.Instructions.RemoveAt(instIdx);
-                            var startIdx = instIdx;
-
-                            //create a var to hold the original method type instance
-                            var instance = new VariableDefinition("instance" + DateTime.Now.Ticks,
-                                this.AssemblyDefinition.MainModule.Import(typeof(object)));
-                            invoke.Body.Variables.Add(instance);
-                            invoke.Body.InitLocals = true;
-
-                            //get the instance obj from MethodArgs
-                            var getInstance = typeof(MethodArgs).GetMethod("get_Instance");
-                            var getInstanceRef = this.AssemblyDefinition.MainModule.Import(getInstance);
-                            var getInstanceRef2 = aspect.TypeDefinition.Module.Import(getInstance);
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getInstanceRef2));
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, instance));
-
-                            //create object array to hold ParameterArray
-                            var objType = this.AssemblyDefinition.MainModule.Import(typeof(object));
-                            var objArray = new ArrayType(objType);
-                            var varArray = new VariableDefinition("va" + DateTime.Now.Ticks,
-                                (TypeReference)objArray);
-                            invoke.Body.Variables.Add(varArray);
-                            var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
-                            var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
-                            var getParameterArrayRef2 = aspect.TypeDefinition.Module.Import(getParameterArray);
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1));
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef2));
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
-
-                            //modify the Invoke() instruction to make a call to the original method
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
-                            var classref = aspect.TypeDefinition.Module.Import(method.DeclaringType);
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, classref));
-                            if (method.Parameters.Count > 0)
-                            {
-                                for (int i = 0; i < method.Parameters.Count; ++i)
-                                {
-                                    var ptype = aspect.TypeDefinition.Module.Import(method.Parameters[i].ParameterType);
-                                    invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
-                                    invokeInstructions.Add(il.Create(OpCodes.Ldc_I4, i));
-                                    invokeInstructions.Add(il.Create(OpCodes.Ldelem_Ref));
-                                    invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, ptype));
-                                }
-                            }
-
-                            //make the call
-                            var methodRef = aspect.TypeDefinition.Module.Import(method);
-                            invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, methodRef));
-
-                            #region Handling return value
-                            if (!method.ReturnType.FullName.Equals("System.Void"))
-                            {
-                                //create an object variable to hold the return value
-                                var varObj = new VariableDefinition("obj" + DateTime.Now.Ticks,
-                                    this.AssemblyDefinition.MainModule.Import(typeof(object)));
-                                var retype = aspect.TypeDefinition.Module.Import(method.ReturnType);
-                                invoke.Body.Variables.Add(varObj);
-                                invokeInstructions.Add(
-                                    Instruction.Create(OpCodes.Box, retype));
-                            }
-                            else
-                            {
-                                //method is suppose to return void, but since
-                                //previously it calls Proceed() which returns object type,
-                                //we need to handle that.
-                                invoke.Body.Instructions[instIdx] = Instruction.Create(OpCodes.Nop);
-                            }
-                            #endregion
-
-                            //write out the instruction
-                            invokeInstructions.ForEach(
-                                x => invoke.Body.Instructions.Insert(startIdx++, x));
-
-                            #endregion
-                        }
-
-                        containProceed = invoke.Body.Instructions.Any(x => x.ToString().Contains("System.Object Buffalo.MethodArgs::Proceed"));
-                    }
-
-                    #endregion
+                    HandleProceed2(method, il, aspect.TypeDefinition);
 
                     #region Modify all calls from origin to the generated method
                     foreach (var type in this.AssemblyDefinition.MainModule.Types
@@ -251,6 +149,243 @@ namespace Buffalo.Injectors
                     {
                         ass.Write2(ass.MainModule.FullyQualifiedName);
                     }
+                }
+            }
+        }
+
+        private void HandleProceed(MethodDefinition method, ILProcessor il, Aspect aspect)
+        {
+            #region Handling Proceed()
+            ///TODO: Proceed() call might appear anywhere in the aspect, not just on the Invoke()!
+            var invoke = aspect.TypeDefinition.Methods.FirstOrDefault(
+                x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
+            var containProceed = invoke.Body.Instructions.Any(x => x.ToString().Contains("System.Object Buffalo.MethodArgs::Proceed"));
+
+            while (containProceed)
+            {
+                bool found = false;
+                int instIdx = 0;
+                for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
+                {
+                    if (invoke.Body.Instructions[instIdx].ToString()
+                        .Contains("System.Object Buffalo.MethodArgs::Proceed"))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    #region Modified the call
+                    var invokeInstructions = new List<Instruction>();
+                    invoke.Body.Instructions.RemoveAt(instIdx);
+                    var startIdx = instIdx;
+
+                    //create a var to hold the original method type instance
+                    var instance = new VariableDefinition("instance" + DateTime.Now.Ticks,
+                        this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                    invoke.Body.Variables.Add(instance);
+                    invoke.Body.InitLocals = true;
+
+                    //get the instance obj from MethodArgs
+                    var getInstance = typeof(MethodArgs).GetMethod("get_Instance");
+                    var getInstanceRef = this.AssemblyDefinition.MainModule.Import(getInstance);
+                    var getInstanceRef2 = aspect.TypeDefinition.Module.Import(getInstance);
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getInstanceRef2));
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, instance));
+
+                    //create object array to hold ParameterArray
+                    var objType = this.AssemblyDefinition.MainModule.Import(typeof(object));
+                    var objArray = new ArrayType(objType);
+                    var varArray = new VariableDefinition("va" + DateTime.Now.Ticks,
+                        (TypeReference)objArray);
+                    invoke.Body.Variables.Add(varArray);
+                    var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
+                    var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
+                    var getParameterArrayRef2 = aspect.TypeDefinition.Module.Import(getParameterArray);
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef2));
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
+
+                    //modify the Invoke() instruction to make a call to the original method
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
+                    var classref = aspect.TypeDefinition.Module.Import(method.DeclaringType);
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, classref));
+                    if (method.Parameters.Count > 0)
+                    {
+                        for (int i = 0; i < method.Parameters.Count; ++i)
+                        {
+                            var ptype = aspect.TypeDefinition.Module.Import(method.Parameters[i].ParameterType);
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
+                            invokeInstructions.Add(il.Create(OpCodes.Ldc_I4, i));
+                            invokeInstructions.Add(il.Create(OpCodes.Ldelem_Ref));
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, ptype));
+                        }
+                    }
+
+                    #endregion
+
+                    //make the call
+                    var methodRef = aspect.TypeDefinition.Module.Import(method);
+                    invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, methodRef));
+
+                    #region Handling return value
+                    if (!method.ReturnType.FullName.Equals("System.Void"))
+                    {
+                        //create an object variable to hold the return value
+                        var varObj = new VariableDefinition("obj" + DateTime.Now.Ticks,
+                            this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                        var retype = aspect.TypeDefinition.Module.Import(method.ReturnType);
+                        invoke.Body.Variables.Add(varObj);
+                        invokeInstructions.Add(
+                            Instruction.Create(OpCodes.Box, retype));
+                    }
+                    else
+                    {
+                        //method is suppose to return void, but since
+                        //previously it calls Proceed() which returns object type,
+                        //we need to handle that.
+                        invoke.Body.Instructions[instIdx] = Instruction.Create(OpCodes.Nop);
+                    }
+                    #endregion
+
+                    //write out the instruction
+                    invokeInstructions.ForEach(
+                        x => invoke.Body.Instructions.Insert(startIdx++, x));
+                }
+
+                containProceed = invoke.Body.Instructions.Any(x => x.ToString().Contains("System.Object Buffalo.MethodArgs::Proceed"));
+            }
+
+            #endregion
+        }
+
+        private void HandleProceed2(MethodDefinition method, ILProcessor il, TypeDefinition typedef)
+        {
+            #region Handling Proceed()
+            ///TODO: Proceed() call might appear anywhere in the aspect, not just on the Invoke()!
+
+
+
+            foreach (MethodDefinition invoke in typedef.Methods)
+            {
+                //var invoke = typedef.Methods.FirstOrDefault(
+                //    x => x.FullName.Contains("::Invoke(Buffalo.MethodArgs)"));
+                if (invoke.Body == null) continue;
+                var containProceed = invoke.Body.Instructions.Any(x => x.ToString().Contains("System.Object Buffalo.MethodArgs::Proceed"));
+
+                while (containProceed)
+                {
+                    bool found = false;
+                    int instIdx = 0;
+                    for (; instIdx < invoke.Body.Instructions.Count; ++instIdx)
+                    {
+                        if (invoke.Body.Instructions[instIdx].ToString()
+                            .Contains("System.Object Buffalo.MethodArgs::Proceed"))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found)
+                    {
+                        #region Modified the call
+                        var invokeInstructions = new List<Instruction>();
+                        invoke.Body.Instructions.RemoveAt(instIdx);
+                        var startIdx = instIdx;
+
+                        //create a var to hold the original method type instance
+                        var instance = new VariableDefinition("instance" + DateTime.Now.Ticks,
+                            this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                        invoke.Body.Variables.Add(instance);
+                        invoke.Body.InitLocals = true;
+
+                        //get the instance obj from MethodArgs
+                        var getInstance = typeof(MethodArgs).GetMethod("get_Instance");
+                        var getInstanceRef = this.AssemblyDefinition.MainModule.Import(getInstance);
+                        var getInstanceRef2 = typedef.Module.Import(getInstance);
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getInstanceRef2));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, instance));
+
+                        //create object array to hold ParameterArray
+                        var objType = this.AssemblyDefinition.MainModule.Import(typeof(object));
+                        var objArray = new ArrayType(objType);
+                        var varArray = new VariableDefinition("va" + DateTime.Now.Ticks,
+                            (TypeReference)objArray);
+                        invoke.Body.Variables.Add(varArray);
+                        var getParameterArray = typeof(MethodArgs).GetMethod("get_ParameterArray");
+                        var getParameterArrayRef = this.AssemblyDefinition.MainModule.Import(getParameterArray);
+                        var getParameterArrayRef2 = typedef.Module.Import(getParameterArray);
+                        //simple way (probably not enough) to check if this is a nested type, anonymous function, etc
+                        //change to ldarg_0 if coming from anonynmous func
+                        if(invoke.HasParameters)
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_1)); 
+                        else
+                            invokeInstructions.Add(Instruction.Create(OpCodes.Ldarg_0)); 
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, getParameterArrayRef2));
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Stloc, varArray));
+
+                        //modify the Invoke() instruction to make a call to the original method
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, instance));
+                        var classref = typedef.Module.Import(method.DeclaringType);
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, classref));
+                        if (method.Parameters.Count > 0)
+                        {
+                            for (int i = 0; i < method.Parameters.Count; ++i)
+                            {
+                                var ptype = typedef.Module.Import(method.Parameters[i].ParameterType);
+                                invokeInstructions.Add(Instruction.Create(OpCodes.Ldloc, varArray));
+                                invokeInstructions.Add(il.Create(OpCodes.Ldc_I4, i));
+                                invokeInstructions.Add(il.Create(OpCodes.Ldelem_Ref));
+                                invokeInstructions.Add(Instruction.Create(OpCodes.Unbox_Any, ptype));
+                            }
+                        }
+
+                        #endregion
+
+                        //make the call
+                        var methodRef = typedef.Module.Import(method);
+                        invokeInstructions.Add(Instruction.Create(OpCodes.Callvirt, methodRef));
+
+                        #region Handling return value
+                        if (!method.ReturnType.FullName.Equals("System.Void"))
+                        {
+                            //create an object variable to hold the return value
+                            var varObj = new VariableDefinition("obj" + DateTime.Now.Ticks,
+                                this.AssemblyDefinition.MainModule.Import(typeof(object)));
+                            var retype = typedef.Module.Import(method.ReturnType);
+                            invoke.Body.Variables.Add(varObj);
+                            invokeInstructions.Add(
+                                Instruction.Create(OpCodes.Box, retype));
+                        }
+                        else
+                        {
+                            //method is suppose to return void, but since
+                            //previously it calls Proceed() which returns object type,
+                            //we need to handle that.
+                            invoke.Body.Instructions[instIdx] = Instruction.Create(OpCodes.Nop);
+                        }
+                        #endregion
+
+                        //write out the instruction
+                        invokeInstructions.ForEach(
+                            x => invoke.Body.Instructions.Insert(startIdx++, x));
+                    }
+
+                    containProceed = invoke.Body.Instructions.Any(x => x.ToString().Contains("System.Object Buffalo.MethodArgs::Proceed"));
+                }
+            }
+
+
+            #endregion
+
+            if (typedef.NestedTypes.Count > 0)
+            {
+                foreach (TypeDefinition td in typedef.NestedTypes)
+                {
+                    this.HandleProceed2(method, il, td);
                 }
             }
         }
