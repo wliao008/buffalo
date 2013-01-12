@@ -244,7 +244,7 @@ public void SaveData ()
 }
 \end{lstlisting}
 
-Window application is single thread application. While the long operation is in progress, the whole application will become unresponsive until the operation finishes. This makes a very bad user experience.
+Window application is single thread application. While the long operation is in progress, the whole application will be unresponsive until the operation finishes. This makes a very bad user experience.
 
 One remedy is to put the long running operation is a separate worker thread. And update the UI label when the worker thread finishes.
 
@@ -270,7 +270,7 @@ public void SaveData2()
 }
 \end{lstlisting}
 
-This will marshal the request to update the UI back to the UI thread. Ensuring the label will be updated without any threading problem.
+Listing~\ref{savedata3} will marshal the request to update the UI back to the UI thread. Ensuring the label will be updated without any threading problem.
 Since this is a common threading problem when working with UI. Buffalo can be used to extract the solution out as an aspect.
 
 \begin{lstlisting}[caption={ThreadSafeAspect}, label=savedata4, frame=tb, basicstyle=\scriptsize]
