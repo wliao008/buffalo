@@ -262,7 +262,7 @@ public void SaveData ()
 But this would cause an exception to be thrown on line 6. UI elements can only be updated from the thread that created them.
 
 \begin{lstlisting}[caption={Update UI from different thread}, label=savedata3, frame=tb, basicstyle=\scriptsize]
-public void SaveData2()
+public void SaveData()
 { 
     Thread.Sleep(5000);
     Action action = () => lblStatus.Text = "OK";
@@ -292,11 +292,11 @@ public void SaveData()
 	new Thread(new ThreadStart(() =>
 	{
 		Thread.Sleep(5000);
-		this._UpdateStatus();
+		this.UpdateStatus();
 	})).Start();
 }
 [ThreadSafeAspect]
-public void _UpdateStatus() { lblStatus.Text = "OK"; }
+public void UpdateStatus() { lblStatus.Text = "OK"; }
 \end{lstlisting}
 
 Now when the Save button is clicked, the long running operation is triggered, control is immediately returned. When the operation finishes the label is updated without any threading issue.
