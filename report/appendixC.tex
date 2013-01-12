@@ -225,6 +225,85 @@ public void SaveOrder(string customerName, string item1, string item2)
 
 This will ensure the method will operate in the transaction safe manner. We can apply the reusable aspect to other operations that need to be transaction scoped.
 
+\section{Update UI Safely with Thread Example}
+
+\begin{figure}[H]
+  \includegraphics[scale=1.0]{Thread.PNG}
+  \centering
+  \caption{UI Thread Example\label{uithread}}
+\end{figure}
+
+This is a common problem that faces Windows developers. Suppose that when the Save button is clicked, a long running operation is triggered. Here we stimulate the long running operation by putting the thread to sleep. The label that says “Ready…” is updated to “OK” when the operation finishes.
+
+\begin{lstlisting}[caption={Long running operation}, label=savedata1, frame=tb, basicstyle=\scriptsize]
+public void SaveData ()
+{
+    //sleep to simulate long running process
+    Thread.Sleep(10000);
+    lblStatus.Text = "OK";
+}
+\end{lstlisting}
+
+Window application is single thread application. While the long operation is in progress, the whole application will become unresponsive until the operation finishes. This makes a very bad user experience.
+
+One remedy is to put the long running operation is a separate worker thread. And update the UI label when the worker thread finishes.
+
+\begin{lstlisting}[caption={Long running operation with thread}, label=savedata2, frame=tb, basicstyle=\scriptsize]
+public void SaveData ()
+{
+    new Thread(new ThreadStart(() =>
+    {
+        Thread.Sleep(5000);
+        lblStatus.Text = "OK";
+    })).Start();
+}
+\end{lstlisting}
+
+But this would cause an exception to be thrown on line 6. UI elements can only be updated from the thread that created them.
+
+\begin{lstlisting}[caption={Update UI from different thread}, label=savedata3, frame=tb, basicstyle=\scriptsize]
+public void SaveData2()
+{ 
+    Thread.Sleep(5000);
+    Action action = () => lblStatus.Text = "OK";
+    this.BeginInvoke(action);
+}
+\end{lstlisting}
+
+This will marshal the request to update the UI back to the UI thread. Ensuring the label will be updated without any threading problem.
+Since this is a common threading problem when working with UI. Buffalo can be used to extract the solution out as an aspect.
+
+\begin{lstlisting}[caption={ThreadSafeAspect}, label=savedata4, frame=tb, basicstyle=\scriptsize]
+public class ThreadSafeAspect : MethodAroundAspect
+{
+	public override object Invoke(Buffalo.MethodArgs args)
+	{
+		Dispatcher.CurrentDispatcher.Invoke(() => args.Proceed());
+		return null;
+	}
+}
+\end{lstlisting}
+
+Here we create a new aspect inheriting from MethodAroundAspect, and overriding Invoke. This wraps around the invocation of the method call. Args.Proceed() is Buffalo’s way of calling back to the original UpdateStatus method.
+
+\begin{lstlisting}[caption={Apply ThreadSafeAspect}, label=savedata5, frame=tb, basicstyle=\scriptsize]
+public void SaveData()
+{
+	new Thread(new ThreadStart(() =>
+	{
+		Thread.Sleep(5000);
+		this._UpdateStatus();
+	})).Start();
+}
+[ThreadSafeAspect]
+public void _UpdateStatus() { lblStatus.Text = "OK"; }
+\end{lstlisting}
+
+Now when the Save button is clicked, the long running operation is triggered, control is immediately returned. When the operation finishes the label is updated without any threading issue.
+
+Note that currently MethodAroundAspect supports only method level attribution. This limits its reusability. It will be much more useful when it support three levels as MethodBoundaryAspect does.
+
+
 \section{Integrate With MS-Build System}
 
 Buffalo can be integrated with MS-Build, so weaving can be invoked automatically when a project is compiled from the Visual Studio IDE. Note that the following instructions are just the bare minimum to get this working, a lot of bell and whistle are omitted.
