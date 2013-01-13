@@ -1,9 +1,9 @@
 \chapter{Conclusions}
 \section{Current Status}
 
-Buffalo is currently at version 0.2. It contains two types of aspect:  MethodBoundaryAspect - where various execution points can be intercepted. MethodAroundAspect - where a method can be completely replaced while preserving the option to call back into the original method. MethodAroundAspect targets individual method, whereas MethodBoundaryAspect can be applied on three levels on a .NET application.
+Buffalo currently contains two types of aspect:  MethodBoundaryAspect - where various execution points can be intercepted. MethodAroundAspect - where a method can be wrapped around or completely replaced while preserving the option to call back into the original method. MethodAroundAspect targets individual method, whereas MethodBoundaryAspect can be applied on three levels on a .NET application.
 
-Originally MSBuild integration was planned, that when the Buffalo program was installed via the setup executable, it will modify the relevant .NET configuration files to hook BuffaloAOP.exe into MSBuild. That would trigger the weaving process from within the Visual Studio IDE when the solution is compiled. It was later found that in the latest version of Visual Studio 2012, Microsoft has dropped support for the setup project type. As a work around, instruction is provided in appendix A to manually hook into MSBuild.
+Originally MS-Build integration was planned, that when the Buffalo program was installed via the setup executable, it will modify the relevant .NET configuration files to hook BuffaloAOP.exe into MS-Build. That would trigger the weaving process from within the Visual Studio IDE when the solution is compiled. It was later found that Microsoft has dropped support for the setup project type. As a work around, instruction is provided in appendix A to manually hook into MS-Build.
 
 Originally MethodAroundAspect was intended to be used similar to MethodBoundaryAspect, where it can be applied on three levels. However it was later determined that since the CIL instruction of the actual aspect will also have to be modified, it really does not make sense for it to be applied to more than one method, as it would introduce conflicting changes.
 
@@ -18,7 +18,7 @@ Functionality wise, when Buffalo performs post compilation weaving it starts fre
 MethodAroundAspect can be improved to be applied on three levels by possibly cloning the aspect.
 \section{Lessons Learned}
 
-A framework such as Buffalo mitigates the problem of cross-cutting concerns. Still, to efficiently tackle the root of the problem, compiler vendors have to actively embrace the AOP concept and provide native support in their languages.
+A framework such as Buffalo mitigates the problem of cross-cutting concerns. Still, to efficiently tackle the root of the problem, compiler vendors have to actively embrace the AOP concept and provide native support in their programming languages.
 
 Developers also have to understand such problems and what solutions are available to better educate themselves.
 

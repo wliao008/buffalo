@@ -6,10 +6,10 @@
 \contentsline {chapter}{\numberline {2}Design}{2}
 \contentsline {section}{\numberline {2.1}Compiler Support}{2}
 \contentsline {section}{\numberline {2.2}Run-time Interception}{2}
-\contentsline {section}{\numberline {2.3}Post Compilation Weaving}{3}
-\contentsline {section}{\numberline {2.4}A Buffalo Aspect}{4}
+\contentsline {section}{\numberline {2.3}Post Compilation Weaving}{4}
+\contentsline {section}{\numberline {2.4}A Buffalo Aspect}{5}
 \contentsline {section}{\numberline {2.5}MethodBoundaryAspect}{5}
-\contentsline {section}{\numberline {2.6}MethodAroundAspect}{6}
+\contentsline {section}{\numberline {2.6}MethodAroundAspect}{7}
 \contentsline {chapter}{\numberline {3}Implementation}{9}
 \contentsline {section}{\numberline {3.1}How to Apply an Aspect}{9}
 \contentsline {section}{\numberline {3.2}Aspect Interface}{11}

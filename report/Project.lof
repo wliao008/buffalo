@@ -3,9 +3,9 @@
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {2.1}{\ignorespaces AOP Framework Using Proxy Pattern}}{3}
 \contentsline {figure}{\numberline {2.2}{\ignorespaces Buffalo Model}}{4}
-\contentsline {figure}{\numberline {2.3}{\ignorespaces Overview of MethodAroundAspect}}{7}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Illustration of MethodAroundAspect}}{8}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Logical Inclusion}}{10}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Diagram for Finding Eligible Methods}}{10}
 \contentsline {figure}{\numberline {3.2}{\ignorespaces Aspect Inheritance}}{11}
 \contentsline {figure}{\numberline {3.3}{\ignorespaces Solution Structure}}{14}
 \contentsline {figure}{\numberline {3.4}{\ignorespaces CIL Interception Points}}{17}

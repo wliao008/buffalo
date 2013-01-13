@@ -1,6 +1,6 @@
 \chapter{User Manual}
 
-It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of a VS solution. I also assume you know how to compile a solution and where to find the compiled assembly. Buffalo is developed in VS2012, it is recommended you have the same version of the IDE installed.
+It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of a VS solution. I also assume you know how to compile a solution and where to find the compiled assembly. Buffalo is developed in VS2012, it is recommended you have the same version of the IDE installed. The instructions and examples mentioned in this manual are specifically for the Windows platform. Although preliminary testings show that the project can be compiled under Linux where Mono is installed. 
 
 \section{Compiling}
 To begin, first download the full source code from https://github.com/wliao008/buffalo. Open buffalo.sln in VS2012 and compile the source code. This will produce the Buffalo.dll and BuffaloAOP.exe in their respective bin/debug folder.
@@ -134,7 +134,7 @@ EXITING System.Void Hello.Hello::Say(System.String)
 
 Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 2, 11, 14 and 16 show the parameter value passed into each method.
 
-\section{Transaction Database Example}
+\section{Transaction Database}
 
 It is common to work with code that saves information to a database. And it is typical that the data might have to go into different tables. For example, let us look at an online ordering system. When a customer clicks the buy button during checkout, an order has to be created, and each order item has to be created as well. Order and order items usually go into different tables since they have the logical parent-child relationship. So we might have the following code to save the data:
 
@@ -165,11 +165,11 @@ public void SaveOrder(string customerName, string item1, string item2)
 }
 \end{lstlisting}
 
-The above first saves an order, and then saves each individual order items. The data goes into different tables. Note that we are using the Linq to Entity ORM here, technically it handles transaction if db.SaveChanges() at line 9 is removed and is calls at the end with one call. This code is for illustration purpose only. If you are not using Linq to Entity ORM, or sometime is not uncommon to issue multiple db.SaveChanges() throughout the source.
+This code is for illustration purpose only. It first saves an order, and then saves each individual order items. The data goes into different tables. Note that we are using the Linq to Entity ORM here, technically it handles transaction if db.SaveChanges() at line 9 is removed and is calls at the end with one call.
 
 Also note that at line 19 we are intentionally failing the OrderItem save. At that point the Order itself has been saved. When OrderItem fails, we ended up with incomplete data in the database.
 
-This case such as this, it is important that the atomicity rule is enforced. The save operation should either be completely saved or nothing should be saved at all. 
+In case like this, it is important that the atomicity rule is enforced. The save operation should either be completely saved or nothing should be saved at all. 
 
 Atomicity rule is usually enforced by using transaction. So we can modify the above code like this:
 
@@ -183,9 +183,9 @@ public void SaveOrderManualTransaction(string customerName, string item1, string
 }
 \end{lstlisting}
 
-The save operations are now wrapped in a TransactionScope object. If anything bad happens on any of the db.SaveChanges() calls the whole operation is aborted, so we won’t ended up with incomplete data in the database.
+The save operations are now wrapped in a TransactionScope object. If anything bad happens on any of the db.SaveChanges() calls the whole operation is aborted, so we will not ended up with incomplete data in the database.
 
-Scenario like this is a suitable candidate for using aspect. If we need to enforce atomicity elsewhere, we would have to do something repetitive with TransactionScope. We can refactor and extract out the aspect using Buffalo.
+Scenario like this is a suitable candidate for using aspect. If we need to enforce atomicity elsewhere, we would have to do something similar with TransactionScope. We can refactor and extract out the aspect using Buffalo.
 
 \begin{lstlisting}[caption={RunInTransactionAspect}, label=transaspect, frame=tb, basicstyle=\scriptsize]
 public class RunInTransactionAspect : MethodBoundaryAspect
@@ -225,7 +225,7 @@ public void SaveOrder(string customerName, string item1, string item2)
 
 This will ensure the method will operate in the transaction safe manner. We can apply the reusable aspect to other operations that need to be transaction scoped.
 
-\section{Update UI Safely with Thread Example}
+\section{Update UI Safely with Thread}
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{Thread.PNG}

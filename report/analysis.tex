@@ -27,8 +27,8 @@ By using a framework like Buffalo, unhandled exception can be centralized in one
 
 As a result the source code is free from the repetitive try-catch-finally blocks. The line of code we have to write is one line at most, and will stay constant even as more types and methods are added to the application. This will also give developer a peace of mind that every method will be handled automatically.
 
-One can argue that since unhandled exceptions will bubble up the chain, a developer can simply catch them in the main method, and this would have achieved similar effect. That approach is limited in that it is very generic. When the main method catches an exception, it has no idea what the internal state of the method that failed was. Using Buffalo, the internal state can be inspected by checking the MethodArgs object; this will help in case of debugging. 
+One can argue that since unhandled exceptions will bubble up the chain, a developer can simply catch them in the main method, and this would have achieved similar effect. That approach is limited in that it is very generic. When the main method catches an exception, it has no idea what the internal state of the failed method was. Using Buffalo, the internal state can be inspected by checking the MethodArgs object. 
 
-Buffalo allows developer to quickly create aspects to solve various problems, from unhandled exception to instrumenting the application. These are just some of the scenarios where Buffalo proves to be helpful. More examples are provided in appendix A. 
+Buffalo allows developer to quickly create aspects to solve various problems, from unhandled exception to instrumenting the application. These are just some of the scenarios where Buffalo proves to be helpful. More examples are provided in Appendix A. 
 
 Buffalo has performed well in isolating cross-cutting concerns into single unit of code, which is easily maintained and modified.

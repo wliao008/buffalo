@@ -23,12 +23,12 @@ To get the list of the eligible methods for CIL modification, Buffalo attempts v
 \begin{figure}[H]
   \includegraphics[scale=1.0]{AspectLogicalInclusion2.PNG}
   \centering
-  \caption{Logical Inclusion\label{logical_inclusion}}
+  \caption{Diagram for Finding Eligible Methods\label{logical_inclusion}}
 \end{figure}
 
 If no aspect is applied on the assembly, that does not necessarily mean no aspect is applied anywhere, the aspect might still be applied on any given class or method.
 
-The take away from the above diagram, is that Buffalo first checks if an aspect is applied to the target, then check if it is set to be excluded. At the end it will end up with a list of methods that should be CIL modified.
+Buffalo first checks if an aspect is applied to the target, then check if it is set to be excluded. At the end it will end up with a list of methods that should be CIL modified.
 
 \section{Aspect Interface}
 
@@ -46,7 +46,7 @@ Buffalo supports more than one aspect applied at any given level. This will allo
 
 Furthermore, by default, an aspect will be automatically excluded from applying to itself. This is implemented to prevent stack overflow in some cases. Although argument can be made that an aspect should be able to be applied to a different aspect; that is not currently implemented in Buffalo.
 
-Listing~\ref{aspectexample} shows how an aspect is created. It inherits MethodBoundaryAspect and overrides OnBefore and OnAfter.
+Listing~\ref{aspectexample} shows how a simple aspect is created. It inherits MethodBoundaryAspect and overrides OnBefore and OnAfter.
 
 \begin{lstlisting}[caption={Sample TraceAspect}, label=aspectexample]
 using Buffalo;
@@ -76,7 +76,7 @@ public class TraceAspect : MethodBoundaryAspect
 }
 \end{lstlisting}
 
-To use the aspect, simply apply it to a method, class or assembly. Once the code is compiled to produce an assembly, BuffaloAOP.exe can be invoked by passing it the path to the assembly. Buffalo will take over and weave in the aspect. This and more examples and details are provided in appendix A.
+To use the aspect, simply apply it to a method, class or assembly. Once the code is compiled to produce an assembly, BuffaloAOP.exe can be invoked by passing it the path to the assembly. Buffalo will take over and weave in the aspect. This and more examples and details are provided in Appendix A.
 
 \begin{lstlisting}[caption={Apply Aspect on Class Level}, label=helloaspect]
 [TraceAspect]
@@ -88,18 +88,18 @@ public class Hello
 
 \section{MethodArgs}
 
-As mentioned above, when all is said and done, an aspect ultimately gets injected into each \textit{individual} method. When developing an aspect, meta-information about the target method can be accessed. This information is encapsulated via the MethodArgs object passed in as parameter to the aspect. Currently the full method signature, the method name, return type and parameter list including parameter name, type and value are captured for each target method.
+As mentioned above, when all is said and done, an aspect ultimately gets injected into each \textit{individual} method. When developing an aspect, meta-information about the target method can be accessed. This information is encapsulated via the MethodArgs object passed in as parameter to the aspect. Currently the method name, its full method signature, return type and parameter list (including parameter name, type and value) are captured for each target method.
 
-The parameter list capturing is especially of interest, it enables developer to peek inside the method that is executing at various point and inspect its parameter values. This will be useful in case such as exception handling, where it will be useful to actually see what the values were at the time of the exception.
+The parameter list capturing is especially of interest, it enables developer to peek inside the method that is executing at various point and inspect its parameter values. This will be useful in case such as exception handling, where it will be useful to actually see what the values were at the time of the exception. When using MethodAroundAspect, the parameter values can even be modified and pass back to the original method.
 
 \section{Visual Studio Solution Structure}
 
 Originally Buffalo was implemented as one executable; that includes the various aspects and the program that initiates the weaving. It was later on separated into two assemblies. One is a class library that contains the actual implementation. Another is a command line executable that calls into the class library to perform the weaving. This separation is necessary so developer can perform weaving from the command line or hook into MS-Build if necessary. 
 
-To actually write the aspect, one only needs to reference the class library as underlined in figure~\ref{solutionexplorer}, which is much cleaner than referencing an executable.
+To actually write the aspect, one only needs to reference the class library as underlined in figure~\ref{solutionexplorer}.
 
 \begin{figure}[H]
-  \includegraphics[scale=1.0]{SolutionExplorer2.PNG}
+  \includegraphics[scale=1.0]{SolutionExplorer3.PNG}
   \centering
   \caption{Solution Structure\label{solutionexplorer}}
 \end{figure}
@@ -110,7 +110,7 @@ The client project shown above is a simple program included in the solution for 
 
 The implementation begins by finding all eligible methods to be injected using the verifying process indicated in figure~\ref{logical_inclusion}. Each eligible method will have one or more aspects applied to it. The actual injection process will loop through each aspects for the eligible method and inject the necessary CIL instructions.
 
-The CIL instructions modification is performed by the open source Mono.Cecil library. Originally the System.Reflection APIs in the .NET Framework was favored, but it was later determined that Mono.Cecil provides more features and is much easier to work with. Buffalo uses Mono.Cecil heavily to modify CIL instructions and to assemble the final assembly.
+The CIL instructions modification is performed by using the open source Mono.Cecil library. Originally the System.Reflection APIs in the .NET Framework was favored, but it was later determined that Mono.Cecil provides more features and is much easier to work with. Buffalo uses Mono.Cecil heavily to modify CIL instructions and to assemble the final assembly.
 
 \section{MethodBoundaryAspect Implementation Detail}
 
@@ -164,11 +164,11 @@ Figure~\ref{methodboundaryB4} shows the standard emission of the CLR when it enc
 
 \section{MethodAroundAspect Implementation Detail}
 
-The Around aspect on the other hand is a much more complicated compared to the Boundary aspect.
+The MethodAroundAspect on the other hand is a much more complicated compared to the MethodBoundaryAspect.
 
 MethodAroundAspect implements IMethodAroundAspect which has the following contract:
 
-\begin{lstlisting}[caption={IMethodAroundAspect Contract}, label=aroundcontract]
+\begin{lstlisting}[caption={IMethodAroundAspect Interface}, label=aroundcontract]
 internal interface IMethodAroundAspect : IAspect
 {
 	void Invoke(MethodArgs args)
@@ -185,8 +185,8 @@ When developing an aspect a Proceed() can be issued to signal a call back into t
 	\item Issue a call to Invoke() from the replacement function, passing in the MethodArgs variable.
 	\item Handle the return value appropriately.
 	\begin{enumerate}
-		\item If original method returns non void type, put the return value back on the stack.
-		\item If original method returns void, we need to discard the return value from Invoke().
+		\item If the original method returns non void type, then put the return value back on the stack.
+		\item If the original method returns void, we need to discard the return value from Invoke().
 	\end{enumerate}
 	\item Handle Proceed() that might be issued from inside the Invoke().
 	\begin{enumerate}
@@ -203,9 +203,9 @@ Another important distinction is that MethodAroundAspect currently can be applie
 
 \section{MethodArgs Implementation Detail}
 
-When developing an aspect, information about the target method can be accessed. To achieve that MethodArgs is used. This is the object passed into each aspect. During the weaving, an instance of MethodArgs is created, with all properties assembled dynamically to capture the information of the current executing method. MethodArgs is then passed as parameter into each of the aspect.
+When developing an aspect, information about the target method can be accessed. This is achieved by using the MethodArgs object. During the weaving, an instance of MethodArgs is created, with all properties assembled dynamically to capture the information of the current executing method. MethodArgs is then passed as parameter into each of the aspect.
 
-Being able to capture some information about the annotated methods will be useful. For example, in case of a profiling aspect, information about the method at the time it was access will be helpful. Being able to look at the parameter values in case of error will also be extremely useful in case of debugging.
+Being able to capture some information about the annotated methods will be  extremely useful in case of debugging.
 
 A distinct instance of MethodArgs for each boundary aspects was instantiated at an early Buffalo implementation. Later on as an optimization only one instance is instantiated at the beginning of the method body and that instance is used in all the boundary aspects for a target method.
 
