@@ -29,6 +29,10 @@ As a result the source code is free from the repetitive try-catch-finally blocks
 
 One can argue that since unhandled exceptions will bubble up the chain, a developer can simply catch them in the main method, and this would have achieved similar effect. That approach is limited in that it is very generic. When the main method catches an exception, it has no idea what the internal state of the failed method was. Using Buffalo, the internal state can be inspected by checking the MethodArgs object. 
 
-Buffalo allows developer to quickly create aspects to solve various problems, from unhandled exception to instrumenting the application. These are just some of the scenarios where Buffalo proves to be helpful. More examples are provided in Appendix A. 
+Besides exception handling, Buffalo can be used in scenarios where cross-cutting concerns are common. One problem facing developers when working on database is to ensure data atomicity. Imagine a customer who deposits money to a bank, the amount is saved successfully to the bank’s own record, but the customer’s account failed to get updated due to unforeseeable network error. Not only would the database end up with incomplete data, but the bank would have a very unhappy customer. Either all operations are successfully completed or nothing should have been written to the database.
 
-Buffalo has performed well in isolating cross-cutting concerns into single unit of code, which is easily maintained and modified.
+Buffalo can be used to solve this problem by encapsulating transactional scope using the MethodBoundaryAspect. Complete example is available in Appendix A.
+
+Developers that work with UI elements often run into problems updating the UI from a different thread. As UI elements can be updated only by thread that created them, this creates the cross-threading problem. Buffalo’s MethodAroundAspect can be used to get around this problem by marshaling the update back to the UI thread. For more detail please refer to Appendix A.
+
+Buffalo allows developers to quickly create aspects to solve various problems. Besides the scenarios mentioned above, it can also be used for authorization, where security credential is validated before method execution. It can be used to create a caching mechanism to improve application performance. Buffalo has performed well in isolating cross-cutting concerns into single unit of code, which is easily maintained and modified.

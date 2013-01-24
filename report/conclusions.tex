@@ -7,7 +7,7 @@ Originally MS-Build integration was planned, that when the Buffalo program was i
 
 Originally MethodAroundAspect was intended to be used similar to MethodBoundaryAspect, where it can be applied on three levels. However it was later determined that since the CIL instruction of the actual aspect will also have to be modified, it really does not make sense for it to be applied to more than one method, as it would introduce conflicting changes.
 
-A possible solution to MethodAroundAspect would be to clone the aspect if it is applied to more than one method. However the cloning process is not as easy to do since everything would have to be copied, including references to whatever objects used in the aspect.
+MethodAroundAspect improvement remains to be determined.
 
 \section{Future Work}
 
@@ -15,7 +15,6 @@ There are couple areas where Buffalo can be improved upon. Usability wise, curre
 
 Functionality wise, when Buffalo performs post compilation weaving it starts fresh each time; it would be interesting to see how incremental weaving can be done here. Another useful functionality is to be able to apply aspects by matching a set of methods.
 
-MethodAroundAspect can be improved to be applied on three levels by possibly cloning the aspect.
 \section{Lessons Learned}
 
 A framework such as Buffalo mitigates the problem of cross-cutting concerns. Still, to efficiently tackle the root of the problem, compiler vendors have to actively embrace the AOP concept and provide native support in their programming languages.
