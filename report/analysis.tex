@@ -6,6 +6,8 @@ While it is difficult to quantify the benefit of using Buffalo. It enables aspec
 
 Getting started with Buffalo is also relatively easy compare to other frameworks that are configuration based, where an interface must map to a concrete implementation in order for code injection to work. Buffalo has no such configuration file requirement. Buffalo is 100\% managed code, developers already familiar with the .NET framework will have minimum learning curve.
 
+Although the title of this report indicates that the framework is developed in C\#, by no mean is it limited to the C\# language. Since Buffalo works with the Common Intermediate Language, In practice Buffalo can be used with other .NET languages that compile to CIL, such as VB.NET. Preliminary testings show that Buffalo can also work on the Linux environment where the Mono C\# compiler is installed.
+
 Generally speaking, when using Buffalo, it also makes the code a bit cleaner to read, in that it abstracts away the common code into aspects. Since aspects are centralized, maintainability is much easier. 
 
 Buffalo can be useful in situation where cross-cutting concerns are present. One common case is exception logging, where an aspect can be developed to catch all the unhandled exception.

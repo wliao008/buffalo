@@ -20,14 +20,14 @@
 \contentsline {section}{\numberline {3.7}MethodAroundAspect Implementation Detail}{17}
 \contentsline {section}{\numberline {3.8}MethodArgs Implementation Detail}{19}
 \contentsline {chapter}{\numberline {4}Analysis}{20}
-\contentsline {chapter}{\numberline {5}Conclusions}{22}
-\contentsline {section}{\numberline {5.1}Current Status}{22}
-\contentsline {section}{\numberline {5.2}Future Work}{23}
-\contentsline {section}{\numberline {5.3}Lessons Learned}{23}
-\contentsline {chapter}{Bibliography}{24}
-\contentsline {chapter}{\numberline {A}User Manual}{26}
-\contentsline {section}{\numberline {A.1}Compiling}{26}
-\contentsline {section}{\numberline {A.2}Simple Profiler}{27}
-\contentsline {section}{\numberline {A.3}Transaction Database}{29}
-\contentsline {section}{\numberline {A.4}Update UI Safely with Thread}{32}
-\contentsline {section}{\numberline {A.5}Integrate With MS-Build System}{34}
+\contentsline {chapter}{\numberline {5}Conclusions}{23}
+\contentsline {section}{\numberline {5.1}Current Status}{23}
+\contentsline {section}{\numberline {5.2}Future Work}{24}
+\contentsline {section}{\numberline {5.3}Lessons Learned}{24}
+\contentsline {chapter}{Bibliography}{25}
+\contentsline {chapter}{\numberline {A}User Manual}{27}
+\contentsline {section}{\numberline {A.1}Compiling}{27}
+\contentsline {section}{\numberline {A.2}Simple Profiler}{28}
+\contentsline {section}{\numberline {A.3}Transaction Database}{30}
+\contentsline {section}{\numberline {A.4}Update UI Safely with Thread}{33}
+\contentsline {section}{\numberline {A.5}Integrate With MS-Build System}{35}
