@@ -1,35 +1,18 @@
 \chapter{Analysis}
 
-The project hypothesized that by using Buffalo, programmers can separate the cross-cutting concerns from their applications quickly and easily. Since the concerns are encapsulated in a distinct unit of code, it also enables programmers to easily maintain the aspects and modify them as needed.
+The project hypothesized that by using Buffalo, programmers can separate the cross-cutting concerns from their application quickly and easily. While the current implementation of Buffalo cannot be shoehorned into every situation, in many scenarios cross-cutting concerns can be decoupled and encapsulated into distinct unit of code as an aspect, represented as a .NET attribute type. This separation of concern is what really encourages the code re-usability. Buffalo facilitates this process by providing the necessary plumbing. 
 
-One analysis performed is to write an aspect to catch unhandled exceptions in test programs. The size of the test programs varies from comprising of 50 methods to 1,000 methods. Suppose that to manually implement the exception handling, a programmer will have to write on average 5 lines of code to catch the exception.
+While it is difficult to quantify the benefit of using Buffalo. It enables aspect creations to capture and isolate problems that are spreading into different modules of the program. Because Buffalo makes use of the System.Attribute type that already existed on the .NET platform, developers will have the full power of the .NET framework at their disposal when creating the aspects. 
 
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-Programs & Lines (Traditions) & Lines (Buffalo)\\
-\hline
-50 & 250 & 0-1\\
-500 & 2,500 & 0-1\\
-1,000 & 5,000 & 0-1\\
-\hline
-\end{tabular}
-\caption{Line counts}
-\label{tab:lines_tbl}
-\end{table}
+Getting started with Buffalo is also relatively easy compare to other frameworks that are configuration based, where an interface must map to a concrete implementation in order for code injection to work. Buffalo has no such configuration file requirement. Buffalo is 100\% managed code, developers already familiar with the .NET framework will have minimum learning curve.
 
-If exception handling is implemented for every method by hand, more line of the same try-catch block of code will have to be written as the application adds more methods. The number of line of repetitive code would increase linearly.
+Generally speaking, when using Buffalo, it also makes the code a bit cleaner to read, in that it abstracts away the common code into aspects. Since aspects are centralized, maintainability is much easier. 
 
-Lines of code have a direct correlation to the cost of the development as it will take programmers more time. And this will also have a direct impact on application release schedule.
+Buffalo can be useful in situation where cross-cutting concerns are present. One common case is exception logging, where an aspect can be developed to catch all the unhandled exception.
 
-By using a framework like Buffalo, unhandled exception can be centralized in one aspect, and then simply apply it to every method by applying it on the assembly level. 
+One can argue that since unhandled exceptions will bubble up the chain, a developer can simply catch them in the main method, and this would have achieved similar effect. That approach is limited in that it is very generic. When the main method catches an exception, it has no idea what the internal state of the failed method was. Using Buffalo, the internal state can be inspected by checking the MethodArgs object, giving developer a better sense at what caused the failure.
 
-As a result the source code is free from the repetitive try-catch-finally blocks. The line of code we have to write is one line at most, and will stay constant even as more types and methods are added to the application. This will also give developer a peace of mind that every method will be handled automatically.
-
-One can argue that since unhandled exceptions will bubble up the chain, a developer can simply catch them in the main method, and this would have achieved similar effect. That approach is limited in that it is very generic. When the main method catches an exception, it has no idea what the internal state of the failed method was. Using Buffalo, the internal state can be inspected by checking the MethodArgs object. 
-
-Besides exception handling, Buffalo can be used in scenarios where cross-cutting concerns are common. One problem facing developers when working on database is to ensure data atomicity. Imagine a customer who deposits money to a bank, the amount is saved successfully to the bank’s own record, but the customer’s account failed to get updated due to unforeseeable network error. Not only would the database end up with incomplete data, but the bank would have a very unhappy customer. Either all operations are successfully completed or nothing should have been written to the database.
+Besides exception handling, another common problem facing developers working on database is to ensure data atomicity. Imagine a customer who deposits money to a bank, the amount is saved successfully to the bank’s own record, but the customer’s account failed to get updated due to unforeseeable network error. Not only would the database end up with incomplete data, but the bank would have a very unhappy customer. Either all operations are successfully completed or nothing should have been written to the database.
 
 Buffalo can be used to solve this problem by encapsulating transactional scope using the MethodBoundaryAspect. Complete example is available in Appendix A.
 
