@@ -18,11 +18,11 @@ Early on the implementation approaches were narrowed down to between Run-time In
   \caption{AOP Framework Using Proxy Pattern\label{proxy_model}}
 \end{figure}
 
-New functionality can be “added” to the target object via the proxy. The disadvantage of this approach is that it involves the generation of proxy object at run-time. The run-time performance of the application will be impacted as the result. It is also restricting in that both target object and the proxy must implement a common interface for this to work, and that only virtual methods are exposed for interception.
+New functionality can be “added” to the target object via the proxy. The disadvantage of this approach is that it involves the generation of proxy object at run-time. The run-time performance of the application will be impacted as the result. It is also restricting in that both target object and the proxy must implement a common interface for this to work and that only virtual methods are exposed for interception.
 
 From the end user's perspective, to use it the developer usually have to provide some type of mapping between the target object and the proxy via a configuration file so the actual proxy generation can occur. 
 
-This approach although is easier to implement, but not as easy and friendly to use. Buffalo is not taking this approach mainly because one of the goal is to be flexible and simple to use.
+This approach although is easier to implement, but not as easy and friendly to use. Buffalo is not taking this approach mainly because one of the goals is to be flexible and simple to use.
 
 \section{Post Compilation Weaving}
 

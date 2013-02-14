@@ -88,7 +88,7 @@ public class Hello
 
 \section{MethodArgs}
 
-As mentioned above, when all is said and done, an aspect ultimately gets injected into each \textit{individual} method. When developing an aspect, meta-information about the target method can be accessed. This information is encapsulated via the MethodArgs object passed in as parameter to the aspect. Currently the method name, its full method signature, return type and parameter list (including parameter name, type and value) are captured for each target method.
+As mentioned above, when all is said and done, an aspect ultimately gets injected into each \textit{individual} method. When developing an aspect, meta-information about the target method can be accessed. This information is encapsulated via the MethodArgs object passed in as parameter to the aspect. Method name; its full method signature; return type and parameter list (including parameter name, type and value) are captured for each target method.
 
 The parameter list capturing is especially of interest, it enables developer to peek inside the method that is executing at various point and inspect its parameter values. This will be useful in case such as exception handling, where it will be useful to actually see what the values were at the time of the exception. When using MethodAroundAspect, the parameter values can even be modified and pass back to the original method.
 
@@ -197,7 +197,7 @@ When developing an aspect a Proceed() can be issued to signal a call back into t
 	\item Modify all calls from original method to the replacement method.
 \end{enumerate}
 
-As figure~\ref{around_overview} shown, the actual calling of either the original or replacement method is abstracted away. This is also a testament of the saying in Software Engineering that "anything can be resolved by another layer of abstraction".
+As figure~\ref{around_overview} shown, the actual calling of either the original or replacement method is abstracted away. This is also a testament of the saying in software engineering that "anything can be resolved by another layer of abstraction".
 
 Another important distinction is that MethodAroundAspect currently can be applied only on the method level, and that it should be applied to one method only. This is by design because a replacement method might not be appropriate to replace more than one method. Especially if it is applied on the assembly level, all the public methods will be replaced by a single replacement method!
 

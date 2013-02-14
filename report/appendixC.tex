@@ -1,11 +1,11 @@
 \chapter{User Manual}
 
-It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of a VS solution. I also assume you know how to compile a solution and where to find the compiled assembly. Buffalo is developed in VS2012, it is recommended you have the same version of the IDE installed. The instructions and examples mentioned in this manual are specifically for the Windows platform. Although preliminary testings show that the project can be compiled under Linux where Mono is installed. 
+It is easy to get start using Buffalo. I assume you are reasonably familiar with the Visual Studio IDE and the general layout of a VS solution. I also assume you know how to compile a solution and where to find the compiled assembly. Buffalo is developed in VS2012; it is recommended you have the same version of the IDE installed. The instructions and examples mentioned in this manual are specifically for the Windows platform. Although preliminary testing shows that the project can be compiled under Linux where Mono is installed. 
 
 \section{Compiling}
 To begin, first download the full source code from https://github.com/wliao008/buffalo. Open buffalo.sln in VS2012 and compile the source code. This will produce the Buffalo.dll and BuffaloAOP.exe in their respective bin/debug folder.
 
-For this example we will perform the weaving from a command prompt. So create a folder name under the C drive, here I will call it "Buffalo". Copy Buffalo.dll, BuffaloAOP.exe and Mono.Cecil.dll to C:\textbackslash{Buffalo}. Note this folder can be located anywhere in your system, I am just putting it on the C drive for simplicity.
+For this example we will perform the weaving from a command prompt. So create a folder name under the C drive, here I will call it "Buffalo". Copy Buffalo.dll, BuffaloAOP.exe and Mono.Cecil.dll to C:\textbackslash{Buffalo}. Note this folder can be located anywhere in your system; I am just putting it on the C drive for simplicity.
 
 Now let us create an aspect.
 
@@ -51,7 +51,7 @@ Hello World!
 Hey Buffalo how's it going!
 \end{lstlisting}
 
-And suppose that we want to monitor the program, we want to know when a method was accessed and exited. We can easily create a aspect to do such work.
+And suppose that we want to monitor the program, we want to know when a method was accessed and exited. We can easily create an aspect to do such work.
 
 \begin{lstlisting}[caption={TraceAspect}, label=traceaspect, frame=tb, basicstyle=\scriptsize]
 using Buffalo;
@@ -90,7 +90,7 @@ public class TraceAspect : MethodBoundaryAspect
 }
 \end{lstlisting}
 
-With the aspect defined, now we can apply this aspect on any of the three different levels. Lets apply it to the Hello class for example.
+With the aspect defined, now we can apply this aspect on any of the three different levels. Let's apply it to the Hello class for example.
 \begin{lstlisting}[caption={Apply Aspect to the Hello Class}, label=helloaspect, frame=tb, basicstyle=\scriptsize]
 [TraceAspect]
 public class Hello
@@ -132,7 +132,7 @@ EXITING System.Void Hello.Hello::Say(System.String)
         msg (System.String) = Hey Buffalo how's it going!
 \end{lstlisting}
 
-Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 2, 11, 14 and 16 show the parameter value passed into each method.
+Line 7 and 12 are the original method output, the rest are the output of the various interception points. Note that line 2, 11, 14 and 16 shows the parameter value passed into each method.
 
 \section{Transaction Database}
 
@@ -306,9 +306,9 @@ Note that currently MethodAroundAspect supports only method level attribution. T
 
 \section{Integrate With MS-Build System}
 
-Buffalo can be integrated with MS-Build, so weaving can be invoked automatically when a project is compiled from the Visual Studio IDE. Note that the following instructions are just the bare minimum to get this working, a lot of bell and whistle are omitted.
+Buffalo can be integrated with MS-Build, so weaving can be invoked automatically when a project is compiled from the Visual Studio IDE. Note that the following instructions are just the bare minimum to get this working; a lot of bell and whistle are omitted.
 
-MS-Build is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj, if open in a text editor you will see a line that references a different configuration file: Microsoft.CSharp.targets. This file in term references Microsoft.Common.targets.
+MS-Build is integrated with Visual Studio IDE via configuration file. For example, a C\# project has the associated .csproj; if open in a text editor you will see a line that references a different configuration file: Microsoft.CSharp.targets. This file in term references Microsoft.Common.targets.
 
 Each .NET version has its own Microsoft.Common.targets file. Depending on the version you are using, open up this file in a text editor. For example, for .NET 4.0, this file is located in C:\textbackslash Windows\textbackslash Microsoft.NET\textbackslash Framework\textbackslash v4.0.30319\textbackslash Microsoft.Common.targets.
 
