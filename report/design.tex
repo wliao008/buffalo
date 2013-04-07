@@ -29,50 +29,48 @@ public class TraceAspect : MethodBoundaryAspect
 }
 \end{lstlisting}
 
-To use the aspect, simply apply it to a method, class or assembly. Once the code is compiled to produce an assembly, BuffaloAOP.exe can be invoked by passing it the path to the assembly. Buffalo will take over and weave in the aspect. This and more examples and details are also provided in Appendix A.
+To use the aspect, simply apply it to a method, class or assembly. This ensures that whenever a public function is invoked by an instance of Hello, OnBefore and OnAfter of the aspect will be invoked respectively. Once the code is compiled to produce an assembly, BuffaloAOP.exe can be invoked by passing it the path to the assembly. Buffalo will take over and weave in the aspect. This and more examples and details are also provided in Appendix A.
 
 \begin{lstlisting}[caption={Apply Aspect on Class Level}, label=helloaspect]
 [TraceAspect]
 public class Hello
 {
-	//...
+    //...
 }
 \end{lstlisting}
 
-This ensures that whenever a public function is invoked by an instance of Hello, OnBefore and OnAfter of the aspect will be invoked respectively.
-
 \section{Usage Comparison With AspectJ and PostSharp}
 
-Buffalo is influenced by AspectJ and PostSharp. PostSharp makes use of System.Attribute as well, so creation and usage of aspect is similar to Buffalo. A simple example to replace a function call foo() is presented below to illustrate some of the similarities and differences.
+Buffalo is influenced by AspectJ and PostSharp. PostSharp makes use of System.Attribute as well, and the creation and usage of aspect is similar to Buffalo. A simple example to replace a function call foo() is presented below to illustrate some of the similarities and differences.
 
-Listing~\ref{buffaloaround} shows that Buffalo creates an aspect inheriting from MethodAroundAspect, which is one of the predefined aspect in Buffalo. It overrides the Invoke(), so anytime the annotated function is invoked, the aspect will be called to return 3 instead of 100.
+Listing~\ref{buffaloaround} shows that Buffalo creates an aspect inheriting from MethodAroundAspect, which is one of the predefined aspect in Buffalo. It overrides the Invoke(), so anytime the annotated function foo() is invoked, the aspect will be called to return 3 instead of 100.
 
 \begin{lstlisting}[caption={Buffalo MethodAroundAspect}, label=buffaloaround]
 public class MyAspect : MethodAroundAspect
 {
-	public override object Invoke(Buffalo.MethodArgs args)
-	{
-		return 3;
-	}
+    public override object Invoke(Buffalo.MethodArgs args)
+    {
+        return 3;
+    }
 }
 
 ...
 public class Program
 {
-	[MyAspect]
-	public int foo()
-	{
-		return 100;
-	}
+    [MyAspect]
+    public int foo()
+    {
+        return 100;
+    }
 }
 \end{lstlisting}
 
-AspectJ is a compiler itself that produces compatible Java bytecode, and it has its own syntax that is somewhat different from Java. Listing~\ref{aspectjaround} defines an aspect that will replace all the calls to foo() and returns the integer 3 instead.
+AspectJ is a compiler that produces compatible Java bytecode. It has its own syntax that is somewhat different from Java. Listing~\ref{aspectjaround} defines an aspect that will replace all the calls to foo() and returns the integer 3 instead.
 
 \begin{lstlisting}[caption={AspectJ Around}, label=aspectjaround]
 aspect A {
-	int around(): call(int foo()) {
-		return 3;
+    int around(): call(int foo()) {
+        return 3;
     }
 }
 \end{lstlisting}
@@ -84,19 +82,19 @@ Listing~\ref{postsharpintercept} shows an example of PostSharp, which is very si
 [Serializable]
 public class MyAspect : MethodInterceptionAspect
 {
-	public override void OnInvoke(MethodInterceptionArgs args)
-	{
-		args.ReturnValue = 3;
-	}
+    public override void OnInvoke(MethodInterceptionArgs args)
+    {
+        args.ReturnValue = 3;
+    }
 }
 
 public class Program
 {
-	[MyAspect]
-	public int foo()
-	{
-		return 100;
-	}
+    [MyAspect]
+    public int foo()
+    {
+        return 100;
+    }
 }
 \end{lstlisting}
 
@@ -133,7 +131,7 @@ A given .NET assembly already carries a great deal of such meta-data for various
 
 Buffalo takes advantage of this characteristic in two phases.
 \begin{enumerate}
-	\item An aspect defined in Buffalo will be in the form of an attribute by inheriting from System.Attribute. It can, therefore contain any valid .NET code. Specifically, however, an aspect needs to override various predefined methods in order to do something useful. The next section will discuss the relationship between various aspect types.
+	\item An aspect defined in Buffalo will be in the form of an attribute by inheriting from System.Attribute. It can, therefore contain any valid .NET code. Specifically, however, an aspect needs to override various predefined methods in order to do something useful.
 	\item After compilation, the assembly will now contain the meta-data about all the aspects. Buffalo can inspect the assembly for such information and perform CIL code injection accordingly.
 \end{enumerate}
 
@@ -146,7 +144,7 @@ MethodBoundaryAspect can be cleanly mapped to the try-catch-finally statements o
 
 \begin{lstlisting}[caption={Sample Function}, label=samplefunction]
 public void SomeFunction () {
-   //Perform some action...
+    //Perform some action...
 }
 \end{lstlisting}
 
@@ -154,17 +152,17 @@ When performing CIL modification, the above will be transformed by Buffalo into 
 
 \begin{lstlisting}[caption={Sample Try-catch-finally}, label=sampletcf]
 public void SomeFunction () {
-   try {
-       OnBefore();
-       //Perform some action
-       OnSuccess();
-   }
-   catch (Exception e) {
-       OnException(e);
-   }
-   finally {
-       OnAfter();
-   }
+    try {
+        OnBefore();
+        //Perform some action
+        OnSuccess();
+    }
+    catch (Exception e) {
+        OnException(e);
+    }
+    finally {
+        OnAfter();
+    }
 }
 \end{lstlisting}
 
@@ -222,6 +220,7 @@ If no aspect is applied on the assembly, it does not necessarily mean no aspect 
 
 Buffalo first checks if an aspect is applied to the target, and then checks if it is set to be excluded. At the end it will end up with a list of methods that should be CIL modified.
 
+
 \section{Visual Studio Solution Structure}
 
 Originally Buffalo was implemented as one executable; that includes the various aspects and the program that initiates the weaving. It was later separated into two assemblies. One is a class library that contains the actual implementation. Another is a command line executable that calls into the class library to perform the weaving. This separation is necessary so that the developer can perform weaving from the command line or hook into MS-Build if necessary. 
@@ -235,4 +234,3 @@ To actually write the aspect, one only needs to reference the class library as u
 \end{figure}
 
 The client project shown above is a simple program included in the solution for testing.
-

@@ -17,13 +17,13 @@ Buffalo comprises around 1,200 lines of source code. A user manual is included i
 
 There are several broad approaches to implementing an AOP framework. The ideal approach is to extend the compiler of the target language to provide built-in support, thus making AOP the first class citizen. However there are very few languages out there that take this approach; among the few are Delphi Prism~\cite{delphi_prism2010} and AspectJ~\cite{aspectj_faq, aspectj_text}. 
 
-Microsoft is currently in the "wait and see" mode regarding support of AOP development in the C\# compiler~\cite{hejlsberg}. The alternative compiler, such as Mono C\#~\cite{monocsharp}, is open source, so technically, anyone can build AOP support into it. While that would have been a fun challenge, it would have been a fairly big undertaking, and there is concern that the project might not be finished in the time frame required.
+Microsoft is currently in the "wait and see" mode regarding support of AOP development in the C\# compiler~\cite{hejlsberg}. The alternative compiler, such as Mono C\#~\cite{monocsharp}, is open source, so technically, anyone is free to build AOP support into it. While that would have been a fun challenge, it would have been a fairly big undertaking, and there is concern that the project might not be finished in the time frame required.
 
-That leaves framework support as the other viable option. There are several implementation techniques to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs} via framework.
+That leaves framework support as the other viable option. There are several implementation techniques to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs} via framework. Early on the implementation, approaches were narrowed down to two techniques: Run-time Interception and Post Compilation Weaving.
 
 \section{Run-time Interception}
 
-Early on the implementation, approaches were narrowed down to two approaches: Run-time Interception and Post Compilation Weaving. As its name suggested, Run-time Interception operates while the program is in execution. It uses the proxy pattern where client communicates with the target object via a proxy, and aspects are injected to the proxy. This enables run-time behavior of the program to be modified. Figure~\ref{proxy_model} illustrates this process.
+As its name suggested, Run-time Interception operates while the program is in execution. It uses the proxy pattern where client communicates with the target object via a proxy, and aspects are injected to the proxy. This enables run-time behavior of the program to be modified. Figure~\ref{proxy_model} illustrates this process.
 
 \begin{figure}[H]
   \includegraphics[scale=1.0]{Proxy3.PNG}
@@ -35,7 +35,7 @@ New functionality can be “added” to the target object via the proxy. The dis
 
 From the end user's perspective, to use it, the developer usually must provide some type of mapping between the target object and the proxy via a configuration file so that the actual proxy generation can occur. 
 
-Although this approach is easier to implement, it is not as easy and user-friendly. Buffalo is not taking this approach mainly because one of the goals is to keep it flexible and simple to use.
+Although this approach is easier to implement, it is not as easy and user-friendly to use. Buffalo is not taking this approach mainly because one of the goals is to keep it flexible and simple to use.
 
 \section{Post Compilation Weaving}
 
