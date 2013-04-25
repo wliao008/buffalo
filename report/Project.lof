@@ -3,14 +3,14 @@
 \contentsline {figure}{\numberline {1.1}{\ignorespaces AOP Framework Using Proxy Pattern}}{3}
 \contentsline {figure}{\numberline {1.2}{\ignorespaces Buffalo Model}}{4}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces Aspect Inheritance}}{8}
-\contentsline {figure}{\numberline {2.2}{\ignorespaces Illustration of MethodAroundAspect}}{12}
-\contentsline {figure}{\numberline {2.3}{\ignorespaces Diagram for Finding Eligible Methods}}{14}
-\contentsline {figure}{\numberline {2.4}{\ignorespaces Solution Structure}}{16}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Aspect Inheritance}}{9}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Illustration of MethodAroundAspect}}{13}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Diagram for Finding Eligible Methods}}{15}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Solution Structure}}{17}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces CIL Interception Points}}{19}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces CIL Interception Points}}{20}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {A.1}{\ignorespaces UI Thread Example}}{35}
-\contentsline {figure}{\numberline {A.2}{\ignorespaces Adding Buffalo.targets}}{38}
+\contentsline {figure}{\numberline {A.1}{\ignorespaces UI Thread Example}}{36}
+\contentsline {figure}{\numberline {A.2}{\ignorespaces Adding Buffalo.targets}}{39}

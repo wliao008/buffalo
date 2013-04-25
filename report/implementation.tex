@@ -12,6 +12,7 @@ Each type of aspect has its own injector that implements the IInjectable interfa
 
 MethodBoundaryAspect is pretty straightforward to implement. Take the following hello-world example wrapped in a try-catch-finally block as mentioned previously:
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={SayHello Function}, label=sayhello]
 public void SayHello()
 {
@@ -22,9 +23,11 @@ public void SayHello()
    }
 }
 \end{lstlisting}
+\end{minipage}
 
 The generated CIL is shown in Figure~\ref{methodboundaryB4}. For ease of display, the CIL has been cleaned up a bit:
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={CIL Generated for Sample C\# Function}, label=methodboundaryB4]
 .try
 {
@@ -47,6 +50,7 @@ finally
 }
 IL_001c: ret
 \end{lstlisting}
+\end{minipage}
 
 Figure~\ref{methodboundaryB4} shows the standard emission of the CLR when it encounters the try-catch-finally statement. In CLR, there is a concept of the protected region, where each region is associated with a handler. A try-catch-finally is actually encapsulated in two such regions: a catch and a finally. From here, it can be easily figured out where to inject the various boundary aspects, as shown in Figure~\ref{methodboundary02}.
 
@@ -62,12 +66,14 @@ The MethodAroundAspect, on the other hand, is a much more complicated when compa
 
 MethodAroundAspect implements IMethodAroundAspect which has the following contract:
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={IMethodAroundAspect Interface}, label=aroundcontract]
 internal interface IMethodAroundAspect : IAspect
 {
 	void Invoke(MethodArgs args)
 }
 \end{lstlisting}
+\end{minipage}
 
 In the development of an aspect, a Proceed() can be issued to signal a call back into the original method. The steps taken to implement MethodAroundAspect in CIL are roughly as follows:
 

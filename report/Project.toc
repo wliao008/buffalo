@@ -9,27 +9,27 @@
 \contentsline {chapter}{\numberline {2}Design}{5}
 \contentsline {section}{\numberline {2.1}A Buffalo Example}{5}
 \contentsline {section}{\numberline {2.2}Usage Comparison With AspectJ and PostSharp}{6}
-\contentsline {section}{\numberline {2.3}Aspect Interface}{8}
-\contentsline {section}{\numberline {2.4}MethodArgs}{9}
-\contentsline {section}{\numberline {2.5}A Buffalo Aspect}{9}
-\contentsline {section}{\numberline {2.6}MethodBoundaryAspect}{10}
-\contentsline {section}{\numberline {2.7}MethodAroundAspect}{11}
+\contentsline {section}{\numberline {2.3}Aspect Interface}{9}
+\contentsline {section}{\numberline {2.4}MethodArgs}{10}
+\contentsline {section}{\numberline {2.5}A Buffalo Aspect}{10}
+\contentsline {section}{\numberline {2.6}MethodBoundaryAspect}{11}
+\contentsline {section}{\numberline {2.7}MethodAroundAspect}{12}
 \contentsline {section}{\numberline {2.8}How to Apply an Aspect}{13}
-\contentsline {section}{\numberline {2.9}Visual Studio Solution Structure}{15}
-\contentsline {chapter}{\numberline {3}Implementation}{17}
-\contentsline {section}{\numberline {3.1}Implementation Overview}{17}
-\contentsline {section}{\numberline {3.2}MethodBoundaryAspect Implementation Detail}{17}
-\contentsline {section}{\numberline {3.3}MethodAroundAspect Implementation Detail}{19}
-\contentsline {section}{\numberline {3.4}MethodArgs Implementation Detail}{21}
-\contentsline {chapter}{\numberline {4}Analysis}{22}
-\contentsline {chapter}{\numberline {5}Conclusions}{25}
-\contentsline {section}{\numberline {5.1}Current Status}{25}
-\contentsline {section}{\numberline {5.2}Future Work}{26}
-\contentsline {section}{\numberline {5.3}Lessons Learned}{26}
-\contentsline {chapter}{Bibliography}{27}
-\contentsline {chapter}{\numberline {A}User Manual}{29}
-\contentsline {section}{\numberline {A.1}Compiling}{29}
-\contentsline {section}{\numberline {A.2}Simple Profiler}{30}
-\contentsline {section}{\numberline {A.3}Transaction Database}{32}
-\contentsline {section}{\numberline {A.4}Update UI Safely with Thread}{35}
-\contentsline {section}{\numberline {A.5}Integrate With MS-Build System}{37}
+\contentsline {section}{\numberline {2.9}Visual Studio Solution Structure}{16}
+\contentsline {chapter}{\numberline {3}Implementation}{18}
+\contentsline {section}{\numberline {3.1}Implementation Overview}{18}
+\contentsline {section}{\numberline {3.2}MethodBoundaryAspect Implementation Detail}{18}
+\contentsline {section}{\numberline {3.3}MethodAroundAspect Implementation Detail}{20}
+\contentsline {section}{\numberline {3.4}MethodArgs Implementation Detail}{22}
+\contentsline {chapter}{\numberline {4}Analysis}{23}
+\contentsline {chapter}{\numberline {5}Conclusions}{26}
+\contentsline {section}{\numberline {5.1}Current Status}{26}
+\contentsline {section}{\numberline {5.2}Future Work}{27}
+\contentsline {section}{\numberline {5.3}Lessons Learned}{27}
+\contentsline {chapter}{Bibliography}{28}
+\contentsline {chapter}{\numberline {A}User Manual}{30}
+\contentsline {section}{\numberline {A.1}Compiling}{30}
+\contentsline {section}{\numberline {A.2}Simple Profiler}{31}
+\contentsline {section}{\numberline {A.3}Transaction Database}{34}
+\contentsline {section}{\numberline {A.4}Update UI Safely with Thread}{36}
+\contentsline {section}{\numberline {A.5}Integrate With MS-Build System}{39}

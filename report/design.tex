@@ -4,6 +4,7 @@
 
 An example of how to use Buffalo is presented in Listing~\ref{aspectexample}. Further detail on the design will be discussed in later sections. The example shows how a simple aspect is created. It inherits MethodBoundaryAspect, which is a predefined aspect by Buffalo, and overrides its OnBefore and OnAfter functions.
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Sample TraceAspect}, label=aspectexample]
 using Buffalo;
 using System;
@@ -20,17 +21,18 @@ public class TraceAspect : MethodBoundaryAspect
     void Display(string title, MethodArgs args)
     {
         Console.WriteLine("{0} {1}", title, args.FullName);
-        foreach (var p in args.Parameters)
-        {
+        foreach (var p in args.Parameters){
             Console.WriteLine("\t{0} ({1}) = {2}", 
 			p.Name, p.Type, p.Value);
         }
     }
 }
 \end{lstlisting}
+\end{minipage}
 
-To use the aspect, simply apply it to a method, class or assembly. This ensures that whenever a public function is invoked by an instance of Hello, OnBefore and OnAfter of the aspect will be invoked respectively. Once the code is compiled to produce an assembly, BuffaloAOP.exe can be invoked by passing it the path to the assembly. Buffalo will take over and weave in the aspect. This and more examples and details are also provided in Appendix A.
+To use the aspect, simply apply it to a method, class or assembly. This ensures that whenever a public function of a class attributed with TraceAspect is invoked, OnBefore and OnAfter of the aspect will be invoked respectively. Once the code is compiled to produce an assembly, BuffaloAOP.exe can be invoked by passing it the path to the assembly. Buffalo will take over and weave in the aspect. This and more examples and details are also provided in Appendix A.
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Apply Aspect on Class Level}, label=helloaspect]
 [TraceAspect]
 public class Hello
@@ -38,13 +40,17 @@ public class Hello
     //...
 }
 \end{lstlisting}
+\end{minipage}
 
 \section{Usage Comparison With AspectJ and PostSharp}
+
+What functionality does Buffalo support? What type of weaving does it do? For inspiration, existing works, such as AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp}, were studied. Specifically, Buffalo will intercept the various points of an executing method. Those points are namely the following: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception at any point during the execution. These various points of interception are grouped into the MethodBoundaryAspect.
 
 Buffalo is influenced by AspectJ and PostSharp. PostSharp makes use of System.Attribute as well, and the creation and usage of aspect is similar to Buffalo. A simple example to replace a function call foo() is presented below to illustrate some of the similarities and differences.
 
 Listing~\ref{buffaloaround} shows that Buffalo creates an aspect inheriting from MethodAroundAspect, which is one of the predefined aspect in Buffalo. It overrides the Invoke(), so anytime the annotated function foo() is invoked, the aspect will be called to return 3 instead of 100.
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Buffalo MethodAroundAspect}, label=buffaloaround]
 public class MyAspect : MethodAroundAspect
 {
@@ -54,19 +60,19 @@ public class MyAspect : MethodAroundAspect
     }
 }
 
-...
 public class Program
 {
     [MyAspect]
-    public int foo()
-    {
+    public int foo(){
         return 100;
     }
 }
 \end{lstlisting}
+\end{minipage}
 
 AspectJ is a compiler that produces compatible Java bytecode. It has its own syntax that is somewhat different from Java. Listing~\ref{aspectjaround} defines an aspect that will replace all the calls to foo() and returns the integer 3 instead.
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={AspectJ Around}, label=aspectjaround]
 aspect A {
     int around(): call(int foo()) {
@@ -74,10 +80,12 @@ aspect A {
     }
 }
 \end{lstlisting}
+\end{minipage}
 
 
 Listing~\ref{postsharpintercept} shows an example of PostSharp, which is very similar to how Buffalo is used. The big difference is that the return value is carried in the argument object instead of returning it directly.
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={PostSharp MethodInterceptionAspect}, label=postsharpintercept]
 [Serializable]
 public class MyAspect : MethodInterceptionAspect
@@ -97,7 +105,25 @@ public class Program
     }
 }
 \end{lstlisting}
+\end{minipage}
 
+Functionally, AspectJ and PostSharp are closely matched, but with some strong differences in the approach of implementation.
+
+\begin{enumerate}
+	\item The most noticeable is the approach to pointcuts. AspectJ has a rather elaborate syntax language for defining pointcuts. Whereas PostSharp and Buffalo’s approach is a basic declarative system, making use of the attribute system in .NET.
+
+	\item There is conditional pointcuts in AspectJ. This is not supported in either PostSharp or Buffalo.
+
+	\item On the other hand, PostSharp and Buffalo support events and properties automatically, since at compile time those were transformed into methods by the compiler. AspectJ has the get() and set(), but they rely on pattern matching to find the properties.
+
+	\item Both AspectJ and PostSharp provide a set of tools that integrate into Eclipse and Visual Studio respectively, to make development a lot more visual and easy.
+
+	\item AspectJ, PostSharp and Buffalo all support aspect composition, where multiple aspects can be applied to the same join point. Although in Buffalo the ordering of the execution is not enforced.
+
+\end{enumerate}
+
+
+%\pagebreak
 \section{Aspect Interface}
 
 Figure~\ref{uml01} shows the relationship of various aspect types in Buffalo. This is used by Buffalo to identify aspects during reflection.
@@ -112,7 +138,7 @@ All aspects ultimately implement the IAspect interface; therefore, it can be rea
 
 Buffalo supports more than one aspect applied at any given level. This will allow developers more flexibility while developing multiple aspects and applying them as needed.
 
-Furthermore, by default, an aspect will be automatically excluded from applying to itself. This is implemented to prevent stack overflow in some cases. Although argument can be made that an aspect should be able to be applied to a different aspect; that is not currently implemented in Buffalo.
+Furthermore, by default, an aspect will be automatically excluded from applying to itself. This is implemented to prevent unintended recursion in some cases. Although argument can be made that an aspect should be able to be applied to a different aspect; that is not currently implemented in Buffalo.
 
 
 
@@ -138,18 +164,19 @@ Buffalo takes advantage of this characteristic in two phases.
 In other words, a Buffalo aspect is a .NET attribute in disguise.
 
 \section{MethodBoundaryAspect}
-What functionality does Buffalo support? What type of weaving does it do? For inspiration, existing works, such as AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp}, were studied. Specifically, Buffalo will intercept the various points of an executing method. Those points are namely the following: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception at any point during the execution. These various points of interception are grouped into the MethodBoundaryAspect.
-
 MethodBoundaryAspect can be cleanly mapped to the try-catch-finally statements of the .NET languages. As far as the runtime is concerned~\cite{ecma334, ecma335}, try-catch can be used liberally without serious performance degradation. For example, a simple method is shown in Figure~\ref{samplefunction}:
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Sample Function}, label=samplefunction]
 public void SomeFunction () {
     //Perform some action...
 }
 \end{lstlisting}
+\end{minipage}
 
 When performing CIL modification, the above will be transformed by Buffalo into something shown in Figure~\ref{sampletcf}. This clearly captures the spirit of the MethodBoundaryAspect. Regardless of whether the source already contains its own try-catch, or try-catch-finally blocks, Buffalo will wrap the body of the method inside of a new try-catch-finally block.
 
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Sample Try-catch-finally}, label=sampletcf]
 public void SomeFunction () {
     try {
@@ -165,6 +192,7 @@ public void SomeFunction () {
     }
 }
 \end{lstlisting}
+\end{minipage}
 
 The transformed method in Figure~\ref{sampletcf} still does what the original method intends to do; only now at various points, execution is being intercepted to provide more functionality. 
 
