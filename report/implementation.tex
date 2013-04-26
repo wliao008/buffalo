@@ -103,7 +103,7 @@ Another important distinction is that MethodAroundAspect currently can be applie
 
 \section{MethodArgs Implementation Detail}
 
-When an aspect is being developed, information about the target method can be accessed. This is achieved by using the MethodArgs object. During the weaving, an instance of MethodArgs is created with all properties assembled dynamically to capture the information of the current executing method. MethodArgs is then passed as a parameter into each of the aspect.
+When an aspect is being developed, information about the target method can be accessed. This is achieved by using the MethodArgs object. During the weaving, an instance of MethodArgs is created with all properties assembled dynamically to capture the information of the current executing method. This instance of MethodArgs is then passed as a parameter into each of the joint point of the aspect.
 
 Being able to capture some information about the annotated methods will be  extremely useful in cases where debugging becomes necessary.
 

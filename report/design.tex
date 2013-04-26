@@ -230,7 +230,7 @@ A Buffalo aspect can be applied on three levels, with the following characterist
   \item Assembly - if aspect is applied to an assembly, \#2 will apply for all of the public classes within the assembly.
 \end{enumerate}
 
-An exception to the above rule is the MethodAroundAspect, where it can only be applied on a method level, as will be shown later.
+MethodAroundAspect, however can only be applied on a method level, as will be shown later.
 
 All aspects have a property named AttributeExclude; if this property is set to true, then the annotated target will not be included in the weaving. This exclusion can happen on any level. For example, if a method contains this annotation [SampleAspect(AttributeExclude=true)], the method will be skipped for the SampleAspect during the weaving process.
 
