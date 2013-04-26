@@ -44,11 +44,11 @@ public class Hello
 
 \section{Usage Comparison With AspectJ and PostSharp}
 
-What functionality does Buffalo support? What type of weaving does it do? For inspiration, existing works, such as AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp}, were studied. Specifically, Buffalo will intercept the various points of an executing method. Those points are namely the following: before a method executes; after a method executes; whether or not the method executed successfully without error; or whether the method throws an exception at any point during the execution. These various points of interception are grouped into the MethodBoundaryAspect.
+What functionality does Buffalo support? What type of weaving does it do? For inspiration, existing works, such as AspectJ~\cite{aspectj_faq} and PostSharp~\cite{postsharp}, were studied. Specifically, Buffalo will intercept the various points of an executing method. Those points are namely the following: before a method executes; after a method executes; whether the method executed successfully without error or the method throws an exception at any point during the execution. These various points of interception are grouped into the MethodBoundaryAspect.
 
 Buffalo is influenced by AspectJ and PostSharp. PostSharp makes use of System.Attribute as well, and the creation and usage of aspect is similar to Buffalo. A simple example to replace a function call foo() is presented below to illustrate some of the similarities and differences.
 
-Listing~\ref{buffaloaround} shows that Buffalo creates an aspect inheriting from MethodAroundAspect, which is one of the predefined aspect in Buffalo. It overrides the Invoke(), so anytime the annotated function foo() is invoked, the aspect will be called to return 3 instead of 100.
+Listing~\ref{buffaloaround} shows that Buffalo creates an aspect inheriting from MethodAroundAspect, which is one of the predefined aspects in Buffalo. It overrides the Invoke(), so anytime the annotated function foo() is invoked, the aspect will be called to return 3 instead of 100.
 
 \begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Buffalo MethodAroundAspect}, label=buffaloaround]
@@ -205,7 +205,7 @@ Since the option to call back into the original method is needed, it is critical
 
 To get around this obstacle, whenever Buffalo encounters the MethodAroundAspect applied to a method, it dynamically generates a replacement method in CIL with the same method signature as the original.
 
-The body of this replacement method is also completely different than the original. It instantiates the aspect and makes a call to the Invoke() method, which is the actual code that will be ran as a replacement. 
+The body of this replacement method is also completely different than the original. It instantiates the aspect and makes a call to the Invoke() method, which is the actual code that will be run as a replacement. 
 
 Inside the Invoke method, the developer can issue a call back to the original method via a call to the Proceed() method. Then throughout the program, for any calls made to the original method, Buffalo will change them to call the replacement method instead. This process is illustrated in Figure~\ref{around_overview}.
 

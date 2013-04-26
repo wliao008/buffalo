@@ -1,8 +1,8 @@
 \chapter{Introduction}
 
-Object Oriented Programming (OOP) languages have given programmers much freedom in expressing themselves in Object Oriented Design. However, they are still lacking in some areas when it comes to particular software design decisions such as cross-cutting concern.
+Object Oriented Programming (OOP) languages have given programmers much freedom in expressing themselves in Object Oriented Design. However, they are still lacking in some areas when it comes to particular software design decisions such as cross-cutting concerns.
 
-Cross-cutting concerns are aspects of the program that scatter throughout different areas of the code base. These aspects cannot usually be separated easily or cleanly from the rest of the program. The essence of Aspect Oriented Programming~\cite{aop} is to find ways to solve the cross-cutting concern problems.
+Cross-cutting concerns are aspects of the program that are scattered throughout different areas of the code base. These aspects cannot usually be separated easily or cleanly from the rest of the program. The essence of Aspect Oriented Programming~\cite{aop} is to find ways to solve cross-cutting concern problems.
 
 In this project, a framework called "Buffalo" is designed and implemented to solve this type of problem on the .NET platform. Buffalo makes use of the .NET attribute system to weave aspect code to any targeted methods. The design and rationale of the framework is discussed in Chapter 2. The implementation detail is given in Chapter 3.
 
@@ -19,7 +19,7 @@ There are several broad approaches to implementing an AOP framework. The ideal a
 
 Microsoft is currently in the "wait and see" mode regarding support of AOP development in the C\# compiler~\cite{hejlsberg}. The alternative compiler, such as Mono C\#~\cite{monocsharp}, is open source, so technically, anyone is free to build AOP support into it. While that would have been a fun challenge, it would have been a fairly big undertaking, and there is concern that the project might not be finished in the time frame required.
 
-That leaves framework support as the other viable option. There are several implementation techniques to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs} via framework. Early on the implementation, approaches were narrowed down to two techniques: Run-time Interception and Post Compilation Weaving.
+That leaves framework support as the other viable option. There are several implementation techniques to provide AOP capabilities~\cite{aopcs, postsharp, aspectcs} via framework. Early during the implementation, approaches were narrowed down to two techniques: Run-time Interception and Post Compilation Weaving.
 
 \section{Run-time Interception}
 
@@ -39,7 +39,7 @@ Although this approach is easier to implement, it is not as easy and user-friend
 
 \section{Post Compilation Weaving}
 
-The approach Buffalo takes is Post Compilation Weaving. The idea is that after compilation of the source code, Buffalo takes over to disassemble the assembly and weaves in the defined aspect code to all targeted methods. This approach is more difficult to implement as it involves modifying the underlying assembly by changing Common Intermediate Language (CIL) instructions~\cite{rewrite_msil}. However, the advantage is that no run-time performance of proxy generation will be needed. Therefore, no messy configuration is required.
+The approach Buffalo takes is Post Compilation Weaving. The idea is that after compilation of the source code, Buffalo takes over to disassemble the assembly and weaves in the defined aspect code to all targeted methods. This approach is more difficult to implement as it involves modifying the underlying assembly by changing Common Intermediate Language (CIL) instructions~\cite{rewrite_msil}. However, the advantage is that no run-time generation of proxies will be needed. Therefore, no messy configuration is required.
 
 Since injection happens post-compilation, the whole process can be integrated into the MS-Build system to have the weaving invoked automatically if needed. This will further reduce the steps needed from the developer.
 
